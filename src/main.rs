@@ -2,9 +2,9 @@
 #[tokio::main]
 async fn main() {
     use axum::{routing::post, Router};
+    use dot_ix::{app::*, fileserv::file_and_error_handler};
     use leptos::*;
     use leptos_axum::{generate_route_list, LeptosRoutes};
-    use start_axum::{app::*, fileserv::file_and_error_handler};
 
     simple_logger::init_with_level(log::Level::Info).expect("couldn't initialize logging");
 
@@ -13,7 +13,7 @@ async fn main() {
     //
     // For deployment these variables are:
     //
-    // <https://github.com/leptos-rs/start-axum#executing-a-server-on-a-remote-machine-without-the-toolchain>
+    // <https://github.com/leptos-rs/dot_ix#executing-a-server-on-a-remote-machine-without-the-toolchain>
     //
     // Alternately a file can be specified such as `Some("Cargo.toml")`
     //

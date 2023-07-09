@@ -1,34 +1,47 @@
 [package]
 name = "dot_ix"
-version = "0.1.0"
-edition = "2021"
+description = "Interactive dot graphs"
+documentation = "https://docs.rs/dot_ix/"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+repository.workspace = true
+homepage.workspace = true
+readme.workspace = true
+categories.workspace = true
+keywords.workspace = true
+license.workspace = true
 
 [lib]
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-axum = { version = "0.6.18", optional = true }
-console_error_panic_hook = "0.1"
-console_log = "1"
-cfg-if = "1"
-leptos = { version = "0.4", features = ["nightly"] }
-leptos_axum = { version = "0.4", optional = true }
-leptos_meta = { version = "0.4", features = ["nightly"] }
-leptos_router = { version = "0.4", features = ["nightly"] }
-log = "0.4"
-simple_logger = "4"
-tokio = { version = "1.29.1", optional = true }
-tower = { version = "0.4.13", optional = true }
+axum = { workspace = true, optional = true }
+console_error_panic_hook = { workspace = true }
+console_log = { workspace = true }
+cfg-if = { workspace = true }
+dot_ix_static_check_macros = { workspace = true, optional = true }
+indexmap = { workspace = true, features = ["serde"] }
+leptos = { workspace = true }
+leptos_axum = { workspace = true, optional = true }
+leptos_meta = { workspace = true }
+leptos_router = { workspace = true }
+log = { workspace = true }
+simple_logger = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+tokio = { workspace = true, optional = true }
+tower = { workspace = true, optional = true }
 tower-http = { version = "0.4", features = ["fs"], optional = true }
-wasm-bindgen = "0.2.87"
-thiserror = "1.0.43"
-tracing = { version = "0.1.37", optional = true }
-http = "0.2.9"
+wasm-bindgen = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true, optional = true }
+http = { workspace = true }
 
 [features]
 hydrate = ["leptos/hydrate", "leptos_meta/hydrate", "leptos_router/hydrate"]
 ssr = [
     "dep:axum",
+    "dep:dot_ix_static_check_macros",
     "dep:tokio",
     "dep:tower",
     "dep:tower-http",
@@ -39,13 +52,55 @@ ssr = [
     "dep:tracing",
 ]
 
+[workspace]
+members = ["crate/*"]
+
+[workspace.package]
+version = "0.1.0"
+authors = ["Azriel Hoh <azriel91@gmail.com>"]
+edition = "2021"
+homepage = "https://github.com/azriel91/dot_ix"
+repository = "https://github.com/azriel91/dot_ix"
+readme = "README.md"
+categories = ["visualization"]
+keywords = ["graphviz", "dot"]
+license = "MIT OR Apache-2.0"
+
+[workspace.dependencies]
+# dot_ix crates
+dot_ix_static_check_macros = { version = "0.1.0", path = "crate/static_check_macros" }
+
+# external crates
+axum = "0.6.18"
+console_error_panic_hook = "0.1"
+console_log = "1"
+cfg-if = "1"
+indexmap = "2.0.0"
+leptos = { version = "0.4", features = ["nightly"] }
+leptos_axum = "0.4"
+leptos_meta = { version = "0.4", features = ["nightly"] }
+leptos_router = { version = "0.4", features = ["nightly"] }
+log = "0.4"
+simple_logger = "4"
+serde = "1.0.167"
+tokio = "1.29.1"
+tower = "0.4.13"
+tower-http = "0.4"
+wasm-bindgen = "0.2.87"
+thiserror = "1.0.43"
+tracing = "0.1.37"
+http = "0.2.9"
+proc-macro2 = "1.0.63"
+quote = "1.0.29"
+syn = "2.0.23"
+
 [package.metadata.cargo-all-features]
 denylist = ["axum", "tokio", "tower", "tower-http", "leptos_axum"]
 skip_feature_sets = [["ssr", "hydrate"]]
 
 [package.metadata.leptos]
 # The name used by wasm-bindgen/cargo-leptos for the JS/WASM bundle. Defaults to the crate name
-output-name = "start-axum"
+output-name = "dot_ix"
 
 # The site root folder is where cargo-leptos generate all output. WARNING: all content of this folder will be erased on a rebuild. Use it in your server setup.
 site-root = "target/site"
@@ -64,11 +119,11 @@ tailwind-config-file = "style/tailwind.config.js"
 # Optional. Env: LEPTOS_ASSETS_DIR.
 assets-dir = "public"
 
-# The IP and port (ex: 127.0.0.1:3000) where the server serves the content. Use it in your server setup.
-site-addr = "127.0.0.1:3000"
+# The IP and port (ex: 127.0.0.1:7890) where the server serves the content. Use it in your server setup.
+site-addr = "127.0.0.1:7890"
 
 # The port to use for automatic reload monitoring
-reload-port = 3001
+reload-port = 7891
 
 # [Optional] Command to use when running end2end tests. It will run in the end2end dir.
 #   [Windows] for non-WSL use "npx.cmd playwright test"

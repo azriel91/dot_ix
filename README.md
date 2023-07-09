@@ -17,7 +17,7 @@ cargo install cargo-leptos
 
 Then run
 ```bash
-cargo leptos new --git leptos-rs/start-axum
+cargo leptos new --git leptos-rs/dot_ix
 ```
 
 to generate a new project template.
@@ -26,8 +26,10 @@ to generate a new project template.
 cd {projectname}
 ```
 
-to go to your newly created project.  
-Feel free to explore the project structure, but the best place to start with your application code is in `src/app.rs`.  
+to go to your newly created project.
+
+Feel free to explore the project structure, but the best place to start with your application code is in `src/app.rs`.
+
 Addtionally, Cargo.toml may need updating as new versions of the dependencies are released, especially if things are not working after a `cargo update`.
 
 ## Running your project
@@ -61,8 +63,9 @@ cargo leptos end-to-end
 cargo leptos end-to-end --release
 ```
 
-Cargo-leptos uses Playwright as the end-to-end test tool.  
-Tests are located in end2end/tests directory.
+Cargo-leptos uses Playwright as the end-to-end test tool.
+
+Tests are located in `end2end/tests` directory.
 
 ## Executing a Server on a Remote Machine Without the Toolchain
 After running a `cargo leptos build --release` the minimum files needed are:
@@ -72,15 +75,15 @@ After running a `cargo leptos build --release` the minimum files needed are:
 
 Copy these files to your remote server. The directory structure should be:
 ```text
-start-axum
+dot_ix
 site/
 ```
 Set the following environment variables (updating for your project as needed):
 ```text
-LEPTOS_OUTPUT_NAME="start-axum"
+LEPTOS_OUTPUT_NAME="dot_ix"
 LEPTOS_SITE_ROOT="site"
 LEPTOS_SITE_PKG_DIR="pkg"
-LEPTOS_SITE_ADDR="127.0.0.1:3000"
-LEPTOS_RELOAD_PORT="3001"
+LEPTOS_SITE_ADDR="127.0.0.1:7890"
+LEPTOS_RELOAD_PORT="7891"
 ```
 Finally, run the server binary.
