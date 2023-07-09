@@ -1,7 +1,12 @@
-use crate::error_template::{AppError, ErrorTemplate};
+#![allow(non_snake_case)] // Components are all PascalCase.
+
 use leptos::*;
 use leptos_meta::*;
 use leptos_router::*;
+
+use self::error_template::{AppError, ErrorTemplate};
+
+mod error_template;
 
 #[component]
 pub fn App(cx: Scope) -> impl IntoView {
