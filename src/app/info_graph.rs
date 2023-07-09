@@ -1,6 +1,9 @@
 use leptos::{
-    component, create_signal, event_target_value, tracing, view, IntoView, Scope, SignalUpdate,
+    component, create_signal, event_target_value, tracing, view, IntoView, Scope, SignalGet,
+    SignalUpdate,
 };
+
+use crate::{model::common::GraphvizDotTheme, rt::IntoGraphvizDotSrc};
 
 /// Renders the home page of your application.
 #[component]
@@ -10,13 +13,13 @@ pub fn InfoGraph(cx: Scope) -> impl IntoView {
         String::from(
             r#"---
 nodes:
-  node_a:
+  node_a: !Info
     name: "⚙️ Node A"
     desc: Contains things to do with A.
-  node_a0: "A Child 0" # shorthand
-  node_a1: "A Child 1"
-  node_b : "Node B"
-  node_b0: "B Child 0"
+  node_a0: !Name "A Child 0" # shorthand
+  node_a1: !Name "A Child 1"
+  node_b : !Name "Node B"
+  node_b0: !Name "B Child 0"
 
 edges:
   edge_a_b: [node_a, node_b]
@@ -35,9 +38,9 @@ node_tags:
 
 # tags are not necessarily associated with a node.
 tags:
-- tag_0: { name: "Tag 0", desc: "Some information for tag 0." }
-- tag_1: "Tag 1"
-- tag_2: "Tag 2"
+  tag_0: !Info { name: "Tag 0", desc: "Some information for tag 0." }
+  tag_1: !Name "Tag 1"
+  tag_2: !Name "Tag 2"
 "#,
         ),
     );
@@ -45,7 +48,12 @@ tags:
     let (dot_src, set_dot_src) = create_signal(cx, String::from(""));
     let info_graph_parse = move |_| {
         set_dot_src.update(|dot_src| {
-            *dot_src = String::from("abc");
+            match serde_yaml::from_str::<crate::model::InfoGraph>(&info_graph_src.get()) {
+                Ok(info_graph) => {
+                    *dot_src = IntoGraphvizDotSrc::into(&info_graph, &GraphvizDotTheme::default())
+                }
+                Err(error) => *dot_src = format!("{error}"),
+            }
         });
     };
 

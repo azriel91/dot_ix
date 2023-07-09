@@ -2,6 +2,7 @@ use cfg_if::cfg_if;
 pub mod app;
 pub mod fileserv;
 pub mod model;
+pub mod rt;
 
 cfg_if! { if #[cfg(feature = "hydrate")] {
     use leptos::*;

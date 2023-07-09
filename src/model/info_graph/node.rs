@@ -17,3 +17,12 @@ pub enum Node {
         desc: Option<String>,
     },
 }
+
+impl Node {
+    pub fn name(&self) -> &str {
+        match self {
+            Node::Name(name) => name.as_str(),
+            Node::Info { name, desc: _ } => name.as_str(),
+        }
+    }
+}

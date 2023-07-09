@@ -21,3 +21,25 @@ pub struct InfoGraph {
     /// Tags associated with each node.
     node_tags: IndexMap<NodeId, IndexSet<TagId>>,
 }
+
+impl InfoGraph {
+    pub fn nodes(&self) -> &IndexMap<NodeId, Node> {
+        &self.nodes
+    }
+
+    pub fn edges(&self) -> &IndexMap<EdgeId, [NodeId; 2]> {
+        &self.edges
+    }
+
+    pub fn tags(&self) -> &IndexMap<TagId, Tag> {
+        &self.tags
+    }
+
+    pub fn children(&self) -> &IndexMap<NodeId, IndexSet<NodeId>> {
+        &self.children
+    }
+
+    pub fn node_tags(&self) -> &IndexMap<NodeId, IndexSet<TagId>> {
+        &self.node_tags
+    }
+}
