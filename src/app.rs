@@ -4,9 +4,13 @@ use leptos::*;
 use leptos_meta::*;
 use leptos_router::*;
 
-use self::error_template::{AppError, ErrorTemplate};
+use self::{
+    error_template::{AppError, ErrorTemplate},
+    info_graph::InfoGraph,
+};
 
 mod error_template;
+mod info_graph;
 
 #[component]
 pub fn App(cx: Scope) -> impl IntoView {
@@ -50,6 +54,7 @@ fn HomePage(cx: Scope) -> impl IntoView {
 
     view! { cx,
         <h1>"Welcome to Leptos!"</h1>
-        <button on:click=on_click>"Click Me: " {count}</button>
+        <button on:click=on_click>"Click Me: " {count}</button><br/>
+        <InfoGraph />
     }
 }

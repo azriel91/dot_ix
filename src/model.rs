@@ -121,9 +121,9 @@
 //!
 //! # tags are not necessarily associated with a node.
 //! tags:
-//! - tag_0
-//! - tag_1
-//! - tag_2
+//! - tag_0: { name: "Tag 0", desc: "Some information for tag 0." }
+//! - tag_1: "Tag 1"
+//! - tag_2: "Tag 2"
 //! ```
 
 // Re-exports
