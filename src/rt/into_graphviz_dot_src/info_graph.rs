@@ -1,7 +1,11 @@
+use std::fmt::{self, Write};
+
+use indexmap::IndexMap;
+
 use crate::{
     model::{
-        common::{EdgeId, GraphvizDotTheme, NodeId},
-        InfoGraph, Node,
+        common::{EdgeId, GraphvizDotTheme, NodeHierarchy, NodeId},
+        info_graph::{InfoGraph, NodeInfo},
     },
     rt::IntoGraphvizDotSrc,
 };
@@ -21,16 +25,12 @@ impl IntoGraphvizDotSrc for &InfoGraph {
         let node_attrs = node_attrs(theme);
         let edge_attrs = edge_attrs(theme);
 
-        // TODO: group nodes into node cluster hierarchy, and generate clusters based on
-        // those hierarchies.
-        //
-        // Actually, even better, the node hierarchy should be the top level grouping,
-        // and the node info in its own attribute map.
-
         let node_clusters = self
-            .nodes()
+            .hierarchy()
             .iter()
-            .map(|(node_id, node)| node_cluster(theme, node_id, node))
+            .map(|(node_id, node_hierarchy)| {
+                node_cluster(theme, self.node_infos(), node_id, node_hierarchy)
+            })
             .collect::<Vec<String>>()
             .join("\n");
 
@@ -87,8 +87,8 @@ fn node_attrs(theme: &GraphvizDotTheme) -> String {
                 fontcolor = \"{node_text_color}\"\n\
                 fontname  = \"monospace\"\n\
                 fontsize  = 12\n\
-                shape     = \"circle\"\n\
-                style     = \"filled\"\n\
+                shape     = \"rect\"\n\
+                style     = \"rounded,filled\"\n\
                 width     = 0.3\n\
                 height    = 0.3\n\
                 margin    = 0.04\n\
@@ -113,26 +113,44 @@ fn edge_attrs(theme: &GraphvizDotTheme) -> String {
     )
 }
 
-fn node_cluster(theme: &GraphvizDotTheme, node_id: &NodeId, node: &Node) -> String {
-    let node_label = node.name();
-    let plain_text_color = theme.plain_text_color();
+fn node_cluster(
+    theme: &GraphvizDotTheme,
+    node_infos: &IndexMap<NodeId, NodeInfo>,
+    node_id: &NodeId,
+    node_hierarchy: &NodeHierarchy,
+) -> String {
+    let mut buffer = String::with_capacity(1024);
+
+    node_cluster_internal(theme, node_infos, node_id, node_hierarchy, &mut buffer)
+        .expect("Failed to write node_cluster string.");
+
+    buffer
+}
+
+fn node_cluster_internal(
+    theme: &GraphvizDotTheme,
+    node_infos: &IndexMap<NodeId, NodeInfo>,
+    node_id: &NodeId,
+    node_hierarchy: &NodeHierarchy,
+    buffer: &mut String,
+) -> fmt::Result {
+    let node_info = node_infos.get(node_id);
+    let node_label = node_info.map(NodeInfo::name).unwrap_or(&node_id);
     let classes = "\
-            [&>ellipse]:fill-slate-300 \
-            [&>ellipse]:stroke-1 \
-            [&>ellipse]:stroke-slate-600 \
-            [&>ellipse]:hover:fill-slate-200 \
-            [&>ellipse]:hover:stroke-slate-600 \
-            [&>ellipse]:hover:stroke-2 \
+            [&>path]:fill-slate-300 \
+            [&>path]:stroke-1 \
+            [&>path]:stroke-slate-600 \
+            [&>path]:hover:fill-slate-200 \
+            [&>path]:hover:stroke-slate-600 \
+            [&>path]:hover:stroke-2 \
             cursor-pointer \
         ";
-    format!(
-        r#"
-            subgraph cluster_{node_id} {{
-                {node_id} [label = "" class = "{classes}"]
-                {node_id}_text [
-                    shape="plain"
-                    style=""
-                    fontcolor="{plain_text_color}"
+
+    if node_hierarchy.is_empty() {
+        write!(
+            buffer,
+            r#"
+                {node_id} [
                     label = <<table
                         border="0"
                         cellborder="0"
@@ -142,10 +160,44 @@ fn node_cluster(theme: &GraphvizDotTheme, node_id: &NodeId, node: &Node) -> Stri
                             <td balign="left">{node_label}</td>
                         </tr>
                     </table>>
+                    class = "{classes}"
                 ]
-            }}
-        "#
-    )
+            "#
+        )?;
+    } else {
+        write!(
+            buffer,
+            r#"
+                subgraph cluster_{node_id} {{
+                    label = <<table
+                        border="0"
+                        cellborder="0"
+                        cellpadding="0">
+                        <tr>
+                            <td><font point-size="15">📥</font></td>
+                            <td balign="left">{node_label}</td>
+                        </tr>
+                    </table>>
+                    class = "{classes}"
+            "#
+        )?;
+
+        node_hierarchy
+            .iter()
+            .try_for_each(|(child_node_id, child_node_hierarchy)| {
+                node_cluster_internal(
+                    theme,
+                    node_infos,
+                    child_node_id,
+                    child_node_hierarchy,
+                    buffer,
+                )
+            })?;
+
+        write!(buffer, "}}")?;
+    }
+
+    Ok(())
 }
 
 fn edge(edge_id: &EdgeId, src_node_id: &NodeId, target_node_id: &NodeId) -> String {

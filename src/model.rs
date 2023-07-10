@@ -95,7 +95,18 @@
 //! ## Manual Balanced Approach
 //!
 //! ```yaml
-//! nodes:
+//! hierarchy:
+//!   node_a:
+//!     node_a0: {}
+//!     node_a1: {}
+//!   node_b:
+//!     node_b0: {}
+//!
+//! edges:
+//!   edge_a_b: [node_a, node_b]
+//!   edge_a1_b0: [node_a1, node_b0]
+//!
+//! node_infos:
 //!   node_a:
 //!     name: "⚙️ Node A"
 //!     desc: Contains things to do with A.
@@ -103,14 +114,6 @@
 //!   node_a1: "A Child 1"
 //!   node_b : "Node B"
 //!   node_b0: "B Child 0"
-//!
-//! edges:
-//!   edge_a_b: [node_a, node_b]
-//!   edge_a1_b0: [node_a1, node_b0]
-//!
-//! children:
-//!   node_a: [node_a0, node_a1]
-//!   node_b: [node_b0]
 //!
 //! node_tags:
 //!   node_a: [tag_0, tag_1]
@@ -130,8 +133,5 @@
 #[cfg(feature = "ssr")]
 pub use dot_ix_static_check_macros::{edge_id, node_id};
 
-pub use self::info_graph::{InfoGraph, Node};
-
 pub mod common;
-
-mod info_graph;
+pub mod info_graph;

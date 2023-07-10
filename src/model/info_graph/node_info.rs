@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 /// Basic node info.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-pub enum Node {
+pub enum NodeInfo {
     /// Shorthand, only name is provided.
     Name(
         /// One line, plain text display.
@@ -18,11 +18,11 @@ pub enum Node {
     },
 }
 
-impl Node {
+impl NodeInfo {
     pub fn name(&self) -> &str {
         match self {
-            Node::Name(name) => name.as_str(),
-            Node::Info { name, desc: _ } => name.as_str(),
+            NodeInfo::Name(name) => name.as_str(),
+            NodeInfo::Info { name, desc: _ } => name.as_str(),
         }
     }
 }

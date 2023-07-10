@@ -12,7 +12,14 @@ pub fn InfoGraph(cx: Scope) -> impl IntoView {
         cx,
         String::from(
             r#"---
-nodes:
+hierarchy:
+  node_a:
+    node_a0: {}
+    node_a1: {}
+  node_b:
+    node_b0: {}
+
+node_infos:
   node_a: !Info
     name: "⚙️ Node A"
     desc: Contains things to do with A.
@@ -24,10 +31,6 @@ nodes:
 edges:
   edge_a_b: [node_a, node_b]
   edge_a1_b0: [node_a1, node_b0]
-
-children:
-  node_a: [node_a0, node_a1]
-  node_b: [node_b0]
 
 node_tags:
   node_a: [tag_0, tag_1]
@@ -48,7 +51,8 @@ tags:
     let (dot_src, set_dot_src) = create_signal(cx, String::from(""));
     let info_graph_parse = move |_| {
         set_dot_src.update(|dot_src| {
-            match serde_yaml::from_str::<crate::model::InfoGraph>(&info_graph_src.get()) {
+            match serde_yaml::from_str::<crate::model::info_graph::InfoGraph>(&info_graph_src.get())
+            {
                 Ok(info_graph) => {
                     *dot_src = IntoGraphvizDotSrc::into(&info_graph, &GraphvizDotTheme::default())
                 }
