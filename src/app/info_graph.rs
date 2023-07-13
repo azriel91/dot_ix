@@ -1,11 +1,8 @@
-use leptos::{
-    component, create_signal, event_target_value, tracing, view, IntoView, Scope, SignalGet,
-    SignalUpdate,
-};
+use leptos::*;
 
-use crate::{model::common::GraphvizDotTheme, rt::IntoGraphvizDotSrc};
+use crate::{app::DotSvg, model::common::GraphvizDotTheme, rt::IntoGraphvizDotSrc};
 
-/// Renders the home page of your application.
+/// Text input and dot graph rendering.
 #[component]
 pub fn InfoGraph(cx: Scope) -> impl IntoView {
     let (info_graph_src, set_info_graph_src) = create_signal(
@@ -48,22 +45,33 @@ tags:
         ),
     );
     // Creates a reactive value to update the button
-    let (dot_src, set_dot_src) = create_signal(cx, String::from(""));
+    let (error_text, set_error_text) = create_signal(cx, None::<String>);
+    let (dot_src, set_dot_src) = create_signal(cx, None::<String>);
     let info_graph_parse = move |_| {
-        set_dot_src.update(|dot_src| {
-            match serde_yaml::from_str::<crate::model::info_graph::InfoGraph>(&info_graph_src.get())
-            {
-                Ok(info_graph) => {
-                    *dot_src = IntoGraphvizDotSrc::into(&info_graph, &GraphvizDotTheme::default())
-                }
-                Err(error) => *dot_src = format!("{error}"),
+        let info_graph_result =
+            serde_yaml::from_str::<crate::model::info_graph::InfoGraph>(&info_graph_src.get());
+        let info_graph_result = &info_graph_result;
+
+        set_dot_src.update(|dot_src| match info_graph_result {
+            Ok(info_graph) => {
+                *dot_src = Some(IntoGraphvizDotSrc::into(
+                    info_graph,
+                    &GraphvizDotTheme::default(),
+                ))
             }
+            Err(_) => {
+                *dot_src = None;
+            }
+        });
+        set_error_text.update(|error_text| match info_graph_result {
+            Ok(_) => *error_text = None,
+            Err(error) => *error_text = Some(format!("{error}")),
         });
     };
 
     view! { cx,
         <div
-            class="grid grid-cols-2">
+            class="grid grid-cols-3">
 
             <div>
                 <label for="info_graph_yml">"info_graph.yml"</label><br/>
@@ -71,7 +79,7 @@ tags:
                     id="info_graph_yml"
                     name="info_graph_yml"
                     rows="40"
-                    cols="100"
+                    cols="80"
                     class="
                         border
                         border-slate-400
@@ -83,7 +91,25 @@ tags:
                     "
                     on:input=move |ev| { set_info_graph_src(event_target_value(&ev)) }
                     prop:value=info_graph_src />
-                <br/>
+                <br />
+                <div class={
+                        let error_text = error_text.get();
+                        let error_text_empty = error_text.as_deref().map(str::is_empty).unwrap_or(true);
+                        move || {
+                            if error_text_empty {
+                                "hidden"
+                            } else {
+                                "
+                                border
+                                border-amber-300
+                                bg-gradient-to-b from-amber-100 to-amber-200
+                                rounded
+                                "
+                            }
+                        }
+                    }
+                    >{error_text}</div>
+                <br />
                 <button
                     class="
                         border-2
@@ -104,6 +130,9 @@ tags:
                     on:click=info_graph_parse>"Parse"</button>
             </div>
             <div>
+                <DotSvg dot_src=dot_src />
+            </div>
+            <div>
                 <label for="info_graph_dot">"info_graph.dot"</label><br/>
                 <textarea
                     id="info_graph_dot"
@@ -118,8 +147,8 @@ tags:
                         text-xs
                     "
                     rows="40"
-                    cols="100"
-                    prop:value=dot_src />
+                    cols="80"
+                    prop:value={dot_src} />
             </div>
         </div>
     }

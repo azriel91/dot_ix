@@ -5,10 +5,12 @@ use leptos_meta::*;
 use leptos_router::*;
 
 use self::{
+    dot_svg::DotSvg,
     error_template::{AppError, ErrorTemplate},
     info_graph::InfoGraph,
 };
 
+mod dot_svg;
 mod error_template;
 mod info_graph;
 

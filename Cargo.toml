@@ -44,6 +44,7 @@ ssr = [
     "dep:axum",
     "dep:dot_ix_static_check_macros",
     "dep:tokio",
+    "tokio?/process",
     "dep:tower",
     "dep:tower-http",
     "dep:leptos_axum",
