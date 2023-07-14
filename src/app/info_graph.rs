@@ -92,10 +92,14 @@ tags:
                     on:input=move |ev| { set_info_graph_src(event_target_value(&ev)) }
                     prop:value=info_graph_src />
                 <br />
-                <div class={
-                        let error_text = error_text.get();
-                        let error_text_empty = error_text.as_deref().map(str::is_empty).unwrap_or(true);
+                <div
+                    class={
                         move || {
+                            let error_text = error_text.get();
+                            let error_text_empty = error_text
+                                .as_deref()
+                                .map(str::is_empty)
+                                .unwrap_or(true);
                             if error_text_empty {
                                 "hidden"
                             } else {
@@ -108,7 +112,14 @@ tags:
                             }
                         }
                     }
-                    >{error_text}</div>
+                    >{
+                        move || {
+                            let error_text = error_text.get();
+                            error_text.as_deref()
+                                .unwrap_or("")
+                                .to_string()
+                        }
+                    }</div>
                 <br />
                 <button
                     class="
@@ -148,7 +159,14 @@ tags:
                     "
                     rows="40"
                     cols="80"
-                    prop:value={dot_src} />
+                    prop:value={
+                        move || {
+                            let dot_src = dot_src.get();
+                            dot_src.as_deref()
+                                .unwrap_or("")
+                                .to_string()
+                        }
+                    } />
             </div>
         </div>
     }
