@@ -22,6 +22,20 @@ use crate::{
 ///   take in.
 /// * Whether colours and border sizes can be configured through CSS classes,
 ///   and within the generated dot source, we only apply those classes.
+///
+/// # Notes
+///
+/// When cluster labels are too short, and there are edges between clusters,
+/// `dot` fails with:
+///
+/// ```text
+/// dot: compound.c:452: makeCompoundEdge: Assertion `bez->sflag' failed.
+/// ```
+///
+/// See [graphviz#1879] and [graphviz#1949].
+///
+/// [graphviz#1879]: https://gitlab.com/graphviz/graphviz/-/issues/1879
+/// [graphviz#1949]: https://gitlab.com/graphviz/graphviz/-/issues/1949
 impl IntoGraphvizDotSrc for &InfoGraph {
     fn into(self, theme: &GraphvizDotTheme) -> String {
         let graph_attrs = graph_attrs(theme);
