@@ -211,30 +211,29 @@ fn edge(
     src_node_id: &NodeId,
     target_node_id: &NodeId,
 ) -> String {
-    let (edge_src_node_id, ltail) = if let Some(node_hierarchy) = node_hierarchy.get(src_node_id) {
-        let edge_src_node_id = node_hierarchy
-            .last()
-            .map(|(last_child_node_id, _)| last_child_node_id)
-            .unwrap_or(src_node_id);
+    let (edge_src_node_id, ltail) = if let Some(last_child_node_id) = node_hierarchy
+        .get(src_node_id)
+        .and_then(|node_hierarchy| node_hierarchy.last())
+        .map(|(last_child_node_id, _)| last_child_node_id)
+    {
         let ltail = Cow::Owned(format!(", ltail = cluster_{src_node_id}"));
 
-        (edge_src_node_id, ltail)
+        (last_child_node_id, ltail)
     } else {
         (src_node_id, Cow::Borrowed(""))
     };
 
-    let (edge_target_node_id, lhead) =
-        if let Some(node_hierarchy) = node_hierarchy.get(target_node_id) {
-            let edge_target_node_id = node_hierarchy
-                .first()
-                .map(|(first_child_node_id, _)| first_child_node_id)
-                .unwrap_or(target_node_id);
-            let lhead = Cow::Owned(format!(", lhead = cluster_{target_node_id}"));
+    let (edge_target_node_id, lhead) = if let Some(first_child_node_id) = node_hierarchy
+        .get(target_node_id)
+        .and_then(|node_hierarchy| node_hierarchy.first())
+        .map(|(first_child_node_id, _)| first_child_node_id)
+    {
+        let lhead = Cow::Owned(format!(", lhead = cluster_{target_node_id}"));
 
-            (edge_target_node_id, lhead)
-        } else {
-            (target_node_id, Cow::Borrowed(""))
-        };
+        (first_child_node_id, lhead)
+    } else {
+        (target_node_id, Cow::Borrowed(""))
+    };
 
     format!(
         r#"{edge_src_node_id} -> {edge_target_node_id} [id = "{edge_id}", minlen = 9 {ltail} {lhead}]"#
