@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use leptos::*;
 
 use crate::{app::DotSvg, model::common::GraphvizDotTheme, rt::IntoGraphvizDotSrc};
@@ -89,11 +91,12 @@ tags:
                         rounded
                         text-xs
                     "
-                    on:input=move |ev| {
+                    on:input=leptos_dom::helpers::debounce(cx, Duration::from_millis(400), move |ev| {
                         let info_graph_src = event_target_value(&ev);
                         set_info_graph_src(info_graph_src);
                         info_graph_parse();
-                    }
+                    })
+
                     prop:value=info_graph_src />
                 <br />
                 <div
@@ -144,10 +147,10 @@ tags:
                     "
                     rows="40"
                     cols="80"
-                    on:input=move |ev| {
+                    on:input=leptos_dom::helpers::debounce(cx, Duration::from_millis(400), move |ev| {
                         let dot_src = event_target_value(&ev);
                         set_dot_src(Some(dot_src));
-                    }
+                    })
                     prop:value={
                         move || {
                             let dot_src = dot_src.get();
