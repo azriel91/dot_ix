@@ -27,7 +27,7 @@ node_infos:
 
 edges:
   edge_a_b: [node_a, node_b]
-  edge_a1_b0: [node_a1, node_b0]
+  edge_a1_b0: [node_a0, node_b0]
 
 node_tags:
   node_a: [tag_0, tag_1]
@@ -47,7 +47,7 @@ tags:
     // Creates a reactive value to update the button
     let (error_text, set_error_text) = create_signal(cx, None::<String>);
     let (dot_src, set_dot_src) = create_signal(cx, None::<String>);
-    let info_graph_parse = move |_| {
+    let info_graph_parse = move || {
         let info_graph_result =
             serde_yaml::from_str::<crate::model::info_graph::InfoGraph>(&info_graph_src.get());
         let info_graph_result = &info_graph_result;
@@ -89,7 +89,11 @@ tags:
                         rounded
                         text-xs
                     "
-                    on:input=move |ev| { set_info_graph_src(event_target_value(&ev)) }
+                    on:input=move |ev| {
+                        let info_graph_src = event_target_value(&ev);
+                        set_info_graph_src(info_graph_src);
+                        info_graph_parse();
+                    }
                     prop:value=info_graph_src />
                 <br />
                 <div
@@ -120,25 +124,6 @@ tags:
                                 .to_string()
                         }
                     }</div>
-                <br />
-                <button
-                    class="
-                        border-2
-                        border-slate-500
-                        bg-gradient-to-b from-slate-400 to-slate-500
-                        font-bold
-                        px-3.5
-                        py-0.5
-                        rounded-xl
-                        text-white
-
-                        hover:border-slate-400
-                        hover:from-slate-300 hover:to-slate-400
-                        hover:border-slate-500
-                        hover:bg-slate-400
-                        hover:text-white
-                    "
-                    on:click=info_graph_parse>"Parse"</button>
             </div>
             <div>
                 <DotSvg dot_src=dot_src />
@@ -159,6 +144,10 @@ tags:
                     "
                     rows="40"
                     cols="80"
+                    on:input=move |ev| {
+                        let dot_src = event_target_value(&ev);
+                        set_dot_src(Some(dot_src));
+                    }
                     prop:value={
                         move || {
                             let dot_src = dot_src.get();

@@ -1,4 +1,7 @@
-use std::fmt::{self, Write};
+use std::{
+    borrow::Cow,
+    fmt::{self, Write},
+};
 
 use indexmap::IndexMap;
 
@@ -38,7 +41,7 @@ impl IntoGraphvizDotSrc for &InfoGraph {
             .edges()
             .iter()
             .map(|(edge_id, [src_node_id, target_node_id])| {
-                edge(edge_id, src_node_id, target_node_id)
+                edge(self.hierarchy(), edge_id, src_node_id, target_node_id)
             })
             .collect::<Vec<String>>()
             .join("\n");
@@ -64,6 +67,7 @@ fn graph_attrs(theme: &GraphvizDotTheme) -> String {
     // GraphViz falls back to the space character width.
     format!(
         "\
+            compound  = true\n\
             graph [\n\
                 margin    = 0.1\n\
                 penwidth  = 0\n\
@@ -178,6 +182,7 @@ fn node_cluster_internal(
                             <td balign="left">{node_label}</td>
                         </tr>
                     </table>>
+                    style = "filled,rounded"
                     class = "{classes}"
             "#
         )?;
@@ -200,6 +205,38 @@ fn node_cluster_internal(
     Ok(())
 }
 
-fn edge(edge_id: &EdgeId, src_node_id: &NodeId, target_node_id: &NodeId) -> String {
-    format!(r#"{src_node_id} -> {target_node_id} [id = "{edge_id}", minlen = 9]"#)
+fn edge(
+    node_hierarchy: &NodeHierarchy,
+    edge_id: &EdgeId,
+    src_node_id: &NodeId,
+    target_node_id: &NodeId,
+) -> String {
+    let (edge_src_node_id, ltail) = if let Some(node_hierarchy) = node_hierarchy.get(src_node_id) {
+        let edge_src_node_id = node_hierarchy
+            .last()
+            .map(|(last_child_node_id, _)| last_child_node_id)
+            .unwrap_or(src_node_id);
+        let ltail = Cow::Owned(format!(", ltail = cluster_{src_node_id}"));
+
+        (edge_src_node_id, ltail)
+    } else {
+        (src_node_id, Cow::Borrowed(""))
+    };
+
+    let (edge_target_node_id, lhead) =
+        if let Some(node_hierarchy) = node_hierarchy.get(target_node_id) {
+            let edge_target_node_id = node_hierarchy
+                .first()
+                .map(|(first_child_node_id, _)| first_child_node_id)
+                .unwrap_or(target_node_id);
+            let lhead = Cow::Owned(format!(", lhead = cluster_{target_node_id}"));
+
+            (edge_target_node_id, lhead)
+        } else {
+            (target_node_id, Cow::Borrowed(""))
+        };
+
+    format!(
+        r#"{edge_src_node_id} -> {edge_target_node_id} [id = "{edge_id}", minlen = 9 {ltail} {lhead}]"#
+    )
 }
