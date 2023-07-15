@@ -21,18 +21,19 @@ hierarchy:
   d:
 
 node_infos:
-  a: !Info
+  a:
     name: "⚙️ Node A"
     desc: Contains things to do with A.
-  a0: !Name "A0" # shorthand
-  a1: !Name "A1"
-  b : !Name "Node B"
-  b0: !Name "B0"
-  c: !Name "C"
-  d: !Name "D"
+  a0: { name: "A0", desc: "something to do with A0" }
+  a1: { name: "A1" }
+  b : { name: "B" }
+  b0: { name: "B0" }
+  c:  { name: "C" }
+  d:  { name: "D" }
 
 edges:
   ab: [a, b]
+  a0a1: [a0, a1]
   a0b0: [a0, b0]
   bc: [b, c]
   bd: [b, d]
@@ -46,9 +47,9 @@ node_tags:
 
 # tags are not necessarily associated with a node.
 tags:
-  tag_0: !Info { name: "Tag 0", desc: "Some information for tag 0." }
-  tag_1: !Name "Tag 1"
-  tag_2: !Name "Tag 2"
+  tag_0: { name: "Tag 0", desc: "Some information for tag 0." }
+  tag_1: { name: "Tag 1" }
+  tag_2: { name: "Tag 2" }
 "#,
         ),
     );

@@ -186,6 +186,15 @@ fn node_cluster_internal(
 ) -> fmt::Result {
     let node_info = node_infos.get(node_id);
     let node_label = node_info.map(NodeInfo::name).unwrap_or(&node_id);
+    let node_desc = node_info
+        .and_then(NodeInfo::desc)
+        .map(|desc| format!("<tr><td balign=\"left\">{desc}</td></tr>"));
+    let emoji_rowspan = if node_desc.is_some() {
+        "rowspan=\"2\""
+    } else {
+        ""
+    };
+    let node_desc = node_desc.as_deref().unwrap_or("");
     let classes = "\
             [&>path]:fill-slate-300 \
             [&>path]:stroke-1 \
@@ -206,9 +215,10 @@ fn node_cluster_internal(
                         cellborder="0"
                         cellpadding="0">
                         <tr>
-                            <td><font point-size="15">📥</font></td>
-                            <td balign="left">{node_label}</td>
+                            <td {emoji_rowspan}><font point-size="15">📥</font></td>
+                            <td align="left" balign="left">{node_label}</td>
                         </tr>
+                        {node_desc}
                     </table>>
                     class = "{classes}"
                 ]
@@ -224,9 +234,10 @@ fn node_cluster_internal(
                         cellborder="0"
                         cellpadding="0">
                         <tr>
-                            <td><font point-size="15">📥</font></td>
-                            <td balign="left">{node_label}</td>
+                            <td {emoji_rowspan}><font point-size="15">📥</font></td>
+                            <td align="left" balign="left">{node_label}</td>
                         </tr>
+                        {node_desc}
                     </table>>
                     style = "filled,rounded"
                     class = "{classes}"
