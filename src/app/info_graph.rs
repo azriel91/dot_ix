@@ -56,7 +56,7 @@ tags:
     // Creates a reactive value to update the button
     let (error_text, set_error_text) = create_signal(cx, None::<String>);
     let (dot_src, set_dot_src) = create_signal(cx, None::<String>);
-    let info_graph_parse = move || {
+    create_effect(cx, move |_| {
         let info_graph_result =
             serde_yaml::from_str::<crate::model::info_graph::InfoGraph>(&info_graph_src.get());
         let info_graph_result = &info_graph_result;
@@ -76,9 +76,7 @@ tags:
             Ok(_) => *error_text = None,
             Err(error) => *error_text = Some(format!("{error}")),
         });
-    };
-
-    info_graph_parse();
+    });
 
     view! { cx,
         <div
@@ -103,7 +101,6 @@ tags:
                     on:input=leptos_dom::helpers::debounce(cx, Duration::from_millis(400), move |ev| {
                         let info_graph_src = event_target_value(&ev);
                         set_info_graph_src(info_graph_src);
-                        info_graph_parse();
                     })
 
                     prop:value=info_graph_src />
