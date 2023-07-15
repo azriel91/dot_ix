@@ -62,7 +62,11 @@ pub fn DotSvg(cx: Scope, dot_src: ReadSignal<Option<String>>) -> impl IntoView {
         >
             <h2>"Graph"</h2>
             <div>
-                <div id="svg_div" _ref=svg_div_ref />
+                <div
+                    id="svg_div"
+                    _ref=svg_div_ref
+                    class="overflow-auto"
+                />
                 <div
                     id="error_div"
                     class={

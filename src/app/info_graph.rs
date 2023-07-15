@@ -12,31 +12,37 @@ pub fn InfoGraph(cx: Scope) -> impl IntoView {
         String::from(
             r#"---
 hierarchy:
-  node_a:
-    node_a0: {}
-    node_a1: {}
-  node_b:
-    node_b0: {}
+  a:
+    a0:
+    a1:
+  b:
+    b0:
+  c:
+  d:
 
 node_infos:
-  node_a: !Info
+  a: !Info
     name: "⚙️ Node A"
     desc: Contains things to do with A.
-  node_a0: !Name "A Child 0" # shorthand
-  node_a1: !Name "A Child 1"
-  node_b : !Name "Node B"
-  node_b0: !Name "B Child 0"
+  a0: !Name "A0" # shorthand
+  a1: !Name "A1"
+  b : !Name "Node B"
+  b0: !Name "B0"
+  c: !Name "C"
+  d: !Name "D"
 
 edges:
-  edge_a_b: [node_a, node_b]
-  edge_a1_b0: [node_a0, node_b0]
+  ab: [a, b]
+  a0b0: [a0, b0]
+  bc: [b, c]
+  bd: [b, d]
 
 node_tags:
-  node_a: [tag_0, tag_1]
-  node_a0: [tag_0]
-  node_a1: [tag_1]
-  node_b: [tag_0]
-  node_b0: [tag_0]
+  a: [tag_0, tag_1]
+  a0: [tag_0]
+  a1: [tag_1]
+  b: [tag_0]
+  b0: [tag_0]
 
 # tags are not necessarily associated with a node.
 tags:
@@ -70,6 +76,8 @@ tags:
             Err(error) => *error_text = Some(format!("{error}")),
         });
     };
+
+    info_graph_parse();
 
     view! { cx,
         <div
