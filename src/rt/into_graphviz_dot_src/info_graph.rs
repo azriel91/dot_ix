@@ -136,7 +136,7 @@ fn node_attrs(theme: &GraphvizDotTheme) -> String {
             node [\n\
                 fontcolor = \"{node_text_color}\"\n\
                 fontname  = \"liberationmono\"\n\
-                fontsize  = 12\n\
+                fontsize  = 10\n\
                 shape     = \"rect\"\n\
                 style     = \"rounded,filled\"\n\
                 width     = 0.3\n\
@@ -190,12 +190,17 @@ fn node_cluster_internal(
         .and_then(NodeInfo::desc)
         .map(|desc| desc.replace("\n", "<br />"))
         .map(|desc| format!("<tr><td balign=\"left\">{desc}</td></tr>"));
-    let emoji_rowspan = if node_desc.is_some() {
-        "rowspan=\"2\""
-    } else {
-        ""
-    };
+
+    let emoji = node_info.and_then(NodeInfo::emoji).map(|emoji| {
+        let emoji_rowspan = if node_desc.is_some() {
+            "rowspan=\"2\""
+        } else {
+            ""
+        };
+        format!("<td valign=\"top\" {emoji_rowspan}><font point-size=\"14\">{emoji}</font></td>")
+    });
     let node_desc = node_desc.as_deref().unwrap_or("");
+    let emoji = emoji.as_deref().unwrap_or("");
     let classes = "\
             [&>path]:fill-slate-300 \
             [&>path]:stroke-1 \
@@ -216,8 +221,7 @@ fn node_cluster_internal(
                         cellborder="0"
                         cellpadding="0">
                         <tr>
-                            <td valign="top" {emoji_rowspan}><font point-size="15">📥</font></td>
-                            <td align="left" balign="left">{node_label}</td>
+                            {emoji} <td align="left" balign="left">{node_label}</td>
                         </tr>
                         {node_desc}
                     </table>>
@@ -235,8 +239,7 @@ fn node_cluster_internal(
                         cellborder="0"
                         cellpadding="0">
                         <tr>
-                            <td valign="top" {emoji_rowspan}><font point-size="15">📥</font></td>
-                            <td align="left" balign="left">{node_label}</td>
+                            {emoji} <td align="left" balign="left">{node_label}</td>
                         </tr>
                         {node_desc}
                     </table>>
