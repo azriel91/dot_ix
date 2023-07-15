@@ -51,6 +51,17 @@ pub fn DotSvg(cx: Scope, dot_src: ReadSignal<Option<String>>) -> impl IntoView {
                 //
                 // However, for a client-side only component, we don't need to keep in sync with
                 // the server.
+                //
+                // From Greg (creator of Leptos):
+                //
+                // > `create_effect` is also good for "only run this in the browser" and also for
+                // > "synchronize with something non-reactive" (like a JS function) so don't worry
+                // > about setting a signal inside it in that context.
+                // >
+                // > "Don't set a signal from an effect; rather, derive a signal." is advice meant
+                // > in the sense "don't reactively read a signal inside an effect, and use it to
+                // > set another signal". It's not the end of the world to do so, just not the best
+                // > practice and can be hard to do correctly.
                 set_error_text.update(|error_text| *error_text = error);
             }
         }
