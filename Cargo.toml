@@ -38,6 +38,10 @@ tracing = { workspace = true, optional = true }
 http = { workspace = true }
 serde_yaml = { workspace = true }
 
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+js-sys = { workspace = true }
+web-sys = { workspace = true, features = ["Window"] }
+
 [features]
 hydrate = ["leptos/hydrate", "leptos_meta/hydrate", "leptos_router/hydrate"]
 ssr = [
@@ -78,6 +82,8 @@ console_error_panic_hook = "0.1"
 console_log = "1"
 cfg-if = "1"
 indexmap = "2.0.0"
+js-sys = "0.3.64"
+web-sys = "0.3.64"
 leptos = { version = "0.4", features = ["nightly"] }
 leptos_axum = "0.4"
 leptos_meta = { version = "0.4", features = ["nightly"] }
