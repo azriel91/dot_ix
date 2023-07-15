@@ -216,7 +216,7 @@ fn node_cluster_internal(
                         cellborder="0"
                         cellpadding="0">
                         <tr>
-                            <td {emoji_rowspan}><font point-size="15">📥</font></td>
+                            <td valign="top" {emoji_rowspan}><font point-size="15">📥</font></td>
                             <td align="left" balign="left">{node_label}</td>
                         </tr>
                         {node_desc}
@@ -235,7 +235,7 @@ fn node_cluster_internal(
                         cellborder="0"
                         cellpadding="0">
                         <tr>
-                            <td {emoji_rowspan}><font point-size="15">📥</font></td>
+                            <td valign="top" {emoji_rowspan}><font point-size="15">📥</font></td>
                             <td align="left" balign="left">{node_label}</td>
                         </tr>
                         {node_desc}
