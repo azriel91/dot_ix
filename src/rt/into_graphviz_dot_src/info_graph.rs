@@ -125,8 +125,7 @@ fn graph_attrs(theme: &GraphvizDotTheme) -> String {
                 fontname  = \"helvetica\"\n\
                 fontcolor = \"{plain_text_color}\"\n\
                 fontsize  = {node_point_size}\n\
-                splines   = line\n\
-                rankdir   = LR\n\
+                rankdir   = TB\n\
             ]\n\
         "
     )
@@ -188,6 +187,7 @@ fn node_cluster_internal(
     node_hierarchy: &NodeHierarchy,
     buffer: &mut String,
 ) -> fmt::Result {
+    let node_point_size = theme.node_point_size();
     let node_info = node_infos.get(node_id);
     let node_label = node_info.map(NodeInfo::name).unwrap_or(&node_id);
     let node_desc = node_info
@@ -219,9 +219,9 @@ fn node_cluster_internal(
         let emoji_point_size = theme.emoji_point_size();
         let emoji_point_size_spaced = emoji_point_size + cell_spacing;
         let row_height = if node_desc.is_some() {
-            theme.node_point_size() * 2
+            node_point_size * 2
         } else {
-            theme.node_point_size()
+            node_point_size
         };
         format!(
             "\
@@ -285,6 +285,7 @@ fn node_cluster_internal(
             buffer,
             r#"
                 subgraph cluster_{node_id} {{
+                    margin = {node_point_size}
                     label = <<table
                         border="0"
                         cellborder="0"
