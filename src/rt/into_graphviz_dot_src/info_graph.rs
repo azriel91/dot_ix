@@ -25,17 +25,49 @@ use crate::{
 ///
 /// # Notes
 ///
-/// When cluster labels are too short, and there are edges between clusters,
-/// `dot` fails with:
+/// ## GraphViz Version and Errors
+///
+/// Many package managers ship Graphviz 2.43, which is a really old version.
+/// In 2.43.0, when cluster labels are too short, and there are edges between
+/// clusters, `dot` fails with:
 ///
 /// ```text
 /// dot: compound.c:452: makeCompoundEdge: Assertion `bez->sflag' failed.
 /// ```
 ///
 /// See [graphviz#1879] and [graphviz#1949].
+/// This can be avoided by handling requests using an up-to-date version of
+/// GraphViz -- 8.1.0 at the time of writing.
 ///
 /// [graphviz#1879]: https://gitlab.com/graphviz/graphviz/-/issues/1879
 /// [graphviz#1949]: https://gitlab.com/graphviz/graphviz/-/issues/1949
+///
+/// ## Font Metrics
+///
+/// Internally, GraphViz hardcodes font metrics for width calculation.
+///
+/// The exhaustive list of fonts for version `8.1.0`, from
+/// `lib/common/textspan_lut.c` -- search for `(const char *[])`, are:
+///
+/// ```text
+/// "Calibri", "Georgia", "Nunito", "OpenSans", "Trebuchet MS", "Trebuchet",
+/// "Verdana", "albany", "arial", "arialmt", "arimo", "consola", "consolas",
+/// "cour", "courier", "couriernew", "cousine", "cumberland", "dejavusans",
+/// "freemono", "freesans", "freeserif", "helvetica", "liberationmono",
+/// "liberationsans", "liberationserif", "nimbusmono", "nimbusroman",
+/// "nimbussans", "nimbussansa", "texgyrecursor", "texgyreheros",
+/// "texgyretermes", "thorndale", "times", "timesnewroman", "timesroman",
+/// "tinos"
+/// ```
+///
+/// However, not all of these fonts are available to end users, and so web
+/// application developers must ship the fonts to the users, and also take into
+/// account licensing.
+///
+/// See [`liberationmono`] for a monospace font -- the download from the Webfont
+/// Kit tab includes instruction for setting this up.
+///
+/// [`liberationmono`]: https://www.fontsquirrel.com/fonts/liberation-mono
 impl IntoGraphvizDotSrc for &InfoGraph {
     fn into(self, theme: &GraphvizDotTheme) -> String {
         let graph_attrs = graph_attrs(theme);
@@ -103,7 +135,7 @@ fn node_attrs(theme: &GraphvizDotTheme) -> String {
         "\
             node [\n\
                 fontcolor = \"{node_text_color}\"\n\
-                fontname  = \"monospace\"\n\
+                fontname  = \"liberationmono\"\n\
                 fontsize  = 12\n\
                 shape     = \"rect\"\n\
                 style     = \"rounded,filled\"\n\
