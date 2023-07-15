@@ -111,6 +111,8 @@ fn graph_attrs(theme: &GraphvizDotTheme) -> String {
     // Note: `margin` is set to 0.1 because some text lies outside the viewport.
     // This may be due to incorrect width calculation for emoji characters, which
     // GraphViz falls back to the space character width.
+
+    let node_point_size = theme.node_point_size();
     format!(
         "\
             compound  = true\n\
@@ -122,6 +124,7 @@ fn graph_attrs(theme: &GraphvizDotTheme) -> String {
                 bgcolor   = \"transparent\"\n\
                 fontname  = \"helvetica\"\n\
                 fontcolor = \"{plain_text_color}\"\n\
+                fontsize  = {node_point_size}\n\
                 splines   = line\n\
                 rankdir   = LR\n\
             ]\n\
@@ -131,12 +134,13 @@ fn graph_attrs(theme: &GraphvizDotTheme) -> String {
 
 fn node_attrs(theme: &GraphvizDotTheme) -> String {
     let node_text_color = theme.node_text_color();
+    let node_point_size = theme.node_point_size();
     format!(
         "\
             node [\n\
                 fontcolor = \"{node_text_color}\"\n\
                 fontname  = \"liberationmono\"\n\
-                fontsize  = 10\n\
+                fontsize  = {node_point_size}\n\
                 shape     = \"rect\"\n\
                 style     = \"rounded,filled\"\n\
                 width     = 0.3\n\
@@ -197,7 +201,52 @@ fn node_cluster_internal(
         } else {
             ""
         };
-        format!("<td valign=\"top\" {emoji_rowspan}><font point-size=\"14\">{emoji}</font></td>")
+
+        // Graphviz uses one space character per byte in the emoji.
+        //
+        // Because emojis tend to be 4 bytes long, the width of the cell tends to be 4
+        // times what it should be.
+        //
+        // Specifying the following attributes, plus the nested table, is a hardcoded
+        // hack to fix that:
+        //
+        // * `align`
+        // * `balign`
+        // * `fixedsized`
+        // * `width`
+        // * `height`
+        let cell_spacing = 2;
+        let emoji_point_size = theme.emoji_point_size();
+        let emoji_point_size_spaced = emoji_point_size + cell_spacing;
+        let row_height = if node_desc.is_some() {
+            theme.node_point_size() * 2
+        } else {
+            theme.node_point_size()
+        };
+        format!(
+            "\
+            <td \
+                valign=\"top\" \
+                {emoji_rowspan}
+            >\
+                <table \
+                    border=\"0\" \
+                    cellborder=\"0\" \
+                    cellpadding=\"0\" \
+                    cellspacing=\"{cell_spacing}\" \
+                >\
+                    <tr><td \
+                        fixedsize=\"true\" \
+                        width=\"{emoji_point_size_spaced}\" \
+                        height=\"{row_height}\" \
+                        align=\"left\" \
+                        balign=\"left\" \
+                    >\
+                        <font point-size=\"{emoji_point_size}\">{emoji}</font>\
+                    </td></tr>
+                </table>
+            </td>"
+        )
     });
     let node_desc = node_desc.as_deref().unwrap_or("");
     let emoji = emoji.as_deref().unwrap_or("");
@@ -219,7 +268,9 @@ fn node_cluster_internal(
                     label = <<table
                         border="0"
                         cellborder="0"
-                        cellpadding="0">
+                        cellpadding="0"
+                        cellspacing="0"
+                    >
                         <tr>
                             {emoji} <td align="left" balign="left">{node_label}</td>
                         </tr>
@@ -237,7 +288,9 @@ fn node_cluster_internal(
                     label = <<table
                         border="0"
                         cellborder="0"
-                        cellpadding="0">
+                        cellpadding="0"
+                        cellspacing="0"
+                    >
                         <tr>
                             {emoji} <td align="left" balign="left">{node_label}</td>
                         </tr>
