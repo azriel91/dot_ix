@@ -23,7 +23,11 @@ hierarchy:
 node_infos:
   a:
     name: "⚙️ Node A"
-    desc: Contains things to do with A.
+    desc: >
+      Contains things to
+      do with A.
+
+      More description
   a0: { name: "A0", desc: "something to do with A0" }
   a1: { name: "A1" }
   b : { name: "B" }

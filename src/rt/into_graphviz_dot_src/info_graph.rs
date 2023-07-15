@@ -188,6 +188,7 @@ fn node_cluster_internal(
     let node_label = node_info.map(NodeInfo::name).unwrap_or(&node_id);
     let node_desc = node_info
         .and_then(NodeInfo::desc)
+        .map(|desc| desc.replace("\n", "<br />"))
         .map(|desc| format!("<tr><td balign=\"left\">{desc}</td></tr>"));
     let emoji_rowspan = if node_desc.is_some() {
         "rowspan=\"2\""
