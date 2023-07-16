@@ -1,5 +1,6 @@
 use std::{
     borrow::Cow,
+    collections::{HashMap, VecDeque},
     fmt::{self, Write},
 };
 
@@ -83,11 +84,39 @@ impl IntoGraphvizDotSrc for &InfoGraph {
             .collect::<Vec<String>>()
             .join("\n");
 
+        // Build a map from `NodeId` to their `NodeHierarchy`, so that we don't have to
+        // search for it every time we want to create an edge.
+        let node_id_to_hierarchy = {
+            let mut node_id_to_hierarchy =
+                HashMap::<&NodeId, &NodeHierarchy>::with_capacity(self.edges().len());
+            let mut hierarchy_queue = VecDeque::new();
+            hierarchy_queue.push_back(self.hierarchy());
+
+            while let Some(hierarchy) = hierarchy_queue.pop_front() {
+                hierarchy.iter().for_each(|(node_id, node_hierarchy)| {
+                    node_id_to_hierarchy.insert(node_id, node_hierarchy);
+                    hierarchy_queue.push_back(node_hierarchy);
+                });
+            }
+
+            node_id_to_hierarchy
+        };
+
         let edges = self
             .edges()
             .iter()
             .map(|(edge_id, [src_node_id, target_node_id])| {
-                edge(self.hierarchy(), edge_id, src_node_id, target_node_id)
+                // We need to find the node_hierarchy for both the the `src_node_id` and
+                // `target_node_id`.
+                let src_node_hierarchy = node_id_to_hierarchy.get(src_node_id).copied();
+                let target_node_hierarchy = node_id_to_hierarchy.get(target_node_id).copied();
+                edge(
+                    edge_id,
+                    src_node_id,
+                    src_node_hierarchy,
+                    target_node_id,
+                    target_node_hierarchy,
+                )
             })
             .collect::<Vec<String>>()
             .join("\n");
@@ -321,32 +350,57 @@ fn node_cluster_internal(
 }
 
 fn edge(
-    node_hierarchy: &NodeHierarchy,
     edge_id: &EdgeId,
     src_node_id: &NodeId,
+    src_node_hierarchy: Option<&NodeHierarchy>,
     target_node_id: &NodeId,
+    target_node_hierarchy: Option<&NodeHierarchy>,
 ) -> String {
-    let (edge_src_node_id, ltail) = if let Some(last_child_node_id) = node_hierarchy
-        .get(src_node_id)
-        .and_then(|node_hierarchy| node_hierarchy.last())
-        .map(|(last_child_node_id, _)| last_child_node_id)
+    let (edge_src_node_id, ltail) = if let Some((mut child_node_id, mut child_node_hierarchy)) =
+        src_node_hierarchy
+            .filter(|node_hierarchy| !node_hierarchy.is_empty())
+            .and_then(|node_hierarchy| node_hierarchy.last())
     {
+        // This is a cluster, find the bottom / right most node.
+        while let Some((next_node_id, next_node_hierarchy)) = child_node_hierarchy
+            .get(child_node_id)
+            .filter(|node_hierarchy| !node_hierarchy.is_empty())
+            .and_then(|node_hierarchy| node_hierarchy.last())
+        {
+            child_node_id = next_node_id;
+            child_node_hierarchy = next_node_hierarchy;
+        }
+        let edge_src_node_id = child_node_id;
+
         let ltail = Cow::Owned(format!(", ltail = cluster_{src_node_id}"));
 
-        (last_child_node_id, ltail)
+        (edge_src_node_id, ltail)
     } else {
+        // This is a node, not a cluster.
         (src_node_id, Cow::Borrowed(""))
     };
 
-    let (edge_target_node_id, lhead) = if let Some(first_child_node_id) = node_hierarchy
-        .get(target_node_id)
-        .and_then(|node_hierarchy| node_hierarchy.first())
-        .map(|(first_child_node_id, _)| first_child_node_id)
+    let (edge_target_node_id, lhead) = if let Some((mut child_node_id, mut child_node_hierarchy)) =
+        target_node_hierarchy
+            .filter(|node_hierarchy| !node_hierarchy.is_empty())
+            .and_then(|node_hierarchy| node_hierarchy.first())
     {
+        // This is a cluster, find the top / left most node.
+        while let Some((next_node_id, next_node_hierarchy)) = child_node_hierarchy
+            .get(child_node_id)
+            .filter(|node_hierarchy| !node_hierarchy.is_empty())
+            .and_then(|node_hierarchy| node_hierarchy.first())
+        {
+            child_node_id = next_node_id;
+            child_node_hierarchy = next_node_hierarchy;
+        }
+        let edge_target_node_id = child_node_id;
+
         let lhead = Cow::Owned(format!(", lhead = cluster_{target_node_id}"));
 
-        (first_child_node_id, lhead)
+        (edge_target_node_id, lhead)
     } else {
+        // This is a node, not a cluster.
         (target_node_id, Cow::Borrowed(""))
     };
 

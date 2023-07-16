@@ -14,6 +14,7 @@ pub fn InfoGraph(cx: Scope) -> impl IntoView {
 hierarchy:
   a:
     a0:
+      a00:
     a1:
   b:
     b0:
@@ -38,7 +39,7 @@ node_infos:
 
 edges:
   ab: [a, b]
-  a0a1: [a0, a1]
+  a0a1: [a00, a1]
   a0b0: [a0, b0]
   bc: [b, c]
   bd: [b, d]
