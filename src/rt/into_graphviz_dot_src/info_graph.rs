@@ -285,7 +285,11 @@ fn node_cluster_internal(
             [&>path]:stroke-slate-600 \
             [&>path]:hover:fill-slate-200 \
             [&>path]:hover:stroke-slate-600 \
-            [&>path]:hover:stroke-2 \
+            [&>path]:focus:fill-lime-200 \
+            [&>path]:focus:outline-1 \
+            [&>path]:focus:outline-lime-600 \
+            [&>path]:focus:outline-dashed \
+            [&>path]:focus:rounded-xl \
             cursor-pointer \
         ";
 

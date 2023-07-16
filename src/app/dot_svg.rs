@@ -31,7 +31,7 @@ pub fn DotSvg(cx: Scope, dot_src: ReadSignal<Option<String>>) -> impl IntoView {
                 use std::borrow::Cow;
 
                 let (dot_svg, error) = match graphviz_dot_svg(dot_src) {
-                    Ok(dot_svg) => (Cow::Owned(dot_svg), None),
+                    Ok(dot_svg) => (Cow::Owned(dot_svg.replace("<g ", "<g tabindex=\"0\" ")), None),
                     Err(error) => {
                         let error = js_sys::Error::from(error)
                             .to_string()
