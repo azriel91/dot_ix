@@ -8,7 +8,8 @@ pub use self::{node_info::NodeInfo, tag::Tag};
 mod node_info;
 mod tag;
 
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(default)]
 pub struct InfoGraph {
     /// Nested nodes.
     hierarchy: NodeHierarchy,
