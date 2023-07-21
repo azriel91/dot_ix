@@ -31,7 +31,12 @@ pub fn DotSvg(cx: Scope, dot_src: ReadSignal<Option<String>>) -> impl IntoView {
                 use std::borrow::Cow;
 
                 let (dot_svg, error) = match graphviz_dot_svg(dot_src) {
-                    Ok(dot_svg) => (Cow::Owned(dot_svg.replace("<g ", "<g tabindex=\"0\" ")), None),
+                    // TODO: Extract these string replacements so that they can be run from a server_function
+                    Ok(dot_svg) => (Cow::Owned(dot_svg
+                            .replace("<g ", "<g tabindex=\"0\" ")
+                            .replace("fill=\"#000000\"", "")
+                            .replace("stroke=\"#000000\"", "")
+                        ), None),
                     Err(error) => {
                         let error = js_sys::Error::from(error)
                             .to_string()

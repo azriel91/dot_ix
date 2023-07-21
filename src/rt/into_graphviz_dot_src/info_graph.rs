@@ -5,11 +5,12 @@ use std::{
 };
 
 use indexmap::IndexMap;
+use indoc::{formatdoc, writedoc};
 
 use crate::{
     model::{
-        common::{EdgeId, GraphvizDotTheme, NodeHierarchy, NodeId},
-        info_graph::{InfoGraph, NodeInfo},
+        common::{EdgeId, GraphvizDotTheme, NodeHierarchy, NodeId, TagId},
+        info_graph::{InfoGraph, NodeInfo, Tag},
     },
     rt::IntoGraphvizDotSrc,
 };
@@ -69,6 +70,20 @@ use crate::{
 /// Kit tab includes instruction for setting this up.
 ///
 /// [`liberationmono`]: https://www.fontsquirrel.com/fonts/liberation-mono
+///
+/// ## Tailwind CSS Generation
+///
+/// Currently tailwind compilation is done on `.rs` source. This means the
+/// classes must be fully spelt out in source, and cannot be computed string
+/// formats.
+///
+/// If we were to support runtime tailwind CSS generation, e.g. the user
+/// specifying a colour which is plugged into a `format!("fill-{colour}")`, then
+/// we need to run tailwind on the generated dot source.
+///
+/// The most complete crate for this at the tim of writing is [`tailwind-css`].
+///
+/// [`tailwind-css`]: https://github.com/oovm/tailwind-rs
 impl IntoGraphvizDotSrc for &InfoGraph {
     fn into(self, theme: &GraphvizDotTheme) -> String {
         let graph_attrs = graph_attrs(theme);
@@ -121,7 +136,11 @@ impl IntoGraphvizDotSrc for &InfoGraph {
             .collect::<Vec<String>>()
             .join("\n");
 
-        format!(
+        let mut tag_legend_buffer = String::with_capacity(512 * self.tags().len() + 512);
+        tag_legend(&mut tag_legend_buffer, theme, self.tags())
+            .expect("Failed to write `tag_legend` string.");
+
+        formatdoc!(
             "digraph G {{
                 {graph_attrs}
                 {node_attrs}
@@ -130,6 +149,8 @@ impl IntoGraphvizDotSrc for &InfoGraph {
                 {node_clusters}
 
                 {edges}
+
+                {tag_legend_buffer}
             }}"
         )
     }
@@ -142,56 +163,58 @@ fn graph_attrs(theme: &GraphvizDotTheme) -> String {
     // GraphViz falls back to the space character width.
 
     let node_point_size = theme.node_point_size();
-    format!(
-        "\
-            compound  = true\n\
-            graph [\n\
-                margin    = 0.1\n\
-                penwidth  = 0\n\
-                nodesep   = 0.0\n\
-                ranksep   = 0.02\n\
-                bgcolor   = \"transparent\"\n\
-                fontname  = \"helvetica\"\n\
-                fontcolor = \"{plain_text_color}\"\n\
-                fontsize  = {node_point_size}\n\
-                rankdir   = TB\n\
-            ]\n\
-        "
+    formatdoc!(
+        r#"
+        compound  = true
+        graph [
+            margin    = 0.1
+            penwidth  = 0
+            nodesep   = 0.0
+            ranksep   = 0.02
+            bgcolor   = "transparent"
+            fontname  = "helvetica"
+            fontcolor = "{plain_text_color}"
+            fontsize  = {node_point_size}
+            rankdir   = TB
+        ]
+        "#
     )
 }
 
 fn node_attrs(theme: &GraphvizDotTheme) -> String {
     let node_text_color = theme.node_text_color();
     let node_point_size = theme.node_point_size();
-    format!(
-        "\
-            node [\n\
-                fontcolor = \"{node_text_color}\"\n\
-                fontname  = \"liberationmono\"\n\
-                fontsize  = {node_point_size}\n\
-                shape     = \"rect\"\n\
-                style     = \"rounded,filled\"\n\
-                width     = 0.3\n\
-                height    = 0.3\n\
-                margin    = 0.04\n\
-                color     = \"#9999aa\"\n\
-                fillcolor = \"#ddddf5\"\n\
-            ]\n\
-        "
+    let node_width = theme.node_width();
+    let node_height = theme.node_height();
+    let node_margin_x = theme.node_margin_x();
+    let node_margin_y = theme.node_margin_y();
+    formatdoc!(
+        r#"
+        node [
+            fontcolor = "{node_text_color}"
+            fontname  = "liberationmono"
+            fontsize  = {node_point_size}
+            shape     = "rect"
+            style     = "rounded,filled"
+            width     = {node_width}
+            height    = {node_height}
+            margin    = "{node_margin_x:.3},{node_margin_y:.3}"
+        ]
+        "#
     )
 }
 
 fn edge_attrs(theme: &GraphvizDotTheme) -> String {
     let edge_color = theme.edge_color();
     let plain_text_color = theme.plain_text_color();
-    format!(
-        "\
-            edge [\n\
-                arrowsize = 0.7\n\
-                color     = \"{edge_color}\"\n\
-                fontcolor = \"{plain_text_color}\"\n\
-            ]\n\
-        "
+    formatdoc!(
+        r#"
+        edge [
+            arrowsize = 0.7
+            color     = "{edge_color}"
+            fontcolor = "{plain_text_color}"
+        ]
+        "#
     )
 }
 
@@ -218,7 +241,9 @@ fn node_cluster_internal(
 ) -> fmt::Result {
     let node_point_size = theme.node_point_size();
     let node_info = node_infos.get(node_id);
+    // TODO: escape
     let node_label = node_info.map(NodeInfo::name).unwrap_or(&node_id);
+    // TODO: escape
     let node_desc = node_info
         .and_then(NodeInfo::desc)
         .map(|desc| desc.replace("\n", "<br />"))
@@ -252,7 +277,7 @@ fn node_cluster_internal(
         } else {
             node_point_size
         };
-        format!(
+        formatdoc!(
             "\
             <td \
                 valign=\"top\" \
@@ -294,7 +319,7 @@ fn node_cluster_internal(
         ";
 
     if node_hierarchy.is_empty() {
-        write!(
+        writedoc!(
             buffer,
             r#"
                 {node_id} [
@@ -314,7 +339,7 @@ fn node_cluster_internal(
             "#
         )?;
     } else {
-        write!(
+        writedoc!(
             buffer,
             r#"
                 subgraph cluster_{node_id} {{
@@ -408,7 +433,54 @@ fn edge(
         (target_node_id, Cow::Borrowed(""))
     };
 
-    format!(
+    formatdoc!(
         r#"{edge_src_node_id} -> {edge_target_node_id} [id = "{edge_id}", minlen = 9 {ltail} {lhead}]"#
     )
+}
+
+fn tag_legend(
+    buffer: &mut String,
+    theme: &GraphvizDotTheme,
+    tags: &IndexMap<TagId, Tag>,
+) -> fmt::Result {
+    let node_point_size = theme.node_point_size();
+    writedoc!(
+        buffer,
+        "subgraph cluster_tag_legend {{
+            margin = {node_point_size}
+            label = <<b>Legend</b>>
+            style = rounded
+        "
+    )?;
+
+    let tag_width = theme.tag_width();
+    let tag_height = theme.tag_height();
+    let tag_margin_x = theme.tag_margin_x();
+    let tag_margin_y = theme.tag_margin_y();
+    let tag_point_size = theme.tag_point_size();
+    let tag_classes = theme.tag_classes();
+    tags.iter().try_for_each(|(tag_id, tag)| {
+        let tag_label = tag.name(); // TODO: escape
+
+        writedoc!(
+            buffer,
+            r#"
+            {tag_id} [
+                label     = <{tag_label}>
+                width     = {tag_width}
+                height    = {tag_height}
+                margin    = "{tag_margin_x:.3},{tag_margin_y:.3}"
+                fontname  = "liberationmono"
+                fontsize  = {tag_point_size}
+                class     = "{tag_classes}"
+            ]
+            "#
+        )?;
+
+        Ok(())
+    })?;
+
+    writeln!(buffer, "}}")?;
+
+    Ok(())
 }

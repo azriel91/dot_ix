@@ -22,6 +22,7 @@ console_log = { workspace = true }
 cfg-if = { workspace = true }
 dot_ix_static_check_macros = { workspace = true, optional = true }
 indexmap = { workspace = true, features = ["serde"] }
+indoc = { workspace = true }
 leptos = { workspace = true }
 leptos_axum = { workspace = true, optional = true }
 leptos_meta = { workspace = true }
@@ -82,6 +83,7 @@ console_error_panic_hook = "0.1"
 console_log = "1"
 cfg-if = "1"
 indexmap = "2.0.0"
+indoc = "2.0.3"
 js-sys = "0.3.64"
 web-sys = "0.3.64"
 leptos = { version = "0.4", features = ["nightly"] }
