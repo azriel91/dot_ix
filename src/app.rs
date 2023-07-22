@@ -29,7 +29,7 @@ pub fn App(cx: Scope) -> impl IntoView {
         <Stylesheet id="fonts" href="/fonts/fonts.css"/>
 
         // sets the document title
-        <Title text="Welcome to Leptos"/>
+        <Title text="dot_ix: Interactive dot graphs"/>
 
         // content for this welcome page
         <Router fallback=|cx| {
@@ -52,13 +52,29 @@ pub fn App(cx: Scope) -> impl IntoView {
 /// Renders the home page of your application.
 #[component]
 fn HomePage(cx: Scope) -> impl IntoView {
-    // Creates a reactive value to update the button
-    let (count, set_count) = create_signal(cx, 0);
-    let on_click = move |_| set_count.update(|count| *count += 1);
-
     view! { cx,
-        <h1>"Welcome to Leptos!"</h1>
-        <button on:click=on_click>"Click Me: " {count}</button><br/>
+        <h1 class="text-xl">"✒️ dot_ix: Interactive Dot graph"</h1>
+        <hr />
+        <p>
+            <span class="font-bold">"🐱 GitHub: "</span>
+            <a
+                class="text-sky-600 hover:text-sky-400 active:text-sky-300"
+                href="https://github.com/azriel91/dot_ix"
+            >
+                "azriel91/dot_ix"
+            </a>
+        </p>
+        <p>
+            "This is a "<i>"very early"</i>" frontend prototype for the "
+            <a
+                class="text-sky-600 hover:text-sky-400 active:text-sky-300"
+                href="https://peace.mk"
+            >
+                "Peace"
+            </a>
+            " automation framework"
+        </p>
+        <hr />
         <InfoGraph />
     }
 }
