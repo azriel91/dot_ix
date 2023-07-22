@@ -51,27 +51,56 @@ pub fn App(cx: Scope) -> impl IntoView {
 fn HomePage(cx: Scope) -> impl IntoView {
     view! { cx,
         <h1 class="text-xl">"✒️ dot_ix: Interactive Dot graph"</h1>
-        <hr />
-        <p>
-            <span class="font-bold">"🐱 GitHub: "</span>
-            <a
-                class="text-sky-600 hover:text-sky-400 active:text-sky-300"
-                href="https://github.com/azriel91/dot_ix"
-            >
-                "azriel91/dot_ix"
-            </a>
-        </p>
-        <p>
-            "This is a "<i>"very early"</i>" frontend prototype for the "
-            <a
-                class="text-sky-600 hover:text-sky-400 active:text-sky-300"
-                href="https://peace.mk"
-            >
-                "Peace"
-            </a>
-            " automation framework"
-        </p>
-        <hr />
         <InfoGraph />
+        <div class="
+            border
+            border-amber-300
+            bg-gradient-to-b from-amber-100 to-amber-200
+            my-2
+            p-2
+            rounded
+            ">
+            <p>
+                <span class="font-bold">"🐱 GitHub: "</span>
+                <a
+                    class="text-sky-600 hover:text-sky-400 active:text-sky-300"
+                    href="https://github.com/azriel91/dot_ix"
+                >
+                    "azriel91/dot_ix"
+                </a>
+            </p>
+            <p>
+                "This is a "<i>"very early"</i>" frontend prototype for the "
+                <a
+                    class="text-sky-600 hover:text-sky-400 active:text-sky-300"
+                    href="https://peace.mk"
+                >
+                    "Peace"
+                </a>
+                " automation framework"
+            </p>
+            <p>
+                <b>"Known Issues:"</b>
+                <ol class="list-disc mx-4">
+                // The following is true for `csr`, not `ssr`.
+                <li>"On load, clicking tags doesn't highlight nodes until you edit the text."</li>
+                <li>"Nodes with tags sometimes aren't highlighted when the tags are clicked."<br />
+                    "This is because graphviz generates nodes in a non-deterministic order, and the "
+                    <a
+                        class="text-sky-600 hover:text-sky-400 active:text-sky-300"
+                        href="https://developer.mozilla.org/en-US/docs/Web/CSS/General_sibling_combinator"
+                    >
+                        "General sibling combinator"
+                    </a>
+                    " requires the tag-node (cluster) to appear before the node-node."
+                </li>
+                <li>"Nodes with multiple tags only apply either the stroke, or fill, or neither."<br />
+                    "e.g. click on Tag 1 and Tag 2, and observe node C's fill / stroke."<br />
+                    "This may be related to multiple CSS attribute rules across multiple classes and precedence."<br />
+                    "But I don't know 🥲. Please help solve it if you can."<br />
+                </li>
+                </ol>
+            </p>
+        </div>
     }
 }

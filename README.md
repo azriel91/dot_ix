@@ -7,5 +7,10 @@ https://user-images.githubusercontent.com/2993230/253878816-0729970f-651f-45ef-a
 
 ```bash
 cargo install cargo-leptos
-cargo leptos watch
+
+# Then, one of:
+# * server side rendering
+cargo leptos watch --bin-features "ssr" -v
+# * client side rendering
+trunk serve
 ```
