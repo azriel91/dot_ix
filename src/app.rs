@@ -19,17 +19,13 @@ pub fn App(cx: Scope) -> impl IntoView {
     // Provides context that manages stylesheets, titles, meta tags, etc.
     provide_meta_context(cx);
 
-    let site_prefix = option_env!("SITE_PREFIX").unwrap_or("");
-    let stylesheet_path = format!("{site_prefix}/pkg/dot_ix.css");
-    let fonts_path = format!("{site_prefix}/fonts/fonts.css");
-
     view! {
         cx,
 
         // injects a stylesheet into the document <head>
         // id=leptos means cargo-leptos will hot-reload this stylesheet
-        <Stylesheet id="leptos" href=stylesheet_path />
-        <Stylesheet id="fonts" href=fonts_path />
+        <Stylesheet id="leptos" href="pkg/dot_ix.css" />
+        <Stylesheet id="fonts" href="fonts/fonts.css" />
         <Title text="dot_ix: Interactive dot graphs" />
 
         // content for this welcome page
