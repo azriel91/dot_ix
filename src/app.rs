@@ -19,27 +19,33 @@ pub fn App(cx: Scope) -> impl IntoView {
     // Provides context that manages stylesheets, titles, meta tags, etc.
     provide_meta_context(cx);
 
+    let site_prefix = option_env!("SITE_PREFIX").unwrap_or("");
+    let stylesheet_path = format!("{site_prefix}/pkg/dot_ix.css");
+    let fonts_path = format!("{site_prefix}/fonts/fonts.css");
+
     view! {
         cx,
 
         // injects a stylesheet into the document <head>
         // id=leptos means cargo-leptos will hot-reload this stylesheet
-        <Stylesheet id="leptos" href="pkg/dot_ix.css" />
-        <Stylesheet id="fonts" href="fonts/fonts.css" />
+        <Stylesheet id="leptos" href=stylesheet_path />
+        <Stylesheet id="fonts" href=fonts_path />
         <Title text="dot_ix: Interactive dot graphs" />
 
         // content for this welcome page
-        <Router fallback=|cx| {
-            let mut outside_errors = Errors::default();
-            outside_errors.insert_with_default_key(AppError::NotFound);
-            view! { cx,
-                <ErrorTemplate outside_errors/>
+        <Router
+            fallback=|cx| {
+                let mut outside_errors = Errors::default();
+                outside_errors.insert_with_default_key(AppError::NotFound);
+                view! { cx,
+                    <ErrorTemplate outside_errors/>
+                }
+                .into_view(cx)
             }
-            .into_view(cx)
-        }>
+        >
             <main>
                 <Routes>
-                    <Route path="" view=|cx| view! { cx, <HomePage/> }/>
+                    <Route path=site_prefix view=|cx| view! { cx, <HomePage/> }/>
                 </Routes>
             </main>
         </Router>
