@@ -468,7 +468,7 @@ fn edge(
     };
 
     formatdoc!(
-        r#"{edge_src_node_id} -> {edge_target_node_id} [id = "{edge_id}", minlen = 9 {ltail} {lhead}]"#
+        r#"{edge_src_node_id} -> {edge_target_node_id} [id = "{edge_id}", minlen = 3 {ltail} {lhead}]"#
     )
 }
 
