@@ -45,11 +45,14 @@ edges:
   bd: [b, d]
 
 node_tags:
-  a: [tag_0, tag_1]
-  a0: [tag_0]
+  a: [tag_0]
+  a0: [tag_1]
+  a00: [tag_2]
   a1: [tag_1]
   b: [tag_0]
-  b0: [tag_0]
+  b0: [tag_1]
+  c: [tag_1, tag_2]
+  d: [tag_2]
 
 # tags are not necessarily associated with a node.
 tags:

@@ -161,6 +161,14 @@ impl Default for GraphvizDotTheme {
             tag_classes: "\
                 [&>path]:fill-emerald-200 \
                 [&>path]:stroke-emerald-500 \
+                [&>path]:hover:fill-emerald-100 \
+                [&>path]:hover:stroke-emerald-400 \
+                [&>path]:focus:fill-amber-200 \
+                [&>path]:focus:outline-1 \
+                [&>path]:focus:outline-amber-600 \
+                [&>path]:focus:outline-dashed \
+                [&>path]:focus:rounded-xl \
+                cursor-pointer \
             ",
         }
     }

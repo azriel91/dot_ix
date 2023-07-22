@@ -1,4 +1,5 @@
 use leptos::{html::Div, *};
+use leptos_meta::Script;
 
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
@@ -32,10 +33,14 @@ pub fn DotSvg(cx: Scope, dot_src: ReadSignal<Option<String>>) -> impl IntoView {
 
                 let (dot_svg, error) = match graphviz_dot_svg(dot_src) {
                     // TODO: Extract these string replacements so that they can be run from a server_function
+                    //
+                    // TODO: need to move tag nodes before all other nodes
+                    //       so that tailwind peer selectors work.
                     Ok(dot_svg) => (Cow::Owned(dot_svg
                             .replace("<g ", "<g tabindex=\"0\" ")
                             .replace("fill=\"#000000\"", "")
                             .replace("stroke=\"#000000\"", "")
+                            .replace("stroke=\"black\"", "")
                         ), None),
                     Err(error) => {
                         let error = js_sys::Error::from(error)
@@ -78,6 +83,8 @@ pub fn DotSvg(cx: Scope, dot_src: ReadSignal<Option<String>>) -> impl IntoView {
         >
             <h2>"Graph"</h2>
             <div>
+                // Client side tailwind processing.
+                <Script src="https://cdn.tailwindcss.com" />
                 <div
                     id="svg_div"
                     _ref=svg_div_ref

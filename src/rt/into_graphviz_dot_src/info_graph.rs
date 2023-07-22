@@ -4,7 +4,7 @@ use std::{
     fmt::{self, Write},
 };
 
-use indexmap::IndexMap;
+use indexmap::{IndexMap, IndexSet};
 use indoc::{formatdoc, writedoc};
 
 use crate::{
@@ -94,7 +94,13 @@ impl IntoGraphvizDotSrc for &InfoGraph {
             .hierarchy()
             .iter()
             .map(|(node_id, node_hierarchy)| {
-                node_cluster(theme, self.node_infos(), node_id, node_hierarchy)
+                node_cluster(
+                    theme,
+                    self.node_infos(),
+                    self.node_tags(),
+                    node_id,
+                    node_hierarchy,
+                )
             })
             .collect::<Vec<String>>()
             .join("\n");
@@ -145,12 +151,11 @@ impl IntoGraphvizDotSrc for &InfoGraph {
                 {graph_attrs}
                 {node_attrs}
                 {edge_attrs}
+                {tag_legend_buffer}
 
                 {node_clusters}
 
                 {edges}
-
-                {tag_legend_buffer}
             }}"
         )
     }
@@ -221,13 +226,21 @@ fn edge_attrs(theme: &GraphvizDotTheme) -> String {
 fn node_cluster(
     theme: &GraphvizDotTheme,
     node_infos: &IndexMap<NodeId, NodeInfo>,
+    node_tags: &IndexMap<NodeId, IndexSet<TagId>>,
     node_id: &NodeId,
     node_hierarchy: &NodeHierarchy,
 ) -> String {
     let mut buffer = String::with_capacity(1024);
 
-    node_cluster_internal(theme, node_infos, node_id, node_hierarchy, &mut buffer)
-        .expect("Failed to write node_cluster string.");
+    node_cluster_internal(
+        theme,
+        node_infos,
+        node_tags,
+        node_id,
+        node_hierarchy,
+        &mut buffer,
+    )
+    .expect("Failed to write node_cluster string.");
 
     buffer
 }
@@ -235,6 +248,7 @@ fn node_cluster(
 fn node_cluster_internal(
     theme: &GraphvizDotTheme,
     node_infos: &IndexMap<NodeId, NodeInfo>,
+    node_tags: &IndexMap<NodeId, IndexSet<TagId>>,
     node_id: &NodeId,
     node_hierarchy: &NodeHierarchy,
     buffer: &mut String,
@@ -316,7 +330,25 @@ fn node_cluster_internal(
             [&>path]:focus:outline-dashed \
             [&>path]:focus:rounded-xl \
             cursor-pointer \
-        ";
+        "
+    .trim();
+
+    let node_tag_classes = node_tags
+        .get(node_id)
+        .map(|tag_ids| {
+            let mut node_tag_classes = String::with_capacity(128 * tag_ids.len());
+            tag_ids.iter().try_for_each(|tag_id| {
+                writedoc!(
+                    &mut node_tag_classes,
+                    "peer-focus/{tag_id}:[&>path]:fill-amber-400 \
+                    peer-focus/{tag_id}:[&>path]:stroke-amber-600"
+                )
+            })?;
+
+            Ok(node_tag_classes)
+        })
+        .transpose()?
+        .unwrap_or_else(|| String::new());
 
     if node_hierarchy.is_empty() {
         writedoc!(
@@ -334,7 +366,7 @@ fn node_cluster_internal(
                         </tr>
                         {node_desc}
                     </table>>
-                    class = "{classes}"
+                    class = "{classes} {node_tag_classes}"
                 ]
             "#
         )?;
@@ -356,7 +388,7 @@ fn node_cluster_internal(
                         {node_desc}
                     </table>>
                     style = "filled,rounded"
-                    class = "{classes}"
+                    class = "{classes} {node_tag_classes}"
             "#
         )?;
 
@@ -366,6 +398,7 @@ fn node_cluster_internal(
                 node_cluster_internal(
                     theme,
                     node_infos,
+                    node_tags,
                     child_node_id,
                     child_node_hierarchy,
                     buffer,
@@ -458,9 +491,12 @@ fn tag_legend(
     let tag_margin_x = theme.tag_margin_x();
     let tag_margin_y = theme.tag_margin_y();
     let tag_point_size = theme.tag_point_size();
-    let tag_classes = theme.tag_classes();
+    let tag_classes = theme.tag_classes().trim();
     tags.iter().try_for_each(|(tag_id, tag)| {
         let tag_label = tag.name(); // TODO: escape
+
+        // This is for tailwindcss to identify this peer by name.
+        let tag_peer_class = format!("peer/{tag_id}");
 
         writedoc!(
             buffer,
@@ -472,7 +508,7 @@ fn tag_legend(
                 margin    = "{tag_margin_x:.3},{tag_margin_y:.3}"
                 fontname  = "liberationmono"
                 fontsize  = {tag_point_size}
-                class     = "{tag_classes}"
+                class     = "{tag_classes} {tag_peer_class}"
             ]
             "#
         )?;
