@@ -144,13 +144,13 @@ impl GraphvizDotTheme {
 impl Default for GraphvizDotTheme {
     fn default() -> Self {
         Self {
-            edge_color: "#7f7f7f",
+            edge_color: "#333333",
             node_text_color: "#111111",
             node_width: 0.3,
             node_height: 0.1,
             node_margin_x: 0.04,
             node_margin_y: 0.04,
-            plain_text_color: "#7f7f7f",
+            plain_text_color: "#222222",
             emoji_point_size: 14,
             node_point_size: 10,
             tag_width: 0.3,
@@ -163,9 +163,9 @@ impl Default for GraphvizDotTheme {
                 [&>path]:stroke-emerald-500 \
                 [&>path]:hover:fill-emerald-100 \
                 [&>path]:hover:stroke-emerald-400 \
-                [&>path]:focus:fill-amber-200 \
+                [&>path]:focus:fill-lime-200 \
                 [&>path]:focus:outline-1 \
-                [&>path]:focus:outline-amber-600 \
+                [&>path]:focus:outline-lime-600 \
                 [&>path]:focus:outline-dashed \
                 [&>path]:focus:rounded-xl \
                 cursor-pointer \

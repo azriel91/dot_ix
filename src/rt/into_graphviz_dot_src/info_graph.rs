@@ -151,6 +151,7 @@ impl IntoGraphvizDotSrc for &InfoGraph {
                 {graph_attrs}
                 {node_attrs}
                 {edge_attrs}
+
                 {tag_legend_buffer}
 
                 {node_clusters}
@@ -340,8 +341,8 @@ fn node_cluster_internal(
             tag_ids.iter().try_for_each(|tag_id| {
                 writedoc!(
                     &mut node_tag_classes,
-                    "peer-focus/{tag_id}:[&>path]:fill-amber-400 \
-                    peer-focus/{tag_id}:[&>path]:stroke-amber-600"
+                    "peer-focus/{tag_id}:[&>path]:fill-lime-200 \
+                    peer-focus/{tag_id}:[&>path]:stroke-lime-500"
                 )
             })?;
 
@@ -501,7 +502,7 @@ fn tag_legend(
         writedoc!(
             buffer,
             r#"
-            {tag_id} [
+            subgraph cluster_{tag_id} {{
                 label     = <{tag_label}>
                 width     = {tag_width}
                 height    = {tag_height}
@@ -509,12 +510,34 @@ fn tag_legend(
                 fontname  = "liberationmono"
                 fontsize  = {tag_point_size}
                 class     = "{tag_classes} {tag_peer_class}"
-            ]
+                penwidth  = 1
+
+                // invisible node for cluster to appear
+                {tag_id} [
+                    fixedsize = true
+                    width     = 0.01
+                    height    = 0.01
+                    margin    = "0.0,0.0"
+                    shape     = point
+                ]
+            }}
             "#
         )?;
 
         Ok(())
     })?;
+
+    // Add invisible edge between tags to enforce ordering
+    let mut tag_ids_iter = tags.keys();
+    if let Some(mut tag_id_current) = tag_ids_iter.next() {
+        while let Some(tag_id_next) = tag_ids_iter.next() {
+            writeln!(
+                buffer,
+                "    {tag_id_current} -> {tag_id_next} [style = invis]"
+            )?;
+            tag_id_current = tag_id_next;
+        }
+    }
 
     writeln!(buffer, "}}")?;
 
