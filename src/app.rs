@@ -24,12 +24,9 @@ pub fn App(cx: Scope) -> impl IntoView {
 
         // injects a stylesheet into the document <head>
         // id=leptos means cargo-leptos will hot-reload this stylesheet
-        <Stylesheet id="leptos" href="/pkg/dot_ix.css"/>
-
-        <Stylesheet id="fonts" href="/fonts/fonts.css"/>
-
-        // sets the document title
-        <Title text="dot_ix: Interactive dot graphs"/>
+        <Stylesheet id="leptos" href="/pkg/dot_ix.css" />
+        <Stylesheet id="fonts" href="/fonts/fonts.css" />
+        <Title text="dot_ix: Interactive dot graphs" />
 
         // content for this welcome page
         <Router fallback=|cx| {

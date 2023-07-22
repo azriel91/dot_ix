@@ -1,0 +1,4 @@
+[[hooks]]
+stage = "pre_build"
+command = "cargo"
+command_arguments = ["leptos", "build", "-v"]

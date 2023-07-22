@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link
+      data-trunk rel="rust"
+      data-wasm-opt="z"
+      data-cargo-no-default-features
+      data-cargo-features="csr" />
+
+    <link data-trunk rel="icon" type="image/ico" href="/public/favicon.ico" />
+
+    <!--
+      Would be good if we can just specify `target/site`,
+      and `trunk` copies the contents of the `site` directory.
+    -->
+    <link data-trunk rel="copy-dir" href="/target/site/fonts" />
+    <link data-trunk rel="copy-dir" href="/target/site/js" />
+    <link data-trunk rel="copy-dir" href="/target/site/pkg" />
+    <link data-trunk rel="copy-file" href="/target/site/favicon.ico" />
+  </head>
+  <body></body>
+</html>

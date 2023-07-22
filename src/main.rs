@@ -40,9 +40,26 @@ async fn main() {
         .unwrap();
 }
 
-#[cfg(not(feature = "ssr"))]
+#[cfg(feature = "csr")]
+pub fn main() {
+    use leptos::*;
+
+    use dot_ix::app::App;
+
+    // client-side main function
+    // so that this can work with e.g. Trunk for a purely client-side app
+    _ = console_log::init_with_level(log::Level::Debug);
+    console_error_panic_hook::set_once();
+
+    log!("csr mode - mounting to body");
+
+    mount_to_body(|cx| {
+        view! { cx, <App /> }
+    });
+}
+
+#[cfg(all(not(feature = "ssr"), not(feature = "csr")))]
 pub fn main() {
     // no client-side main function
-    // unless we want this to work with e.g., Trunk for a purely client-side app
-    // see lib.rs for hydration function instead
+    // see lib.rs for hydration function for a non-csr app
 }
