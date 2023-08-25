@@ -63,6 +63,7 @@ csr = [
     "leptos_meta/csr",
     "leptos_router/csr",
 ]
+server_side_graphviz = []
 
 [workspace]
 members = ["crate/*"]
