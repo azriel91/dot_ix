@@ -15,17 +15,15 @@ mod error_template;
 mod info_graph;
 
 #[component]
-pub fn App(cx: Scope) -> impl IntoView {
+pub fn App() -> impl IntoView {
     // Provides context that manages stylesheets, titles, meta tags, etc.
-    provide_meta_context(cx);
+    provide_meta_context();
 
     let site_prefix = option_env!("SITE_PREFIX").unwrap_or("");
     let stylesheet_path = format!("{site_prefix}/pkg/dot_ix.css");
     let fonts_path = format!("{site_prefix}/fonts/fonts.css");
 
     view! {
-        cx,
-
         // injects a stylesheet into the document <head>
         // id=leptos means cargo-leptos will hot-reload this stylesheet
         <Stylesheet id="leptos" href=stylesheet_path />
@@ -34,18 +32,18 @@ pub fn App(cx: Scope) -> impl IntoView {
 
         // content for this welcome page
         <Router
-            fallback=|cx| {
+            fallback=|| {
                 let mut outside_errors = Errors::default();
                 outside_errors.insert_with_default_key(AppError::NotFound);
-                view! { cx,
+                view! {
                     <ErrorTemplate outside_errors/>
                 }
-                .into_view(cx)
+                .into_view()
             }
         >
             <main>
                 <Routes>
-                    <Route path=site_prefix view=|cx| view! { cx, <HomePage/> }/>
+                    <Route path=site_prefix view=|| view! {  <HomePage/> }/>
                 </Routes>
             </main>
         </Router>
@@ -54,8 +52,8 @@ pub fn App(cx: Scope) -> impl IntoView {
 
 /// Renders the home page of your application.
 #[component]
-fn HomePage(cx: Scope) -> impl IntoView {
-    view! { cx,
+fn HomePage() -> impl IntoView {
+    view! {
         <h1 class="text-xl">"✒️ dot_ix: Interactive Dot graph"</h1>
         <InfoGraph />
         <div class="

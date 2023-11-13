@@ -1,4 +1,8 @@
-use leptos::{html::Div, *};
+use leptos::*;
+
+#[cfg(not(feature = "server_side_graphviz"))]
+use leptos::html::Div;
+#[cfg(not(feature = "server_side_graphviz"))]
 use leptos_meta::Script;
 
 #[cfg(target_arch = "wasm32")]
@@ -59,31 +63,33 @@ pub async fn dot_svg(dot_src: String) -> Result<(String, String), ServerFnError>
 /// Renders a graphviz graph as an SVG.
 #[cfg(feature = "server_side_graphviz")]
 #[component]
-pub fn DotSvg(cx: Scope, dot_src: ReadSignal<Option<String>>) -> impl IntoView {
-    let dot_svg_and_error_resource = create_resource(cx, dot_src, |dot_src| async move {
-        if let Some(dot_src) = dot_src {
-            if !dot_src.is_empty() {
-                match dot_svg(dot_src).await {
-                    Ok((dot_svg, error_text)) => (dot_svg, error_text),
-                    Err(error) => (String::from(""), format!("{error}")),
+pub fn DotSvg(dot_src: ReadSignal<Option<String>>) -> impl IntoView {
+    let dot_svg_and_error_resource = create_resource(
+        move || dot_src.get(),
+        |dot_src| async move {
+            if let Some(dot_src) = dot_src {
+                if !dot_src.is_empty() {
+                    match dot_svg(dot_src).await {
+                        Ok((dot_svg, error_text)) => (dot_svg, error_text),
+                        Err(error) => (String::from(""), format!("{error}")),
+                    }
+                } else {
+                    (String::from(""), String::from(""))
                 }
             } else {
                 (String::from(""), String::from(""))
             }
-        } else {
-            (String::from(""), String::from(""))
-        }
-    });
+        },
+    );
 
-    view! { cx,
+    view! {
         <Suspense
-            fallback=move || view! { cx, <p>"Loading..."</p> }
+            fallback=move || view! { <p>"Loading..."</p> }
         >
             <h2>"Graph"</h2>
             {move || {
-                dot_svg_and_error_resource.read(cx)
+                dot_svg_and_error_resource.get()
                     .map(|(dot_svg, error_text)| view! {
-                        cx,
                         <div>
                             <div inner_html=dot_svg />
 
@@ -113,11 +119,11 @@ pub fn DotSvg(cx: Scope, dot_src: ReadSignal<Option<String>>) -> impl IntoView {
 /// Renders a graphviz graph as an SVG.
 #[cfg(not(feature = "server_side_graphviz"))]
 #[component]
-pub fn DotSvg(cx: Scope, dot_src: ReadSignal<Option<String>>) -> impl IntoView {
+pub fn DotSvg(dot_src: ReadSignal<Option<String>>) -> impl IntoView {
     // DOM elements for the graph and error
-    let svg_div_ref = create_node_ref::<Div>(cx);
+    let svg_div_ref = create_node_ref::<Div>();
 
-    let (error_text, set_error_text) = create_signal(cx, None::<String>);
+    let (error_text, set_error_text) = create_signal(None::<String>);
 
     #[cfg(not(target_arch = "wasm32"))]
     {
@@ -125,7 +131,7 @@ pub fn DotSvg(cx: Scope, dot_src: ReadSignal<Option<String>>) -> impl IntoView {
         let _set_error_text = set_error_text;
     }
 
-    create_effect(cx, move |_| {
+    create_effect(move |_| {
         #[cfg(target_arch = "wasm32")]
         if let Some(dot_src) = dot_src.get() {
             if !dot_src.is_empty() {
@@ -177,9 +183,9 @@ pub fn DotSvg(cx: Scope, dot_src: ReadSignal<Option<String>>) -> impl IntoView {
         }
     });
 
-    view! { cx,
+    view! {
         <Suspense
-            fallback=move || view! { cx, <p>"Loading..."</p> }
+            fallback=move || view! {  <p>"Loading..."</p> }
         >
             <h2>"Graph"</h2>
             <div>
