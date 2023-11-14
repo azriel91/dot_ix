@@ -4,11 +4,7 @@ use leptos::*;
 
 use crate::{app::DotSvg, model::common::GraphvizDotTheme, rt::IntoGraphvizDotSrc};
 
-/// Text input and dot graph rendering.
-#[component]
-pub fn InfoGraph() -> impl IntoView {
-    let (info_graph_src, set_info_graph_src) = create_signal(String::from(
-        r#"---
+const INFO_GRAPH_DEMO: &str = r#"---
 hierarchy:
   a:
     a0:
@@ -57,8 +53,61 @@ tags:
   tag_0: { name: "Tag 0", desc: "Some information for tag 0." }
   tag_1: { name: "Tag 1" }
   tag_2: { name: "Tag 2" }
-"#,
-    ));
+"#;
+
+/// Query parameter name for the info graph source.
+#[cfg(target_arch = "wasm32")]
+const QUERY_PARAM_SRC: &str = "src";
+
+/// Sets the info graph src using logic purely executed on the client side.
+///
+/// This is for a pure client side rendered app, so updating a signal withing
+/// `create_effect` is safe.
+#[cfg(target_arch = "wasm32")]
+fn info_graph_src_init(set_info_graph_src: WriteSignal<String>) {
+    use web_sys::{Url, UrlSearchParams};
+
+    create_effect(move |_| {
+        let info_graph_src_initial = web_sys::window()
+            .and_then(|window| {
+                let url_search_params: UrlSearchParams =
+                    Url::new(&String::from(window.location().to_string()))
+                        .expect("Expected URL to be valid.")
+                        .search_params();
+
+                url_search_params.get(QUERY_PARAM_SRC)
+            })
+            .unwrap_or_else(|| String::from(INFO_GRAPH_DEMO));
+
+        set_info_graph_src.update(|info_graph_src| *info_graph_src = info_graph_src_initial);
+    });
+}
+
+/// Text input and dot graph rendering.
+///
+/// Notably, we run `set_*.update(..)` within a number of `create_effect`s.
+///
+/// While this is normally incorrect usage, for a purely client side
+/// application, it is okay. From Greg (author of leptos):
+///
+/// > `create_effect` is also good for "only run this in the browser" and also
+/// > for "synchronize with something non-reactive" (like a JS function) so
+/// > don't worry about setting a signal inside it in that context.
+/// >
+/// > "Don't set a signal from an effect; rather, derive a signal." is advice
+/// > meant in the sense "don't reactively read a signal inside an effect, and
+/// > use it to set another signal". It's not the end of the world to do so,
+/// > just not the best practice and can be hard to do correctly
+#[component]
+pub fn InfoGraph() -> impl IntoView {
+    #[cfg(not(target_arch = "wasm32"))]
+    let (info_graph_src, set_info_graph_src) = create_signal(String::from(INFO_GRAPH_DEMO));
+    #[cfg(target_arch = "wasm32")]
+    let (info_graph_src, set_info_graph_src) = create_signal(String::from(""));
+
+    #[cfg(target_arch = "wasm32")]
+    info_graph_src_init(set_info_graph_src);
+
     // Creates a reactive value to update the button
     let (error_text, set_error_text) = create_signal(None::<String>);
     let (dot_src, set_dot_src) = create_signal(None::<String>);
