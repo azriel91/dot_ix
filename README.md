@@ -11,11 +11,21 @@ https://user-images.githubusercontent.com/2993230/253878816-0729970f-651f-45ef-a
 cargo install cargo-leptos
 
 # Then, one of:
-# * server side rendering
-cargo leptos watch --bin-features "ssr" -v
-# * client side rendering
+# * server side rendering -- runs `dot` on the server to generate the graph.
+cargo leptos watch --bin-features "ssr" --features "server_side_graphviz" -v
+# * client side rendering -- uses WASM compiled graphviz to generate the graph.
 trunk serve
 ```
+
+For server side rendering, the `"server_side_graphviz"` feature needs to be passed in separately because that feature still needs to be enabled for the lib compilation, i.e.
+
+* server side rendering:
+    - lib features: `"server_side_graphviz"`
+    - bin features: `"ssr,server_side_graphviz"`
+* client side rendering:
+    - lib features: `""`
+    - bin features: `""`
+
 
 ## To Do
 

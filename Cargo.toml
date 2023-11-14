@@ -163,6 +163,9 @@ env = "DEV"
 # bin-features = ["ssr"]     # server side rendered app
 # bin-features = ["hydrate"] # client side compilation for server side rendered app
 # bin-features = ["csr"]     # client side rendered app
+#
+# We don't default to building with `"ssr"` because for pure client side rendering,
+# we need the `"ssr"` feature off.
 bin-features = []
 
 # If the --no-default-features flag should be used when compiling the bin target
