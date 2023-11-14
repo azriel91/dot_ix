@@ -47,7 +47,7 @@ jobs:
 
       - name: cargo-leptos install
         if: steps.cargo-leptos-cache.outputs.cache-hit != 'true'
-        run: cargo install --git https://github.com/leptos-rs/cargo-leptos.git --locked cargo-leptos
+        run: cargo install cargo-leptos
 
       - name: Setup Pages
         uses: actions/configure-pages@v3
