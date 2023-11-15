@@ -55,7 +55,29 @@ tags:
   tag_2: { name: "Tag 2" }
 "#;
 
+#[cfg(feature = "server_side_graphviz")]
+use serde::{Deserialize, Serialize};
+
+#[cfg(feature = "server_side_graphviz")]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct InfoGraphQueryParams {
+    #[serde(default)]
+    src: Option<String>,
+}
+
+#[cfg(feature = "server_side_graphviz")]
+#[server]
+pub async fn info_graph_src_init() -> Result<InfoGraphQueryParams, ServerFnError> {
+    use axum::extract::Query;
+    use leptos_axum::*;
+
+    let Query(info_graph_query_params) = extractor().await?;
+
+    Ok(info_graph_query_params)
+}
+
 /// Query parameter name for the info graph source.
+#[cfg(not(feature = "server_side_graphviz"))]
 #[cfg(target_arch = "wasm32")]
 const QUERY_PARAM_SRC: &str = "src";
 
@@ -63,6 +85,7 @@ const QUERY_PARAM_SRC: &str = "src";
 ///
 /// This is for a pure client side rendered app, so updating a signal withing
 /// `create_effect` is safe.
+#[cfg(not(feature = "server_side_graphviz"))]
 #[cfg(target_arch = "wasm32")]
 fn info_graph_src_init(set_info_graph_src: WriteSignal<String>) {
     use web_sys::{Url, UrlSearchParams};
@@ -100,11 +123,12 @@ fn info_graph_src_init(set_info_graph_src: WriteSignal<String>) {
 /// > just not the best practice and can be hard to do correctly
 #[component]
 pub fn InfoGraph() -> impl IntoView {
-    #[cfg(not(target_arch = "wasm32"))]
-    let (info_graph_src, set_info_graph_src) = create_signal(String::from(INFO_GRAPH_DEMO));
-    #[cfg(target_arch = "wasm32")]
     let (info_graph_src, set_info_graph_src) = create_signal(String::from(""));
 
+    #[cfg(feature = "server_side_graphviz")]
+    let src_init_resource = create_resource(|| (), |()| info_graph_src_init());
+
+    #[cfg(not(feature = "server_side_graphviz"))]
     #[cfg(target_arch = "wasm32")]
     info_graph_src_init(set_info_graph_src);
 
@@ -139,26 +163,63 @@ pub fn InfoGraph() -> impl IntoView {
 
             <div>
                 <label for="info_graph_yml">"info_graph.yml"</label><br/>
-                <textarea
-                    id="info_graph_yml"
-                    name="info_graph_yml"
-                    rows="40"
-                    cols="80"
-                    class="
-                        border
-                        border-slate-400
-                        bg-slate-100
-                        font-mono
-                        p-2
-                        rounded
-                        text-xs
-                    "
-                    on:input=leptos_dom::helpers::debounce(Duration::from_millis(400), move |ev| {
-                        let info_graph_src = event_target_value(&ev);
-                        set_info_graph_src.set(info_graph_src);
-                    })
 
-                    prop:value=info_graph_src />
+                <Suspense fallback=move || view! {<p>"Loading src"</p> }>
+                    {
+                        move || {
+                            #[cfg(feature = "server_side_graphviz")]
+                            {
+                                let info_graph_src_init = src_init_resource
+                                    .get()
+                                    .map(|info_graph_query_params_result| {
+                                        info_graph_query_params_result
+                                            .map(|info_graph_query_params| {
+                                                leptos::logging::log!("successfully parsed info graph json");
+                                                info_graph_query_params
+                                                    .src
+                                                    .as_deref()
+                                                    .map(|src| {
+                                                        serde_yaml::from_str::<crate::model::info_graph::InfoGraph>(src)
+                                                            .map(|info_graph| {
+                                                                serde_yaml::to_string(&info_graph)
+                                                                    .unwrap_or_else(|e| format!("# serialize src error: {e}"))
+                                                            }).unwrap_or_else(|e| format!("# deserialize src error: {e}"))
+
+                                                    })
+                                                    .unwrap_or_else(|| String::from("# src was nothing"))
+                                            })
+                                            .unwrap_or_else(|e| format!("# query params parse error: {e}"))
+                                    })
+                                    .unwrap_or_else(|| String::from(INFO_GRAPH_DEMO));
+                                set_info_graph_src.set(info_graph_src_init);
+                            }
+
+                            view! {
+                                <textarea
+                                    id="info_graph_yml"
+                                    name="info_graph_yml"
+                                    rows="40"
+                                    cols="80"
+                                    class="
+                                        border
+                                        border-slate-400
+                                        bg-slate-100
+                                        font-mono
+                                        p-2
+                                        rounded
+                                        text-xs
+                                    "
+                                    on:input=leptos_dom::helpers::debounce(Duration::from_millis(400), move |ev| {
+                                        let info_graph_src = event_target_value(&ev);
+                                        set_info_graph_src.set(info_graph_src);
+                                    })
+
+                                    prop:value=info_graph_src />
+                            }
+                        }
+                    }
+                </Suspense>
+
                 <br />
                 <div
                     class={

@@ -16,7 +16,7 @@ extern "C" {
 }
 
 #[cfg(feature = "server_side_graphviz")]
-#[server(DotSvgRender, "/api")]
+#[server]
 pub async fn dot_svg(dot_src: String) -> Result<(String, String), ServerFnError> {
     use std::process::Stdio;
     use tokio::io::{AsyncReadExt, AsyncWriteExt};
