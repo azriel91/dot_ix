@@ -182,3 +182,6 @@ lib-features = ["hydrate"]
 #
 # Optional. Defaults to false.
 lib-default-features = false
+
+# Makes builds go much faster.
+separate-front-target-dir = true
