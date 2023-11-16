@@ -425,11 +425,7 @@ fn edge(
             .and_then(|node_hierarchy| node_hierarchy.last())
     {
         // This is a cluster, find the bottom / right most node.
-        while let Some((next_node_id, next_node_hierarchy)) = child_node_hierarchy
-            .get(child_node_id)
-            .filter(|node_hierarchy| !node_hierarchy.is_empty())
-            .and_then(|node_hierarchy| node_hierarchy.last())
-        {
+        while let Some((next_node_id, next_node_hierarchy)) = child_node_hierarchy.last() {
             child_node_id = next_node_id;
             child_node_hierarchy = next_node_hierarchy;
         }
@@ -449,11 +445,7 @@ fn edge(
             .and_then(|node_hierarchy| node_hierarchy.first())
     {
         // This is a cluster, find the top / left most node.
-        while let Some((next_node_id, next_node_hierarchy)) = child_node_hierarchy
-            .get(child_node_id)
-            .filter(|node_hierarchy| !node_hierarchy.is_empty())
-            .and_then(|node_hierarchy| node_hierarchy.first())
-        {
+        while let Some((next_node_id, next_node_hierarchy)) = child_node_hierarchy.first() {
             child_node_id = next_node_id;
             child_node_hierarchy = next_node_hierarchy;
         }
