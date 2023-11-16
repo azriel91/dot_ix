@@ -98,7 +98,14 @@ fn info_graph_src_init(set_info_graph_src: WriteSignal<String>) {
                         .expect("Expected URL to be valid.")
                         .search_params();
 
-                url_search_params.get(QUERY_PARAM_SRC)
+                url_search_params.get(QUERY_PARAM_SRC).as_ref().map(|src| {
+                    serde_yaml::from_str::<crate::model::info_graph::InfoGraph>(src)
+                        .map(|info_graph| {
+                            serde_yaml::to_string(&info_graph)
+                                .unwrap_or_else(|e| format!("# serialize src error: {e}"))
+                        })
+                        .unwrap_or_else(|e| format!("# deserialize src error: {e}"))
+                })
             })
             .unwrap_or_else(|| String::from(INFO_GRAPH_DEMO));
 
