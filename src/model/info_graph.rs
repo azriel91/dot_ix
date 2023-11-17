@@ -1,7 +1,7 @@
 use indexmap::{IndexMap, IndexSet};
 use serde::{Deserialize, Serialize};
 
-use crate::model::common::{EdgeId, NodeHierarchy, NodeId, TagId, ThemeTailwindClasses};
+use crate::model::common::{EdgeId, NodeHierarchy, NodeId, TagId, TailwindClasses};
 
 pub use self::{node_info::NodeInfo, tag::Tag};
 
@@ -22,7 +22,7 @@ pub struct InfoGraph {
     /// Tags to associate with nodes.
     tags: IndexMap<TagId, Tag>,
     /// Tailwind classes to add to nodes with the given tag.
-    theme_tailwind_classes: ThemeTailwindClasses,
+    tailwind_classes: TailwindClasses,
 }
 
 impl InfoGraph {
@@ -46,7 +46,7 @@ impl InfoGraph {
         &self.tags
     }
 
-    pub fn theme_tailwind_classes(&self) -> &ThemeTailwindClasses {
-        &self.theme_tailwind_classes
+    pub fn tailwind_classes(&self) -> &TailwindClasses {
+        &self.tailwind_classes
     }
 }
