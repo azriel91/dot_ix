@@ -1,7 +1,7 @@
 use std::{
     borrow::Cow,
     collections::{HashMap, VecDeque},
-    fmt::{self, Display, Write},
+    fmt::{self, Write},
 };
 
 use indexmap::{IndexMap, IndexSet};
@@ -10,8 +10,7 @@ use indoc::{formatdoc, writedoc};
 use crate::{
     model::{
         common::{
-            AnyId, EdgeId, GraphvizDotTheme, NodeHierarchy, NodeId, TagId, TailwindClass,
-            TailwindClasses, TailwindKey,
+            EdgeId, GraphvizDotTheme, NodeHierarchy, NodeId, TagId, TailwindClasses, TailwindKey,
         },
         info_graph::{InfoGraph, NodeInfo, Tag},
     },
@@ -99,6 +98,7 @@ impl IntoGraphvizDotSrc for &InfoGraph {
             .map(|(node_id, node_hierarchy)| {
                 node_cluster(
                     theme,
+                    self.tailwind_classes(),
                     self.node_infos(),
                     self.node_tags(),
                     node_id,
@@ -234,6 +234,7 @@ fn edge_attrs(theme: &GraphvizDotTheme) -> String {
 
 fn node_cluster(
     theme: &GraphvizDotTheme,
+    tailwind_classes: &TailwindClasses,
     node_infos: &IndexMap<NodeId, NodeInfo>,
     node_tags: &IndexMap<NodeId, IndexSet<TagId>>,
     node_id: &NodeId,
@@ -243,6 +244,7 @@ fn node_cluster(
 
     node_cluster_internal(
         theme,
+        tailwind_classes,
         node_infos,
         node_tags,
         node_id,
@@ -256,6 +258,7 @@ fn node_cluster(
 
 fn node_cluster_internal(
     theme: &GraphvizDotTheme,
+    tailwind_classes: &TailwindClasses,
     node_infos: &IndexMap<NodeId, NodeInfo>,
     node_tags: &IndexMap<NodeId, IndexSet<TagId>>,
     node_id: &NodeId,
@@ -327,20 +330,7 @@ fn node_cluster_internal(
     });
     let node_desc = node_desc.as_deref().unwrap_or("");
     let emoji = emoji.as_deref().unwrap_or("");
-    let classes = "\
-            [&>path]:fill-slate-300 \
-            [&>path]:stroke-1 \
-            [&>path]:stroke-slate-600 \
-            [&>path]:hover:fill-slate-200 \
-            [&>path]:hover:stroke-slate-600 \
-            [&>path]:focus:fill-lime-200 \
-            [&>path]:focus:outline-1 \
-            [&>path]:focus:outline-lime-600 \
-            [&>path]:focus:outline-dashed \
-            [&>path]:focus:rounded-xl \
-            cursor-pointer \
-        "
-    .trim();
+    let node_tailwind_classes = tailwind_classes.node_classes_or_default(node_id.clone());
 
     let node_tag_classes = node_tags
         .get(node_id)
@@ -375,7 +365,7 @@ fn node_cluster_internal(
                         </tr>
                         {node_desc}
                     </table>>
-                    class = "{classes} {node_tag_classes}"
+                    class = "{node_tailwind_classes} {node_tag_classes}"
                 ]
             "#
         )?;
@@ -397,7 +387,7 @@ fn node_cluster_internal(
                         {node_desc}
                     </table>>
                     style = "filled,rounded"
-                    class = "{classes} {node_tag_classes}"
+                    class = "{node_tailwind_classes} {node_tag_classes}"
             "#
         )?;
 
@@ -406,6 +396,7 @@ fn node_cluster_internal(
             .try_for_each(|(child_node_id, child_node_hierarchy)| {
                 node_cluster_internal(
                     theme,
+                    tailwind_classes,
                     node_infos,
                     node_tags,
                     child_node_id,
@@ -500,15 +491,10 @@ fn tag_legend(
         // This is for tailwindcss to identify this peer by name.
         let tag_peer_class = format!("peer/{tag_id}");
 
-        let tag_classes: TailwindSetDisplay = {
-            let id: AnyId = tag_id.clone().into();
-            if let Some(tailwind_class_set) = tailwind_classes.get(&TailwindKey::AnyId(id)).as_ref()
-            {
-                TailwindSetDisplay::Set(&tailwind_class_set)
-            } else {
-                TailwindSetDisplay::Default(tag_classes)
-            }
-        };
+        let tag_classes = tailwind_classes
+            .get(&TailwindKey::AnyId(tag_id.clone().into()))
+            .map(String::as_str)
+            .unwrap_or(tag_classes);
 
         writedoc!(
             buffer,
@@ -553,20 +539,4 @@ fn tag_legend(
     writeln!(buffer, "}}")?;
 
     Ok(())
-}
-
-enum TailwindSetDisplay<'f> {
-    Set(&'f IndexSet<TailwindClass>),
-    Default(&'f str),
-}
-
-impl<'f> Display for TailwindSetDisplay<'f> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            TailwindSetDisplay::Set(classes) => classes
-                .iter()
-                .try_for_each(|tailwind_class| write!(f, "{tailwind_class} ")),
-            TailwindSetDisplay::Default(classes) => classes.fmt(f),
-        }
-    }
 }

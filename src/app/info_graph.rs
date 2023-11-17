@@ -55,16 +55,31 @@ tags:
   tag_2: { name: "Tag 2" }
 
 tailwind_classes:
-  tag_2:
-    - '[&>path]:fill-blue-200'
-    - '[&>path]:stroke-blue-500'
-    - '[&>path]:hover:fill-blue-100'
-    - '[&>path]:hover:stroke-blue-400'
-    - '[&>path]:focus:fill-lime-200'
-    - '[&>path]:focus:outline-1'
-    - '[&>path]:focus:outline-lime-600'
-    - '[&>path]:focus:outline-dashed'
-    - '[&>path]:focus:rounded-xl'
+  a0: &a0 >-
+    [&>path]:fill-blue-300
+    [&>path]:stroke-1
+    [&>path]:stroke-blue-600
+    [&>path]:hover:fill-blue-200
+    [&>path]:hover:stroke-blue-600
+    [&>path]:focus:fill-lime-200
+    [&>path]:focus:outline-1
+    [&>path]:focus:outline-lime-600
+    [&>path]:focus:outline-dashed
+    [&>path]:focus:rounded-xl
+    cursor-pointer
+  a1: *a0
+
+  tag_2: >-
+    [&>path]:fill-blue-200
+    [&>path]:stroke-blue-500
+    [&>path]:hover:fill-blue-100
+    [&>path]:hover:stroke-blue-400
+    [&>path]:focus:fill-lime-200
+    [&>path]:focus:outline-1
+    [&>path]:focus:outline-lime-600
+    [&>path]:focus:outline-dashed
+    [&>path]:focus:rounded-xl
+    cursor-pointer
 "#;
 
 #[cfg(feature = "server_side_graphviz")]
