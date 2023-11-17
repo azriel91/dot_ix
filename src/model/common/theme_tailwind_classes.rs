@@ -7,9 +7,9 @@ use crate::model::common::{TailwindClass, TailwindKey};
 
 /// Map of tailwind keys to tailwind classes to apply for that key.
 #[derive(Clone, Debug, Default, PartialEq, Eq, Deserialize, Serialize)]
-pub struct TailwindClasses(IndexMap<TailwindKey, IndexSet<TailwindClass>>);
+pub struct ThemeTailwindClasses(IndexMap<TailwindKey, IndexSet<TailwindClass>>);
 
-impl TailwindClasses {
+impl ThemeTailwindClasses {
     /// Returns a new `TailwindClasses` map without any allocation.
     pub fn new() -> Self {
         Self::default()
@@ -26,7 +26,7 @@ impl TailwindClasses {
     }
 }
 
-impl Deref for TailwindClasses {
+impl Deref for ThemeTailwindClasses {
     type Target = IndexMap<TailwindKey, IndexSet<TailwindClass>>;
 
     fn deref(&self) -> &Self::Target {
@@ -34,7 +34,7 @@ impl Deref for TailwindClasses {
     }
 }
 
-impl DerefMut for TailwindClasses {
+impl DerefMut for ThemeTailwindClasses {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.0
     }

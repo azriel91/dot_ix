@@ -11,7 +11,7 @@ use crate::{
     model::{
         common::{
             AnyId, EdgeId, GraphvizDotTheme, NodeHierarchy, NodeId, TagId, TailwindClass,
-            TailwindClasses, TailwindKey,
+            TailwindKey, ThemeTailwindClasses,
         },
         info_graph::{InfoGraph, NodeInfo, Tag},
     },
@@ -149,7 +149,7 @@ impl IntoGraphvizDotSrc for &InfoGraph {
         tag_legend(
             &mut tag_legend_buffer,
             theme,
-            &self.tailwind_classes(),
+            self.theme_tailwind_classes(),
             self.tags(),
         )
         .expect("Failed to write `tag_legend` string.");
@@ -475,7 +475,7 @@ fn edge(
 fn tag_legend(
     buffer: &mut String,
     theme: &GraphvizDotTheme,
-    tailwind_classes: &TailwindClasses,
+    theme_tailwind_classes: &ThemeTailwindClasses,
     tags: &IndexMap<TagId, Tag>,
 ) -> fmt::Result {
     let node_point_size = theme.node_point_size();
@@ -502,7 +502,8 @@ fn tag_legend(
 
         let tag_classes: TailwindSetDisplay = {
             let id: AnyId = tag_id.clone().into();
-            if let Some(tailwind_class_set) = tailwind_classes.get(&TailwindKey::AnyId(id)).as_ref()
+            if let Some(tailwind_class_set) =
+                theme_tailwind_classes.get(&TailwindKey::AnyId(id)).as_ref()
             {
                 TailwindSetDisplay::Set(&tailwind_class_set)
             } else {
