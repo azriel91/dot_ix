@@ -1,11 +1,12 @@
-/// Implements common behaviour for an ID type.
+/// Implements common behaviour for a String newtype that cannot contain
+/// whitespace.
 ///
 /// The implemented behaviour includes:
 ///
-/// * `IdType::new`
-/// * `IdType::new_unchecked`
-/// * `IdType::is_valid_id`
-/// * `IdType::into_inner`
+/// * `StringType::new`
+/// * `StringType::new_unchecked`
+/// * `StringType::is_valid_value`
+/// * `StringType::into_inner`
 /// * `std::ops::Deref`
 /// * `std::ops::DerefMut`
 /// * `std::fmt::Display`
@@ -27,15 +28,15 @@
 ///
 /// // Rename your ID type
 /// #[derive(Clone, Debug, Hash, PartialEq, Eq, Deserialize, Serialize)]
-/// pub struct MyIdType(Cow<'static, str>);
+/// pub struct MyStringType(Cow<'static, str>);
 ///
 /// crate::id_newtype!(
-///     MyIdType,           // Name of the ID type
-///     MyIdTypeInvalidFmt, // Name of the invalid value error
-///     my_id_type,         // Name of the static check macro
+///     MyStringType,           // Name of the ID type
+///     MyStringTypeInvalidFmt, // Name of the invalid value error
+///     my_id_type,             // Name of the static check macro
 /// );
 /// ```
-macro_rules! id_newtype {
+macro_rules! string_no_whitespace_newtype {
     ($ty_name:ident, $ty_err_name:ident, $macro_name:ident) => {
         impl $ty_name {
             #[doc = concat!("Returns a new `", stringify!($ty_name), "` if the given `&str` is valid.")]
@@ -59,17 +60,9 @@ macro_rules! id_newtype {
                 Self(std::borrow::Cow::Borrowed(s))
             }
 
-            /// Returns whether the provided `&str` is a valid station identifier.
-            pub fn is_valid_id(proposed_id: &str) -> bool {
-                let mut chars = proposed_id.chars();
-                let first_char = chars.next();
-                let first_char_valid = first_char
-                    .map(|c| c.is_ascii_alphabetic() || c == '_')
-                    .unwrap_or(false);
-                let remainder_chars_valid =
-                    chars.all(|c| c.is_ascii_alphabetic() || c == '_' || c.is_ascii_digit());
-
-                first_char_valid && remainder_chars_valid
+            /// Returns whether the provided `&str` is a string without whitespace.
+            pub fn is_valid_value(proposed_id: &str) -> bool {
+                !proposed_id.chars().any(char::is_whitespace)
             }
 
             /// Returns the inner `Cow<'static, str>`.
@@ -96,7 +89,7 @@ macro_rules! id_newtype {
             type Error = $ty_err_name<'static>;
 
             fn try_from(s: String) -> Result<$ty_name, $ty_err_name<'static>> {
-                if Self::is_valid_id(&s) {
+                if Self::is_valid_value(&s) {
                     Ok($ty_name(std::borrow::Cow::Owned(s)))
                 } else {
                     let s = std::borrow::Cow::Owned(s);
@@ -109,7 +102,7 @@ macro_rules! id_newtype {
             type Error = $ty_err_name<'static>;
 
             fn try_from(s: &'static str) -> Result<$ty_name, $ty_err_name<'static>> {
-                if Self::is_valid_id(s) {
+                if Self::is_valid_value(s) {
                     Ok($ty_name(std::borrow::Cow::Borrowed(s)))
                 } else {
                     let s = std::borrow::Cow::Borrowed(s);
@@ -122,7 +115,7 @@ macro_rules! id_newtype {
             type Err = $ty_err_name<'static>;
 
             fn from_str(s: &str) -> Result<$ty_name, $ty_err_name<'static>> {
-                if Self::is_valid_id(s) {
+                if Self::is_valid_value(s) {
                     Ok($ty_name(std::borrow::Cow::Owned(String::from(s))))
                 } else {
                     let s = std::borrow::Cow::Owned(String::from(s));
@@ -166,4 +159,4 @@ macro_rules! id_newtype {
     };
 }
 
-pub(crate) use id_newtype;
+pub(crate) use string_no_whitespace_newtype;

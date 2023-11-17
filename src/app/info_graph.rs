@@ -53,6 +53,18 @@ tags:
   tag_0: { name: "Tag 0", desc: "Some information for tag 0." }
   tag_1: { name: "Tag 1" }
   tag_2: { name: "Tag 2" }
+
+tailwind_classes:
+  tag_2:
+    - [&>path]:fill-blue-200
+    - [&>path]:stroke-blue-500
+    - [&>path]:hover:fill-blue-100
+    - [&>path]:hover:stroke-blue-400
+    - [&>path]:focus:fill-lime-200
+    - [&>path]:focus:outline-1
+    - [&>path]:focus:outline-lime-600
+    - [&>path]:focus:outline-dashed
+    - [&>path]:focus:rounded-xl
 "#;
 
 #[cfg(feature = "server_side_graphviz")]

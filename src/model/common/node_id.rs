@@ -2,7 +2,9 @@ use std::borrow::Cow;
 
 use serde::{Deserialize, Serialize};
 
-/// Unique identifier for a `NodeId`, `Cow<'static, str>` newtype.
+use crate::model::common::AnyId;
+
+/// Unique identifier for a node, `Cow<'static, str>` newtype.
 ///
 /// Must begin with a letter or underscore, and contain only letters, numbers,
 /// and underscores.
@@ -22,3 +24,11 @@ use serde::{Deserialize, Serialize};
 pub struct NodeId(Cow<'static, str>);
 
 crate::model::common::id_newtype!(NodeId, NodeIdInvalidFmt, node_id);
+
+impl From<AnyId> for NodeId {
+    fn from(any_id: AnyId) -> Self {
+        let id = any_id.into_inner();
+
+        Self(id)
+    }
+}
