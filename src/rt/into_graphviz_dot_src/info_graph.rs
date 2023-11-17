@@ -1,7 +1,7 @@
 use std::{
     borrow::Cow,
     collections::{HashMap, VecDeque},
-    fmt::{self, Write},
+    fmt::{self, Display, Write},
 };
 
 use indexmap::{IndexMap, IndexSet};
@@ -9,7 +9,10 @@ use indoc::{formatdoc, writedoc};
 
 use crate::{
     model::{
-        common::{EdgeId, GraphvizDotTheme, NodeHierarchy, NodeId, TagId},
+        common::{
+            AnyId, EdgeId, GraphvizDotTheme, NodeHierarchy, NodeId, TagId, TailwindClass,
+            TailwindClasses, TailwindKey,
+        },
         info_graph::{InfoGraph, NodeInfo, Tag},
     },
     rt::IntoGraphvizDotSrc,
@@ -143,8 +146,13 @@ impl IntoGraphvizDotSrc for &InfoGraph {
             .join("\n");
 
         let mut tag_legend_buffer = String::with_capacity(512 * self.tags().len() + 512);
-        tag_legend(&mut tag_legend_buffer, theme, self.tags())
-            .expect("Failed to write `tag_legend` string.");
+        tag_legend(
+            &mut tag_legend_buffer,
+            theme,
+            &self.tailwind_classes(),
+            self.tags(),
+        )
+        .expect("Failed to write `tag_legend` string.");
 
         formatdoc!(
             "digraph G {{
@@ -467,6 +475,7 @@ fn edge(
 fn tag_legend(
     buffer: &mut String,
     theme: &GraphvizDotTheme,
+    tailwind_classes: &TailwindClasses,
     tags: &IndexMap<TagId, Tag>,
 ) -> fmt::Result {
     let node_point_size = theme.node_point_size();
@@ -490,6 +499,16 @@ fn tag_legend(
 
         // This is for tailwindcss to identify this peer by name.
         let tag_peer_class = format!("peer/{tag_id}");
+
+        let tag_classes: TailwindSetDisplay = {
+            let id: AnyId = tag_id.clone().into();
+            if let Some(tailwind_class_set) = tailwind_classes.get(&TailwindKey::AnyId(id)).as_ref()
+            {
+                TailwindSetDisplay::Set(&tailwind_class_set)
+            } else {
+                TailwindSetDisplay::Default(tag_classes)
+            }
+        };
 
         writedoc!(
             buffer,
@@ -534,4 +553,20 @@ fn tag_legend(
     writeln!(buffer, "}}")?;
 
     Ok(())
+}
+
+enum TailwindSetDisplay<'f> {
+    Set(&'f IndexSet<TailwindClass>),
+    Default(&'f str),
+}
+
+impl<'f> Display for TailwindSetDisplay<'f> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            TailwindSetDisplay::Set(classes) => classes
+                .iter()
+                .try_for_each(|tailwind_class| write!(f, "{tailwind_class} ")),
+            TailwindSetDisplay::Default(classes) => classes.fmt(f),
+        }
+    }
 }

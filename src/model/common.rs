@@ -7,6 +7,7 @@ pub use self::{
     node_id::{NodeId, NodeIdInvalidFmt},
     tag_id::{TagId, TagIdInvalidFmt},
     tailwind_class::{TailwindClass, TailwindClassInvalidFmt},
+    tailwind_classes::TailwindClasses,
     tailwind_key::TailwindKey,
 };
 pub(crate) use self::{
@@ -23,4 +24,5 @@ mod node_id;
 mod string_no_whitespace_newtype;
 mod tag_id;
 mod tailwind_class;
+mod tailwind_classes;
 mod tailwind_key;

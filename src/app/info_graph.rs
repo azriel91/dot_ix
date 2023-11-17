@@ -56,15 +56,15 @@ tags:
 
 tailwind_classes:
   tag_2:
-    - [&>path]:fill-blue-200
-    - [&>path]:stroke-blue-500
-    - [&>path]:hover:fill-blue-100
-    - [&>path]:hover:stroke-blue-400
-    - [&>path]:focus:fill-lime-200
-    - [&>path]:focus:outline-1
-    - [&>path]:focus:outline-lime-600
-    - [&>path]:focus:outline-dashed
-    - [&>path]:focus:rounded-xl
+    - '[&>path]:fill-blue-200'
+    - '[&>path]:stroke-blue-500'
+    - '[&>path]:hover:fill-blue-100'
+    - '[&>path]:hover:stroke-blue-400'
+    - '[&>path]:focus:fill-lime-200'
+    - '[&>path]:focus:outline-1'
+    - '[&>path]:focus:outline-lime-600'
+    - '[&>path]:focus:outline-dashed'
+    - '[&>path]:focus:rounded-xl'
 "#;
 
 #[cfg(feature = "server_side_graphviz")]
