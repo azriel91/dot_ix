@@ -89,8 +89,8 @@ use crate::{
 impl IntoGraphvizDotSrc for &InfoGraph {
     fn into(self, theme: &GraphvizDotTheme) -> String {
         let graph_attrs = graph_attrs(theme);
-        let node_attrs = node_attrs(theme);
-        let edge_attrs = edge_attrs(theme);
+        let node_attrs = node_attrs(theme, self.tailwind_classes());
+        let edge_attrs = edge_attrs(theme, self.tailwind_classes());
 
         let node_clusters = self
             .hierarchy()
@@ -135,6 +135,7 @@ impl IntoGraphvizDotSrc for &InfoGraph {
                 let src_node_hierarchy = node_id_to_hierarchy.get(src_node_id).copied();
                 let target_node_hierarchy = node_id_to_hierarchy.get(target_node_id).copied();
                 edge(
+                    self.tailwind_classes(),
                     edge_id,
                     src_node_id,
                     src_node_hierarchy,
@@ -195,13 +196,14 @@ fn graph_attrs(theme: &GraphvizDotTheme) -> String {
     )
 }
 
-fn node_attrs(theme: &GraphvizDotTheme) -> String {
+fn node_attrs(theme: &GraphvizDotTheme, tailwind_classes: &TailwindClasses) -> String {
     let node_text_color = theme.node_text_color();
     let node_point_size = theme.node_point_size();
     let node_width = theme.node_width();
     let node_height = theme.node_height();
     let node_margin_x = theme.node_margin_x();
     let node_margin_y = theme.node_margin_y();
+    let node_tailwind_classes = tailwind_classes.node_defaults();
     formatdoc!(
         r#"
         node [
@@ -213,20 +215,23 @@ fn node_attrs(theme: &GraphvizDotTheme) -> String {
             width     = {node_width}
             height    = {node_height}
             margin    = "{node_margin_x:.3},{node_margin_y:.3}"
+            class     = "{node_tailwind_classes}"
         ]
         "#
     )
 }
 
-fn edge_attrs(theme: &GraphvizDotTheme) -> String {
+fn edge_attrs(theme: &GraphvizDotTheme, tailwind_classes: &TailwindClasses) -> String {
     let edge_color = theme.edge_color();
     let plain_text_color = theme.plain_text_color();
+    let edge_tailwind_classes = tailwind_classes.edge_defaults();
     formatdoc!(
         r#"
         edge [
             arrowsize = 0.7
             color     = "{edge_color}"
             fontcolor = "{plain_text_color}"
+            class     = "{edge_tailwind_classes}"
         ]
         "#
     )
@@ -412,6 +417,7 @@ fn node_cluster_internal(
 }
 
 fn edge(
+    tailwind_classes: &TailwindClasses,
     edge_id: &EdgeId,
     src_node_id: &NodeId,
     src_node_hierarchy: Option<&NodeHierarchy>,
@@ -458,8 +464,20 @@ fn edge(
         (target_node_id, Cow::Borrowed(""))
     };
 
+    let edge_tailwind_classes = tailwind_classes
+        .edge_classes(edge_id.clone())
+        .map(|edge_tailwind_classes| format!(", class = {edge_tailwind_classes}"));
+    let edge_tailwind_classes = edge_tailwind_classes.as_deref().unwrap_or("");
+
     formatdoc!(
-        r#"{edge_src_node_id} -> {edge_target_node_id} [id = "{edge_id}", minlen = 3 {ltail} {lhead}]"#
+        r#"
+        {edge_src_node_id} -> {edge_target_node_id} [
+            id     = "{edge_id}",
+            minlen = 3
+            {edge_tailwind_classes}
+            {ltail}
+            {lhead}
+        ]"#
     )
 }
 
