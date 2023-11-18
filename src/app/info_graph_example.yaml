@@ -1,0 +1,76 @@
+---
+hierarchy:
+  a:
+    a0:
+      a00:
+    a1:
+  b:
+    b0:
+  c:
+  d:
+
+node_infos:
+  a:
+    emoji: 🛠️
+    name: "Node A"
+    desc: >
+      Contains things to
+      do with A.
+
+      More description
+  a0: { emoji: 🔨, name: "A0", desc: "something to do with A0" }
+  a1: { emoji: ⚙️, name: "A1" }
+  b : { name: "B" }
+  b0: { name: "B0" }
+  c:  { name: "C" }
+  d:  { name: "D" }
+
+edges:
+  ab: [a, b]
+  a0a1: [a00, a1]
+  a0b0: [a0, b0]
+  bc: [b, c]
+  bd: [b, d]
+
+node_tags:
+  a: [tag_0]
+  a0: [tag_1]
+  a00: [tag_2]
+  a1: [tag_1]
+  b: [tag_0]
+  b0: [tag_1]
+  c: [tag_1, tag_2]
+  d: [tag_2]
+
+# tags are not necessarily associated with a node.
+tags:
+  tag_0: { name: "Tag 0", desc: "Some information for tag 0." }
+  tag_1: { name: "Tag 1" }
+  tag_2: { name: "Tag 2" }
+
+tailwind_classes:
+  a0: &blue >-
+    [&>path]:fill-blue-300
+    [&>path]:stroke-1
+    [&>path]:stroke-blue-600
+    [&>path]:hover:fill-blue-200
+    [&>path]:hover:stroke-blue-600
+    [&>path]:focus:fill-lime-200
+    [&>path]:focus:outline-1
+    [&>path]:focus:outline-lime-600
+    [&>path]:focus:outline-dashed
+    [&>path]:focus:rounded-xl
+    cursor-pointer
+  a1: *blue
+
+  tag_2: >-
+    [&>path]:fill-blue-200
+    [&>path]:stroke-blue-500
+    [&>path]:hover:fill-blue-100
+    [&>path]:hover:stroke-blue-400
+    [&>path]:focus:fill-lime-200
+    [&>path]:focus:outline-1
+    [&>path]:focus:outline-lime-600
+    [&>path]:focus:outline-dashed
+    [&>path]:focus:rounded-xl
+    cursor-pointer

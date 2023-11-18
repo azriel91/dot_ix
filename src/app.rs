@@ -14,6 +14,35 @@ mod dot_svg;
 mod error_template;
 mod info_graph;
 
+/// Whether to only draw the diagram and hide the text boxes.
+#[cfg(target_arch = "wasm32")]
+const QUERY_PARAM_DIAGRAM_ONLY: &str = "diagram_only";
+
+/// Sets the info graph src using logic purely executed on the client side.
+///
+/// This is for a pure client side rendered app, so updating a signal withing
+/// `create_effect` is safe.
+#[cfg(target_arch = "wasm32")]
+fn diagram_only_init(set_diagram_only: WriteSignal<bool>) {
+    use web_sys::Url;
+
+    create_effect(move |_| {
+        if let Some(url_search_params) = web_sys::window().map(|window| {
+            Url::new(&String::from(window.location().to_string()))
+                .expect("Expected URL to be valid.")
+                .search_params()
+        }) {
+            let diagram_only = url_search_params
+                .get(QUERY_PARAM_DIAGRAM_ONLY)
+                .and_then(|diagram_only_str| serde_yaml::from_str::<bool>(&diagram_only_str).ok())
+                .unwrap_or(false);
+            set_diagram_only.set(diagram_only);
+        } else {
+            set_diagram_only.set(false);
+        }
+    });
+}
+
 #[component]
 pub fn App() -> impl IntoView {
     // Provides context that manages stylesheets, titles, meta tags, etc.
@@ -53,17 +82,31 @@ pub fn App() -> impl IntoView {
 /// Renders the home page of your application.
 #[component]
 fn HomePage() -> impl IntoView {
-    view! {
-        <h1 class="text-xl">"✒️ dot_ix: Interactive Dot graph"</h1>
-        <InfoGraph />
-        <div class="
+    let (diagram_only, set_diagram_only) = create_signal(false);
+
+    #[cfg(target_arch = "wasm32")]
+    diagram_only_init(set_diagram_only);
+
+    let _set_diagram_only = set_diagram_only;
+
+    let disclaimer_classes = move || {
+        if diagram_only.get() {
+            "hidden"
+        } else {
+            "
             border
             border-amber-300
             bg-gradient-to-b from-amber-100 to-amber-200
             my-2
             p-2
             rounded
-            ">
+            "
+        }
+    };
+
+    view! {
+        <InfoGraph diagram_only=diagram_only />
+        <div class=disclaimer_classes>
             <p>
                 <span class="font-bold">"🐱 GitHub: "</span>
                 <a

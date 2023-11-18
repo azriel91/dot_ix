@@ -1,9 +1,9 @@
 use leptos::*;
 
+use leptos_meta::Script;
+
 #[cfg(not(feature = "server_side_graphviz"))]
 use leptos::html::Div;
-#[cfg(not(feature = "server_side_graphviz"))]
-use leptos_meta::Script;
 
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
@@ -43,6 +43,11 @@ pub async fn dot_svg(dot_src: String) -> Result<(String, String), ServerFnError>
             .await
             .map_err(|error| ServerFnError::ServerError(format!("{error}")))?;
     }
+    dot_svg = dot_svg
+        .replace("<g ", "<g tabindex=\"0\" ")
+        .replace("fill=\"#000000\"", "")
+        .replace("stroke=\"#000000\"", "")
+        .replace("stroke=\"black\"", "");
 
     let mut dot_stderr = String::new();
     if let Some(mut stderr) = dot_process.stderr.take() {
@@ -86,11 +91,11 @@ pub fn DotSvg(dot_src: ReadSignal<Option<String>>) -> impl IntoView {
         <Suspense
             fallback=move || view! { <p>"Loading..."</p> }
         >
-            <h2>"Graph"</h2>
-            {move || {
+            { move || {
                 dot_svg_and_error_resource.get()
                     .map(|(dot_svg, error_text)| view! {
                         <div>
+                            <Script src="https://cdn.tailwindcss.com" />
                             <div inner_html=dot_svg />
 
                             <div class={
@@ -187,7 +192,6 @@ pub fn DotSvg(dot_src: ReadSignal<Option<String>>) -> impl IntoView {
         <Suspense
             fallback=move || view! {  <p>"Loading..."</p> }
         >
-            <h2>"Graph"</h2>
             <div>
                 // Client side tailwind processing.
                 <Script src="https://cdn.tailwindcss.com" />
