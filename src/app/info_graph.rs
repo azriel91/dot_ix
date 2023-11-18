@@ -327,37 +327,35 @@ pub fn InfoGraph() -> impl IntoView {
 
     #[cfg(feature = "server_side_graphviz")]
     view! {
-        <Suspense fallback=move || view! { <p>"Loading src"</p> }>
-            { move || {
-                match src_init_resource.get() {
-                    Some(Ok(info_graph_query_params)) => {
-                        leptos::logging::log!("successfully parsed info graph json");
-                        let info_graph_src_init = info_graph_query_params
-                            .src
-                            .as_deref()
-                            .map(|src| {
-                                serde_yaml::from_str::<crate::model::info_graph::InfoGraph>(src)
-                                    .map(|info_graph| {
-                                        serde_yaml::to_string(&info_graph)
-                                            .unwrap_or_else(|e| format!("# serialize src error: {e}"))
-                                    }).unwrap_or_else(|e| format!("# deserialize src error: {e}"))
+        { move || {
+            match src_init_resource.get() {
+                Some(Ok(info_graph_query_params)) => {
+                    leptos::logging::log!("successfully parsed info graph json");
+                    let info_graph_src_init = info_graph_query_params
+                        .src
+                        .as_deref()
+                        .map(|src| {
+                            serde_yaml::from_str::<crate::model::info_graph::InfoGraph>(src)
+                                .map(|info_graph| {
+                                    serde_yaml::to_string(&info_graph)
+                                        .unwrap_or_else(|e| format!("# serialize src error: {e}"))
+                                }).unwrap_or_else(|e| format!("# deserialize src error: {e}"))
 
-                            })
-                            // src was not provided
-                            .unwrap_or_else(|| String::from(INFO_GRAPH_DEMO));
-                        set_info_graph_src.set(info_graph_src_init);
-                        set_diagram_only.set(info_graph_query_params.diagram_only);
-                    }
-                    Some(Err(e)) => {
-                        set_info_graph_src.set(format!("# query params parse error: {e}"));
-                        set_diagram_only.set(false);
-                    }
-                    None => {}
+                        })
+                        // src was not provided
+                        .unwrap_or_else(|| String::from(INFO_GRAPH_DEMO));
+                    set_info_graph_src.set(info_graph_src_init);
+                    set_diagram_only.set(info_graph_query_params.diagram_only);
                 }
-            }}
+                Some(Err(e)) => {
+                    set_info_graph_src.set(format!("# query params parse error: {e}"));
+                    set_diagram_only.set(false);
+                }
+                None => {}
+            }
 
-            {move || components()}
-        </Suspense>
+            components()
+        }}
     }
 
     #[cfg(not(feature = "server_side_graphviz"))]
