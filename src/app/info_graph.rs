@@ -4,6 +4,10 @@ use leptos::*;
 
 use crate::{app::DotSvg, model::common::GraphvizDotTheme, rt::IntoGraphvizDotSrc};
 
+#[cfg(any(
+    all(not(feature = "server_side_graphviz"), target_arch = "wasm32"),
+    feature = "server_side_graphviz",
+))]
 const INFO_GRAPH_DEMO: &str = r#"---
 hierarchy:
   a:
