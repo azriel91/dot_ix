@@ -3,14 +3,17 @@ use serde::{Deserialize, Serialize};
 
 use crate::model::common::{EdgeId, NodeHierarchy, NodeId, TagId, TailwindClasses};
 
-pub use self::{node_info::NodeInfo, tag::Tag};
+pub use self::{graph_dir::GraphDir, node_info::NodeInfo, tag::Tag};
 
+mod graph_dir;
 mod node_info;
 mod tag;
 
 #[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(default)]
 pub struct InfoGraph {
+    /// Direction of the graph, `vertical` or `horizontal`.
+    direction: GraphDir,
     /// Nested nodes.
     hierarchy: NodeHierarchy,
     /// Logical / ordering dependencies.
@@ -26,6 +29,10 @@ pub struct InfoGraph {
 }
 
 impl InfoGraph {
+    pub fn direction(&self) -> GraphDir {
+        self.direction
+    }
+
     pub fn hierarchy(&self) -> &NodeHierarchy {
         &self.hierarchy
     }
