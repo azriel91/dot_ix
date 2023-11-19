@@ -195,6 +195,36 @@ where
 }
 
 /// Renders a graphviz graph as an SVG.
+///
+/// TODO: Use `postcss` to generate styles on the client side via function.
+///
+/// * https://stackoverflow.com/questions/75787942/given-html-string-generate-the-tailwindcss-programatically
+/// * https://tailwindcss.com/docs/content-configuration#configuring-raw-content
+/// * https://tailwindcss.com/docs/content-configuration#safelisting-classes
+///
+/// ```js
+/// import postcss from "postcss";
+/// import tailwindcss from "tailwindcss"
+/// import autoprefixer from "autoprefixer"
+/// import cssnano from "cssnano"
+///
+/// async function generateTailwindCss(html) {
+///   return (await postcss([tailwindcss({
+///     content: [{ raw:html }],
+///     theme: {
+///       extend: {},
+///     },
+///     plugins: [],
+///   }), autoprefixer, cssnano])
+///   .process(`
+///     @tailwind base;
+///     @tailwind components;
+///     @tailwind utilities;
+///   `)).css
+/// }
+///
+/// const css = generateTailwindCss('<div class="m-4">HTML content</div>')
+/// ```
 #[cfg(not(feature = "server_side_graphviz"))]
 #[component]
 pub fn DotSvg<FDotSrc>(dot_src_and_styles: FDotSrc) -> impl IntoView
