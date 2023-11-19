@@ -194,6 +194,7 @@ fn graph_attrs(theme: &GraphvizDotTheme, graph_dir: GraphDir) -> String {
             ranksep   = 0.02
             bgcolor   = "transparent"
             fontname  = "helvetica"
+            packmode  = "graph"
             fontcolor = "{plain_text_color}"
             fontsize  = {node_point_size}
             rankdir   = {rankdir}
