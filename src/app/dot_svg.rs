@@ -4,6 +4,8 @@ use crate::model::common::DotSrcAndStyles;
 
 #[cfg(not(feature = "server_side_graphviz"))]
 use leptos::html::Div;
+#[cfg(not(feature = "server_side_graphviz"))]
+use leptos_meta::Script;
 
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
@@ -23,7 +25,7 @@ pub async fn dot_svg(
     use std::process::Stdio;
     use tokio::io::{AsyncReadExt, AsyncWriteExt};
 
-    let DotSrcAndStyles { dot_src, styles } = dot_src_and_styles;
+    let DotSrcAndStyles { dot_src, styles: _ } = dot_src_and_styles;
 
     let mut dot_process = tokio::process::Command::new("dot")
         .arg("-Tsvg")
@@ -61,18 +63,77 @@ pub async fn dot_svg(
         .await
         .map_err(|error| ServerFnError::ServerError(format!("{dot_stderr}{error}")))?;
 
+    let styles = dot_svg_styles(&dot_src).await?;
+
     dot_svg = dot_svg
-        .replacen(
-            "<g id=\"graph_0\"",
-            &format!("<styles>{styles}</styles>\n<g id=\"graph_0\""),
-            1,
-        )
+        .replacen("<g", &format!("<style>{styles}</style>\n<g"), 1)
         .replace("<g ", "<g tabindex=\"0\" ")
         .replace("fill=\"#000000\"", "")
         .replace("stroke=\"#000000\"", "")
         .replace("stroke=\"black\"", "");
 
     Ok((dot_svg, dot_stderr))
+}
+
+#[cfg(feature = "ssr")]
+#[cfg(feature = "server_side_graphviz")]
+async fn dot_svg_styles(dot_src: &str) -> Result<String, ServerFnError> {
+    use std::process::Stdio;
+    use tokio::io::AsyncReadExt;
+
+    let tempdir =
+        tempfile::tempdir().map_err(|error| ServerFnError::ServerError(format!("{error}")))?;
+
+    let dot_path = tempdir.path().join("dot.dot");
+    let dot_write = tokio::fs::write(&dot_path, dot_src);
+
+    let tailwind_config_path = tempdir.path().join("tailwind.config.js");
+    let tailwind_config_write = tokio::fs::write(
+        &tailwind_config_path,
+        b"/** @type {import('tailwindcss').Config} */\nmodule.exports = { content: ['./dot.dot'] }",
+    );
+
+    let tailwind_css_path = tempdir.path().join("tailwind.css");
+    let tailwind_css_write = tokio::fs::write(
+        &tailwind_css_path,
+        b"\n@tailwind components;\n@tailwind utilities;\n",
+    );
+
+    let ((), (), ()) = tokio::try_join!(tailwind_config_write, dot_write, tailwind_css_write,)
+        .map_err(|error| ServerFnError::ServerError(format!("{error}")))?;
+
+    let mut tailwind_process = tokio::process::Command::new("tailwind")
+        .current_dir(tempdir.path())
+        .arg("-i")
+        .arg(&tailwind_css_path)
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .map_err(|error| ServerFnError::ServerError(format!("{error}")))?;
+
+    let mut svg_styles = String::with_capacity(dot_src.len());
+    if let Some(mut stdout) = tailwind_process.stdout.take() {
+        stdout
+            .read_to_string(&mut svg_styles)
+            .await
+            .map_err(|error| ServerFnError::ServerError(format!("{error}")))?;
+    }
+
+    let mut tailwind_stderr = String::new();
+    if let Some(mut stderr) = tailwind_process.stderr.take() {
+        stderr
+            .read_to_string(&mut tailwind_stderr)
+            .await
+            .map_err(|error| ServerFnError::ServerError(format!("{error}")))?;
+    }
+
+    tailwind_process
+        .wait()
+        .await
+        .map_err(|error| ServerFnError::ServerError(format!("{tailwind_stderr}{error}")))?;
+
+    Ok(svg_styles)
 }
 
 /// Renders a graphviz graph as an SVG.
@@ -217,6 +278,8 @@ where
 
     view! {
         <div>
+            // Client side tailwind processing.
+            <Script src="https://cdn.tailwindcss.com" />
             <div
                 id="svg_div"
                 node_ref=svg_div_ref

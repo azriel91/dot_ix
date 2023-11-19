@@ -57,8 +57,6 @@ pub fn App() -> impl IntoView {
         // id=leptos means cargo-leptos will hot-reload this stylesheet
         <Stylesheet id="leptos" href=stylesheet_path />
         <Stylesheet id="fonts" href=fonts_path />
-        // Client side tailwind processing.
-        <Script src="https://cdn.tailwindcss.com" />
         <Title text="dot_ix: Interactive dot graphs" />
 
         // content for this welcome page
