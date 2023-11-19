@@ -82,7 +82,7 @@ pub fn App() -> impl IntoView {
 /// Renders the home page of your application.
 #[component]
 fn HomePage() -> impl IntoView {
-    let (diagram_only, set_diagram_only) = create_signal(false);
+    let (diagram_only, set_diagram_only) = create_signal(true);
 
     #[cfg(target_arch = "wasm32")]
     diagram_only_init(set_diagram_only);
