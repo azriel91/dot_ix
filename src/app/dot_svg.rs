@@ -109,7 +109,7 @@ where
                 dot_svg_and_error_resource.get()
                     .map(|(dot_svg, error_text)| view! {
                         <div>
-                            <Script src="https://cdn.tailwindcss.com" />
+                            <Script src="https://cdn.tailwindcss.com" defer="true" />
                             <div inner_html=dot_svg />
 
                             <div class={
@@ -220,7 +220,7 @@ where
         >
             <div>
                 // Client side tailwind processing.
-                <Script src="https://cdn.tailwindcss.com" />
+                <Script src="https://cdn.tailwindcss.com" defer="true" />
                 <div
                     id="svg_div"
                     _ref=svg_div_ref
