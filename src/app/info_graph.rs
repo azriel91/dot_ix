@@ -20,7 +20,7 @@ const QUERY_PARAM_SRC: &str = "src";
 /// `create_effect` is safe.
 #[cfg(target_arch = "wasm32")]
 fn info_graph_src_init(set_info_graph_src: WriteSignal<String>) {
-    use web_sys::{Document, Element, Url};
+    use web_sys::{Document, Url};
 
     create_effect(move |_| {
         if let Some(window) = web_sys::window() {
@@ -48,7 +48,7 @@ fn info_graph_src_init(set_info_graph_src: WriteSignal<String>) {
                 .as_ref()
                 .and_then(Document::body)
                 .as_deref()
-                .map(Element::append_with_str_0);
+                .map(|element| element.append_with_str_1(""));
         } else {
             set_info_graph_src.set(String::from("# Could not extract search params."));
         }
