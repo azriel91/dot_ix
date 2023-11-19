@@ -2,7 +2,11 @@ use std::time::Duration;
 
 use leptos::*;
 
-use crate::{app::DotSvg, model::common::GraphvizDotTheme, rt::IntoGraphvizDotSrc};
+use crate::{
+    app::DotSvg,
+    model::common::{DotSrcAndStyles, GraphvizDotTheme},
+    rt::IntoGraphvizDotSrc,
+};
 
 const INFO_GRAPH_DEMO: &str = include_str!("info_graph_example.yaml");
 
@@ -80,26 +84,33 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
     // Creates a reactive value to update the button
     let (error_text, set_error_text) = create_signal(None::<String>);
     let (dot_src, set_dot_src) = create_signal(None::<String>);
+    let (styles, set_styles) = create_signal(None::<String>);
+    let dot_src_and_styles = move || {
+        dot_src
+            .get()
+            .zip(styles.get())
+            .map(|(dot_src, styles)| DotSrcAndStyles { dot_src, styles })
+    };
     create_effect(move |_| {
         let info_graph_result =
             serde_yaml::from_str::<crate::model::info_graph::InfoGraph>(&info_graph_src.get());
         let info_graph_result = &info_graph_result;
 
-        set_dot_src.update(|dot_src| match info_graph_result {
+        match info_graph_result {
             Ok(info_graph) => {
-                *dot_src = Some(IntoGraphvizDotSrc::into(
-                    info_graph,
-                    &GraphvizDotTheme::default(),
-                ))
+                let DotSrcAndStyles { dot_src, styles } =
+                    IntoGraphvizDotSrc::into(info_graph, &GraphvizDotTheme::default());
+
+                set_dot_src.set(Some(dot_src));
+                set_styles.set(Some(styles));
+                set_error_text.set(None);
             }
-            Err(_) => {
-                *dot_src = None;
+            Err(error) => {
+                set_dot_src.set(None);
+                set_styles.set(None);
+                set_error_text.set(Some(format!("{error}")));
             }
-        });
-        set_error_text.update(|error_text| match info_graph_result {
-            Ok(_) => *error_text = None,
-            Err(error) => *error_text = Some(format!("{error}")),
-        });
+        }
     });
 
     view! {
@@ -158,7 +169,7 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
                     }</div>
             </div>
             <div>
-                <DotSvg dot_src=dot_src />
+                <DotSvg dot_src_and_styles=dot_src_and_styles />
             </div>
 
             <div class={ move || textbox_display_classes() }>

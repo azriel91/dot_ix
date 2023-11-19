@@ -1,6 +1,7 @@
 use leptos::*;
-
 use leptos_meta::Script;
+
+use crate::model::common::DotSrcAndStyles;
 
 #[cfg(not(feature = "server_side_graphviz"))]
 use leptos::html::Div;
@@ -17,9 +18,13 @@ extern "C" {
 
 #[cfg(feature = "server_side_graphviz")]
 #[server]
-pub async fn dot_svg(dot_src: String) -> Result<(String, String), ServerFnError> {
+pub async fn dot_svg(
+    dot_src_and_styles: DotSrcAndStyles,
+) -> Result<(String, String), ServerFnError> {
     use std::process::Stdio;
     use tokio::io::{AsyncReadExt, AsyncWriteExt};
+
+    let DotSrcAndStyles { dot_src, styles } = dot_src_and_styles;
 
     let mut dot_process = tokio::process::Command::new("dot")
         .arg("-Tsvg")
@@ -43,11 +48,6 @@ pub async fn dot_svg(dot_src: String) -> Result<(String, String), ServerFnError>
             .await
             .map_err(|error| ServerFnError::ServerError(format!("{error}")))?;
     }
-    dot_svg = dot_svg
-        .replace("<g ", "<g tabindex=\"0\" ")
-        .replace("fill=\"#000000\"", "")
-        .replace("stroke=\"#000000\"", "")
-        .replace("stroke=\"black\"", "");
 
     let mut dot_stderr = String::new();
     if let Some(mut stderr) = dot_process.stderr.take() {
@@ -62,19 +62,33 @@ pub async fn dot_svg(dot_src: String) -> Result<(String, String), ServerFnError>
         .await
         .map_err(|error| ServerFnError::ServerError(format!("{dot_stderr}{error}")))?;
 
+    dot_svg = dot_svg
+        .replacen(
+            "<g id=\"graph_0\"",
+            &format!("<styles>{styles}</styles>\n<g id=\"graph_0\""),
+            1,
+        )
+        .replace("<g ", "<g tabindex=\"0\" ")
+        .replace("fill=\"#000000\"", "")
+        .replace("stroke=\"#000000\"", "")
+        .replace("stroke=\"black\"", "");
+
     Ok((dot_svg, dot_stderr))
 }
 
 /// Renders a graphviz graph as an SVG.
 #[cfg(feature = "server_side_graphviz")]
 #[component]
-pub fn DotSvg(dot_src: ReadSignal<Option<String>>) -> impl IntoView {
+pub fn DotSvg<FDotSrc>(dot_src_and_styles: FDotSrc) -> impl IntoView
+where
+    FDotSrc: Fn() -> Option<DotSrcAndStyles> + 'static,
+{
     let dot_svg_and_error_resource = create_resource(
-        move || dot_src.get(),
-        |dot_src| async move {
-            if let Some(dot_src) = dot_src {
-                if !dot_src.is_empty() {
-                    match dot_svg(dot_src).await {
+        move || dot_src_and_styles(),
+        |dot_src_and_styles| async move {
+            if let Some(dot_src_and_styles) = dot_src_and_styles {
+                if !dot_src_and_styles.dot_src.is_empty() {
+                    match dot_svg(dot_src_and_styles).await {
                         Ok((dot_svg, error_text)) => (dot_svg, error_text),
                         Err(error) => (String::from(""), format!("{error}")),
                     }
@@ -124,7 +138,10 @@ pub fn DotSvg(dot_src: ReadSignal<Option<String>>) -> impl IntoView {
 /// Renders a graphviz graph as an SVG.
 #[cfg(not(feature = "server_side_graphviz"))]
 #[component]
-pub fn DotSvg(dot_src: ReadSignal<Option<String>>) -> impl IntoView {
+pub fn DotSvg<FDotSrc>(dot_src_and_styles: FDotSrc) -> impl IntoView
+where
+    FDotSrc: Fn() -> Option<DotSrcAndStyles> + 'static,
+{
     // DOM elements for the graph and error
     let svg_div_ref = create_node_ref::<Div>();
 
@@ -132,27 +149,36 @@ pub fn DotSvg(dot_src: ReadSignal<Option<String>>) -> impl IntoView {
 
     #[cfg(not(target_arch = "wasm32"))]
     {
-        let _dot_src = dot_src;
+        let _dot_src_and_styles = dot_src_and_styles;
         let _set_error_text = set_error_text;
     }
 
     create_effect(move |_| {
         #[cfg(target_arch = "wasm32")]
-        if let Some(dot_src) = dot_src.get() {
-            if !dot_src.is_empty() {
+        if let Some(dot_src_and_styles) = dot_src_and_styles() {
+            if !dot_src_and_styles.dot_src.is_empty() {
                 use std::borrow::Cow;
+
+                let DotSrcAndStyles { dot_src, styles } = dot_src_and_styles;
 
                 let (dot_svg, error) = match graphviz_dot_svg(dot_src) {
                     // TODO: Extract these string replacements so that they can be run from a server_function
                     //
                     // TODO: need to move tag nodes before all other nodes
                     //       so that tailwind peer selectors work.
-                    Ok(dot_svg) => (Cow::Owned(dot_svg
+                    Ok(dot_svg) => {
+                        let dot_svg = dot_svg
+                            .replacen(
+                                "<g id=\"graph_0\"",
+                                &format!("<styles>{styles}</styles>\n<g id=\"graph_0\""),
+                                1,
+                            )
                             .replace("<g ", "<g tabindex=\"0\" ")
                             .replace("fill=\"#000000\"", "")
                             .replace("stroke=\"#000000\"", "")
-                            .replace("stroke=\"black\"", "")
-                        ), None),
+                            .replace("stroke=\"black\"", "");
+
+                        (Cow::Owned(dot_svg), None)},
                     Err(error) => {
                         let error = js_sys::Error::from(error)
                             .to_string()

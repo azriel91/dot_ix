@@ -6,11 +6,14 @@ use std::{
 
 use indexmap::{IndexMap, IndexSet};
 use indoc::{formatdoc, writedoc};
+#[cfg(feature = "tailwind_rs")]
+use tailwind_css::TailwindBuilder;
 
 use crate::{
     model::{
         common::{
-            EdgeId, GraphvizDotTheme, NodeHierarchy, NodeId, TagId, TailwindClasses, TailwindKey,
+            DotSrcAndStyles, EdgeId, GraphvizDotTheme, NodeHierarchy, NodeId, TagId,
+            TailwindClasses, TailwindKey,
         },
         info_graph::{GraphDir, InfoGraph, NodeInfo, Tag},
     },
@@ -87,10 +90,23 @@ use crate::{
 ///
 /// [`tailwind-css`]: https://github.com/oovm/tailwind-rs
 impl IntoGraphvizDotSrc for &InfoGraph {
-    fn into(self, theme: &GraphvizDotTheme) -> String {
+    fn into(self, theme: &GraphvizDotTheme) -> DotSrcAndStyles {
+        #[cfg(feature = "tailwind_rs")]
+        let mut tailwind_builder = TailwindBuilder::default();
+
         let graph_attrs = graph_attrs(theme, self.direction());
-        let node_attrs = node_attrs(theme, self.tailwind_classes());
-        let edge_attrs = edge_attrs(theme, self.tailwind_classes());
+        let node_attrs = node_attrs(
+            #[cfg(feature = "tailwind_rs")]
+            &mut tailwind_builder,
+            theme,
+            self.tailwind_classes(),
+        );
+        let edge_attrs = edge_attrs(
+            #[cfg(feature = "tailwind_rs")]
+            &mut tailwind_builder,
+            theme,
+            self.tailwind_classes(),
+        );
 
         let node_clusters = self
             .hierarchy()
@@ -135,6 +151,8 @@ impl IntoGraphvizDotSrc for &InfoGraph {
                 let src_node_hierarchy = node_id_to_hierarchy.get(src_node_id).copied();
                 let target_node_hierarchy = node_id_to_hierarchy.get(target_node_id).copied();
                 edge(
+                    #[cfg(feature = "tailwind_rs")]
+                    &mut tailwind_builder,
                     self.tailwind_classes(),
                     edge_id,
                     src_node_id,
@@ -155,7 +173,7 @@ impl IntoGraphvizDotSrc for &InfoGraph {
         )
         .expect("Failed to write `tag_legend` string.");
 
-        formatdoc!(
+        let dot_src = formatdoc!(
             "digraph G {{
                 {graph_attrs}
                 {node_attrs}
@@ -167,7 +185,16 @@ impl IntoGraphvizDotSrc for &InfoGraph {
 
                 {edges}
             }}"
-        )
+        );
+
+        #[cfg(feature = "tailwind_rs")]
+        let styles = tailwind_builder
+            .bundle()
+            .expect("Expected tailwind compilation to work.");
+        #[cfg(not(feature = "tailwind_rs"))]
+        let styles = String::new();
+
+        DotSrcAndStyles { dot_src, styles }
     }
 }
 
@@ -203,7 +230,11 @@ fn graph_attrs(theme: &GraphvizDotTheme, graph_dir: GraphDir) -> String {
     )
 }
 
-fn node_attrs(theme: &GraphvizDotTheme, tailwind_classes: &TailwindClasses) -> String {
+fn node_attrs(
+    #[cfg(feature = "tailwind_rs")] tailwind_builder: &mut TailwindBuilder,
+    theme: &GraphvizDotTheme,
+    tailwind_classes: &TailwindClasses,
+) -> String {
     let node_text_color = theme.node_text_color();
     let node_point_size = theme.node_point_size();
     let node_width = theme.node_width();
@@ -211,6 +242,12 @@ fn node_attrs(theme: &GraphvizDotTheme, tailwind_classes: &TailwindClasses) -> S
     let node_margin_x = theme.node_margin_x();
     let node_margin_y = theme.node_margin_y();
     let node_tailwind_classes = tailwind_classes.node_defaults();
+
+    #[cfg(feature = "tailwind_rs")]
+    tailwind_builder
+        .trace(node_tailwind_classes, false)
+        .expect("Failed to trace default `node_tailwind_classes`.");
+
     formatdoc!(
         r#"
         node [
@@ -228,10 +265,20 @@ fn node_attrs(theme: &GraphvizDotTheme, tailwind_classes: &TailwindClasses) -> S
     )
 }
 
-fn edge_attrs(theme: &GraphvizDotTheme, tailwind_classes: &TailwindClasses) -> String {
+fn edge_attrs(
+    #[cfg(feature = "tailwind_rs")] tailwind_builder: &mut TailwindBuilder,
+    theme: &GraphvizDotTheme,
+    tailwind_classes: &TailwindClasses,
+) -> String {
     let edge_color = theme.edge_color();
     let plain_text_color = theme.plain_text_color();
     let edge_tailwind_classes = tailwind_classes.edge_defaults();
+
+    #[cfg(feature = "tailwind_rs")]
+    tailwind_builder
+        .trace(edge_tailwind_classes, false)
+        .expect("Failed to trace default `edge_tailwind_classes`.");
+
     formatdoc!(
         r#"
         edge [
@@ -424,6 +471,7 @@ fn node_cluster_internal(
 }
 
 fn edge(
+    #[cfg(feature = "tailwind_rs")] tailwind_builder: &mut TailwindBuilder,
     tailwind_classes: &TailwindClasses,
     edge_id: &EdgeId,
     src_node_id: &NodeId,
@@ -471,9 +519,16 @@ fn edge(
         (target_node_id, Cow::Borrowed(""))
     };
 
-    let edge_tailwind_classes = tailwind_classes
-        .edge_classes(edge_id.clone())
-        .map(|edge_tailwind_classes| format!(", class = {edge_tailwind_classes}"));
+    let edge_tailwind_classes =
+        tailwind_classes
+            .edge_classes(edge_id.clone())
+            .map(|edge_tailwind_classes| {
+                #[cfg(feature = "tailwind_rs")]
+                tailwind_builder
+                    .trace(edge_tailwind_classes, false)
+                    .expect("Failed to trace `edge_tailwind_classes`.");
+                format!(", class = {edge_tailwind_classes}")
+            });
     let edge_tailwind_classes = edge_tailwind_classes.as_deref().unwrap_or("");
 
     formatdoc!(

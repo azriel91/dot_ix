@@ -1,8 +1,8 @@
-use crate::model::common::GraphvizDotTheme;
+use crate::model::common::{DotSrcAndStyles, GraphvizDotTheme};
 
 mod info_graph;
 
 /// Generates GraphViz Dot source that can be rendered using `dot`.
 pub trait IntoGraphvizDotSrc {
-    fn into(self, theme: &GraphvizDotTheme) -> String;
+    fn into(self, theme: &GraphvizDotTheme) -> DotSrcAndStyles;
 }

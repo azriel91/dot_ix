@@ -30,6 +30,7 @@ leptos_router = { workspace = true }
 log = { workspace = true }
 simple_logger = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
+tailwind-css = { workspace = true, optional = true }
 tokio = { workspace = true, optional = true }
 tower = { workspace = true, optional = true }
 tower-http = { version = "0.4", features = ["fs"], optional = true }
@@ -64,6 +65,7 @@ csr = [
     "leptos_router/csr",
 ]
 server_side_graphviz = []
+tailwind_rs = ["dep:tailwind-css"]
 
 [workspace]
 members = ["crate/*"]
@@ -103,6 +105,7 @@ tokio = "1.34.0"
 tower = "0.4.13"
 tower-http = "0.4"
 wasm-bindgen = "0.2.88"
+tailwind-css = "0.13.0"
 thiserror = "1.0.50"
 tracing = "0.1.40"
 http = "0.2.11"
@@ -163,10 +166,7 @@ env = "DEV"
 # bin-features = ["ssr"]     # server side rendered app
 # bin-features = ["hydrate"] # client side compilation for server side rendered app
 # bin-features = ["csr"]     # client side rendered app
-#
-# We don't default to building with `"ssr"` because for pure client side rendering,
-# we need the `"ssr"` feature off.
-bin-features = []
+bin-features = ["ssr"]
 
 # If the --no-default-features flag should be used when compiling the bin target
 #
