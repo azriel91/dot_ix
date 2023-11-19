@@ -1,5 +1,4 @@
 use leptos::*;
-use leptos_meta::Script;
 
 use crate::model::common::DotSrcAndStyles;
 
@@ -109,7 +108,6 @@ where
                 dot_svg_and_error_resource.get()
                     .map(|(dot_svg, error_text)| view! {
                         <div>
-                            <Script src="https://cdn.tailwindcss.com" defer="true" />
                             <div inner_html=dot_svg />
 
                             <div class={
@@ -154,6 +152,9 @@ where
     }
 
     create_effect(move |_| {
+        #[cfg(not(target_arch = "wasm32"))]
+        let _svg_div_ref = svg_div_ref;
+
         #[cfg(target_arch = "wasm32")]
         if let Some(dot_src_and_styles) = dot_src_and_styles() {
             if !dot_src_and_styles.dot_src.is_empty() {
@@ -215,47 +216,41 @@ where
     });
 
     view! {
-        <Suspense
-            fallback=move || view! {  <p>"Loading..."</p> }
-        >
-            <div>
-                // Client side tailwind processing.
-                <Script src="https://cdn.tailwindcss.com" defer="true" />
-                <div
-                    id="svg_div"
-                    _ref=svg_div_ref
-                    class="overflow-auto"
-                />
-                <div
-                    id="error_div"
-                    class={
-                        move || {
-                            let error_text = error_text.get();
-                            let error_text_empty = error_text
-                                .as_deref()
-                                .map(str::is_empty)
-                                .unwrap_or(true);
-                            if error_text_empty {
-                                "hidden"
-                            } else {
-                                "
-                                border
-                                border-amber-300
-                                bg-gradient-to-b from-amber-100 to-amber-200
-                                rounded
-                                "
-                            }
-                        }
-                    }
-                >{
+        <div>
+            <div
+                id="svg_div"
+                node_ref=svg_div_ref
+                class="overflow-auto"
+            />
+            <div
+                id="error_div"
+                class={
                     move || {
                         let error_text = error_text.get();
-                        error_text.as_deref()
-                            .unwrap_or("")
-                            .to_string()
+                        let error_text_empty = error_text
+                            .as_deref()
+                            .map(str::is_empty)
+                            .unwrap_or(true);
+                        if error_text_empty {
+                            "hidden"
+                        } else {
+                            "
+                            border
+                            border-amber-300
+                            bg-gradient-to-b from-amber-100 to-amber-200
+                            rounded
+                            "
+                        }
                     }
-                }</div>
-            </div>
-        </Suspense>
+                }
+            >{
+                move || {
+                    let error_text = error_text.get();
+                    error_text.as_deref()
+                        .unwrap_or("")
+                        .to_string()
+                }
+            }</div>
+        </div>
     }
 }
