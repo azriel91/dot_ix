@@ -67,9 +67,6 @@ fn info_graph_src_init(set_info_graph_src: WriteSignal<String>) {
 pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
     let (info_graph_src, set_info_graph_src) = create_signal(String::from(INFO_GRAPH_DEMO));
 
-    #[cfg(target_arch = "wasm32")]
-    info_graph_src_init(set_info_graph_src);
-
     let layout_classes = move || {
         if diagram_only.get() {
             "grid grid-cols-1"
@@ -112,6 +109,9 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
             }
         }
     });
+
+    #[cfg(target_arch = "wasm32")]
+    info_graph_src_init(set_info_graph_src);
 
     view! {
         <div class={ move || layout_classes() }>
