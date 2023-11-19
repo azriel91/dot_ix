@@ -527,7 +527,7 @@ fn edge(
                 tailwind_builder
                     .trace(edge_tailwind_classes, false)
                     .expect("Failed to trace `edge_tailwind_classes`.");
-                format!(", class = {edge_tailwind_classes}")
+                format!(", class = \"{edge_tailwind_classes}\"")
             });
     let edge_tailwind_classes = edge_tailwind_classes.as_deref().unwrap_or("");
 
