@@ -20,14 +20,13 @@ const QUERY_PARAM_SRC: &str = "src";
 /// `create_effect` is safe.
 #[cfg(target_arch = "wasm32")]
 fn info_graph_src_init(set_info_graph_src: WriteSignal<String>) {
-    use web_sys::Url;
+    use web_sys::{Document, Element, Url};
 
     create_effect(move |_| {
-        if let Some(url_search_params) = web_sys::window().map(|window| {
-            Url::new(&String::from(window.location().to_string()))
+        if let Some(window) = web_sys::window() {
+            let url_search_params = Url::new(&String::from(window.location().to_string()))
                 .expect("Expected URL to be valid.")
-                .search_params()
-        }) {
+                .search_params();
             let info_graph_src_initial = url_search_params
                 .get(QUERY_PARAM_SRC)
                 .as_ref()
@@ -42,6 +41,14 @@ fn info_graph_src_init(set_info_graph_src: WriteSignal<String>) {
                 .unwrap_or_else(|| String::from(INFO_GRAPH_DEMO));
 
             set_info_graph_src.set(info_graph_src_initial);
+
+            // Hack: Get Tailwind CSS from CDN to reevaluate document.
+            let _ = window
+                .document()
+                .as_ref()
+                .and_then(Document::body)
+                .as_deref()
+                .map(Element::append_with_str_0);
         } else {
             set_info_graph_src.set(String::from("# Could not extract search params."));
         }
