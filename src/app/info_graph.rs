@@ -43,12 +43,14 @@ fn info_graph_src_init(set_info_graph_src: WriteSignal<String>) {
             set_info_graph_src.set(info_graph_src_initial);
 
             // Hack: Get Tailwind CSS from CDN to reevaluate document.
-            let _ = window
-                .document()
-                .as_ref()
-                .and_then(Document::body)
-                .as_deref()
-                .map(|element| element.append_with_str_1(""));
+            request_animation_frame(move || {
+                let _ = window
+                    .document()
+                    .as_ref()
+                    .and_then(Document::body)
+                    .as_deref()
+                    .map(|element| element.append_with_str_1(""));
+            });
         } else {
             set_info_graph_src.set(String::from("# Could not extract search params."));
         }
