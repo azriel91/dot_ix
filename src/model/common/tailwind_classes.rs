@@ -81,7 +81,7 @@ impl TailwindClasses {
     /// * Hard coded defaults.
     pub fn edge_defaults(&self) -> &str {
         self.0
-            .get(&TailwindKey::NodeDefaults)
+            .get(&TailwindKey::EdgeDefaults)
             .map(String::as_str)
             .unwrap_or_else(|| {
                 "\
