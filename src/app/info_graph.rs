@@ -86,11 +86,11 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
         if diagram_only.get() {
             "grid grid-cols-1"
         } else {
-            "grid grid-cols-3"
+            "grid grid-cols-2 gap-x-10 items-centre"
         }
     };
     let textbox_display_classes = move || {
-        if diagram_only.get() { "hidden" } else { "" }
+        if diagram_only.get() { "hidden" } else { "tabs" }
     };
 
     // Creates a reactive value to update the button
@@ -131,90 +131,93 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
     view! {
         <div class={ move || layout_classes() }>
             <div class={ move || textbox_display_classes() }>
-                <label for="info_graph_yml">"info_graph.yml"</label><br/>
+                <input type="radio" name="tabs" id="tab1" checked="checked" />
+                <label for="tab1">"info_graph.yml"</label>
+                <div class="tab">
+                    <textarea
+                        id="info_graph_yml"
+                        name="info_graph_yml"
+                        rows="40"
+                        cols="80"
+                        class="
+                            border
+                            border-slate-400
+                            bg-slate-100
+                            font-mono
+                            p-2
+                            rounded
+                            text-xs
+                        "
+                        on:input=leptos_dom::helpers::debounce(Duration::from_millis(400), move |ev| {
+                            let info_graph_src = event_target_value(&ev);
+                            set_info_graph_src.set(info_graph_src);
+                        })
 
-                <textarea
-                    id="info_graph_yml"
-                    name="info_graph_yml"
-                    rows="40"
-                    cols="80"
-                    class="
-                        border
-                        border-slate-400
-                        bg-slate-100
-                        font-mono
-                        p-2
-                        rounded
-                        text-xs
-                    "
-                    on:input=leptos_dom::helpers::debounce(Duration::from_millis(400), move |ev| {
-                        let info_graph_src = event_target_value(&ev);
-                        set_info_graph_src.set(info_graph_src);
-                    })
-
-                    prop:value=info_graph_src />
-                <br />
-                <div
-                    class={
-                        move || {
-                            let error_text = error_text.get();
-                            let error_text_empty = error_text
-                                .as_deref()
-                                .map(str::is_empty)
-                                .unwrap_or(true);
-                            if error_text_empty {
-                                "hidden"
-                            } else {
-                                "
-                                border
-                                border-amber-300
-                                bg-gradient-to-b from-amber-100 to-amber-200
-                                rounded
-                                "
+                        prop:value=info_graph_src />
+                    <br />
+                    <div
+                        class={
+                            move || {
+                                let error_text = error_text.get();
+                                let error_text_empty = error_text
+                                    .as_deref()
+                                    .map(str::is_empty)
+                                    .unwrap_or(true);
+                                if error_text_empty {
+                                    "hidden"
+                                } else {
+                                    "
+                                    border
+                                    border-amber-300
+                                    bg-gradient-to-b from-amber-100 to-amber-200
+                                    rounded
+                                    "
+                                }
                             }
                         }
-                    }
-                    >{
-                        move || {
-                            let error_text = error_text.get();
-                            error_text.as_deref()
-                                .unwrap_or("")
-                                .to_string()
-                        }
-                    }</div>
-            </div>
-            <div>
-                <DotSvg dot_src_and_styles=dot_src_and_styles />
-            </div>
+                        >{
+                            move || {
+                                let error_text = error_text.get();
+                                error_text.as_deref()
+                                    .unwrap_or("")
+                                    .to_string()
+                            }
+                        }</div>
+                </div>
 
-            <div class={ move || textbox_display_classes() }>
-                <label for="info_graph_dot">"info_graph.dot"</label><br/>
-                <textarea
-                    id="info_graph_dot"
-                    name="info_graph_dot"
-                    class="
-                        border
-                        border-slate-400
-                        bg-slate-100
-                        font-mono
-                        p-2
-                        rounded
-                        text-xs
-                    "
-                    rows="40"
-                    cols="80"
-                    on:input=leptos_dom::helpers::debounce(Duration::from_millis(400), move |ev| {
-                        let dot_src = event_target_value(&ev);
-                        set_dot_src.set(Some(dot_src));
-                    })
-                    prop:value={
-                        move || {
-                            let dot_src = dot_src.get();
-                            dot_src.as_deref()
-                                .unwrap_or("")
-                                .to_string()
-                        }
-                    } />
+                <input type="radio" name="tabs" id="tab2" />
+                <label for="tab2">"info_graph.dot"</label>
+                <div class="tab">
+                    <textarea
+                        id="info_graph_dot"
+                        name="info_graph_dot"
+                        class="
+                            border
+                            border-slate-400
+                            bg-slate-100
+                            font-mono
+                            p-2
+                            rounded
+                            text-xs
+                        "
+                        rows="40"
+                        cols="80"
+                        on:input=leptos_dom::helpers::debounce(Duration::from_millis(400), move |ev| {
+                            let dot_src = event_target_value(&ev);
+                            set_dot_src.set(Some(dot_src));
+                        })
+                        prop:value={
+                            move || {
+                                let dot_src = dot_src.get();
+                                dot_src.as_deref()
+                                    .unwrap_or("")
+                                    .to_string()
+                            }
+                        } />
+                </div>
+            </div>
+            <div class="diagram">
+                <DotSvg dot_src_and_styles=dot_src_and_styles />
             </div>
         </div>
     }

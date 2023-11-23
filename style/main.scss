@@ -2,3 +2,84 @@ body {
     font-family: sans-serif;
     padding: 1.0em;
 }
+
+.tabs-block {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.tabs {
+    display: flex;
+    flex-wrap: wrap;
+    width: 100%;
+}
+
+.tabs label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    background-color: #000;
+    color: #fff;
+    font-family: Roboto, sans-serif;
+    transition: background-color ease 0.3s;
+}
+
+.tabs .tab {
+    flex-grow: 1;
+    width: 100%;
+    display: none;
+    color: #000;
+    background-color: #fff;
+}
+
+.tabs .tab>*:not(:last-child) {
+    margin-bottom: 0.8rem;
+}
+
+.tabs [type=radio] {
+    display: none;
+}
+
+.tabs [type=radio]:checked + label {
+    background-color: #fff;
+    color: #0067b8;
+    border-top: 4px solid #0067b8;
+    box-shadow: 0 10px 10px rgba(0, 0, 0, 0.4);
+}
+
+.tabs [type=radio]:checked + label + .tab {
+    display: block;
+}
+
+label {
+    padding: 0.25rem;
+}
+
+@media (min-width: 768px) {
+
+    body {
+        font-size: 1.125rem;
+    }
+
+    .tabs label {
+        order: 1;
+        width: auto;
+    }
+
+    .tabs .tab {
+        order: 9;
+    }
+
+    .tabs [type=radio]:checked+label {
+        border-bottom: none;
+    }
+}
+
+.diagram{
+    justify-content: center;
+    display: flex;
+    padding: 1em;
+    height:100%;
+}
