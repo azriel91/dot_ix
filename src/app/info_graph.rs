@@ -20,6 +20,7 @@ const QUERY_PARAM_SRC: &str = "src";
 /// `create_effect` is safe.
 #[cfg(target_arch = "wasm32")]
 fn info_graph_src_init(set_info_graph_src: WriteSignal<String>) {
+    use lz_str::decompress_from_encoded_uri_component;
     use web_sys::{Document, Url};
 
     create_effect(move |_| {
@@ -30,16 +31,21 @@ fn info_graph_src_init(set_info_graph_src: WriteSignal<String>) {
             let info_graph_src_initial = url_search_params
                 .get(QUERY_PARAM_SRC)
                 .map(|src| {
-                    if src.contains("\n") {
-                        src
-                    } else {
-                        serde_yaml::from_str::<crate::model::info_graph::InfoGraph>(&src)
-                            .map(|info_graph| {
-                                serde_yaml::to_string(&info_graph)
-                                    .unwrap_or_else(|e| format!("# serialize src error: {e}"))
+                    let src = decompress_from_encoded_uri_component(&src).map_or_else(
+                        || format!("# deserialize src error: invalid data"),
+                        |s| {
+                            String::from_utf16(&s).unwrap_or_else(|_| {
+                                format!("# deserialize src error: invalid data")
                             })
-                            .unwrap_or_else(|e| format!("# deserialize src error: {e}"))
-                    }
+                        },
+                    );
+
+                    serde_yaml::from_str::<crate::model::info_graph::InfoGraph>(&src)
+                        .map(|info_graph| {
+                            serde_yaml::to_string(&info_graph)
+                                .unwrap_or_else(|e| format!("# serialize src error: {e}"))
+                        })
+                        .unwrap_or_else(|e| format!("# deserialize src error: {e}"))
                 })
                 .unwrap_or_else(|| String::from(INFO_GRAPH_DEMO));
 
@@ -103,6 +109,10 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
             .zip(styles.get())
             .map(|(dot_src, styles)| DotSrcAndStyles { dot_src, styles })
     };
+
+    #[cfg(target_arch = "wasm32")]
+    info_graph_src_init(set_info_graph_src);
+
     create_effect(move |_| {
         let info_graph_result =
             serde_yaml::from_str::<crate::model::info_graph::InfoGraph>(&info_graph_src.get());
@@ -116,6 +126,26 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
                 set_dot_src.set(Some(dot_src));
                 set_styles.set(Some(styles));
                 set_error_text.set(None);
+                #[cfg(target_arch = "wasm32")]
+                {
+                    use lz_str::compress_to_encoded_uri_component;
+
+                    let src_compressed = compress_to_encoded_uri_component(&info_graph_src.get());
+                    if let Some(window) = web_sys::window() {
+                        let url = {
+                            let u = web_sys::Url::new(&String::from(window.location().to_string()))
+                                .expect("Expected URL to be valid.");
+                            u.search_params().set("src", &src_compressed);
+                            u.to_string().as_string().expect("Could not decode url")
+                        };
+
+                        let _ = window
+                            .history() // should this panic if url cannot be modified?
+                            .and_then(|h| {
+                                h.replace_state_with_url(&"".into(), "".into(), Some(&url))
+                            });
+                    }
+                }
             }
             Err(error) => {
                 set_dot_src.set(None);
@@ -124,9 +154,6 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
             }
         }
     });
-
-    #[cfg(target_arch = "wasm32")]
-    info_graph_src_init(set_info_graph_src);
 
     view! {
         <div class={ move || layout_classes() }>
