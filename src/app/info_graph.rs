@@ -31,21 +31,20 @@ fn info_graph_src_init(set_info_graph_src: WriteSignal<String>) {
             let info_graph_src_initial = url_search_params
                 .get(QUERY_PARAM_SRC)
                 .map(|src| {
-                    let src = decompress_from_encoded_uri_component(&src).map_or_else(
-                        || format!("# deserialize src error: invalid data"),
-                        |s| {
-                            String::from_utf16(&s).unwrap_or_else(|_| {
-                                format!("# deserialize src error: invalid data")
-                            })
-                        },
-                    );
-
-                    serde_yaml::from_str::<crate::model::info_graph::InfoGraph>(&src)
-                        .map(|info_graph| {
-                            serde_yaml::to_string(&info_graph)
-                                .unwrap_or_else(|e| format!("# serialize src error: {e}"))
-                        })
-                        .unwrap_or_else(|e| format!("# deserialize src error: {e}"))
+                    if src.contains("\n") {
+                        // Treat src as plain yaml
+                        src
+                    } else {
+                        // Try deserialize/serialize src as lz_str
+                        decompress_from_encoded_uri_component(&src).map_or_else(
+                            || format!("# deserialize src error: invalid data"),
+                            |s| {
+                                String::from_utf16(&s).unwrap_or_else(|_| {
+                                    format!("# deserialize src error: invalid data")
+                                })
+                            },
+                        )
+                    }
                 })
                 .unwrap_or_else(|| String::from(INFO_GRAPH_DEMO));
 
@@ -135,8 +134,10 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
                         let url = {
                             let u = web_sys::Url::new(&String::from(window.location().to_string()))
                                 .expect("Expected URL to be valid.");
-                            u.search_params().set("src", &src_compressed);
-                            u.to_string().as_string().expect("Could not decode url")
+                            u.search_params().set(QUERY_PARAM_SRC, &src_compressed);
+                            u.to_string()
+                                .as_string()
+                                .expect("# Failed to decode src parameter")
                         };
 
                         let _ = window
