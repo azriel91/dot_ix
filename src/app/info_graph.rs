@@ -89,13 +89,17 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
 
     let layout_classes = move || {
         if diagram_only.get() {
-            "grid grid-cols-1"
+            "flex items-center"
         } else {
-            "grid grid-cols-2 gap-x-10 items-centre"
+            "flex items-centre flex-wrap"
         }
     };
     let textbox_display_classes = move || {
-        if diagram_only.get() { "hidden" } else { "tabs" }
+        if diagram_only.get() {
+            "hidden"
+        } else {
+            "tabs basis-1/2 grow"
+        }
     };
 
     // Creates a reactive value to update the button
@@ -165,13 +169,13 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
                     <textarea
                         id="info_graph_yml"
                         name="info_graph_yml"
-                        rows="40"
-                        cols="80"
                         class="
                             border
                             border-slate-400
                             bg-slate-100
                             font-mono
+                            min-w-full
+                            min-h-[50vh]
                             p-2
                             rounded
                             text-xs
@@ -223,13 +227,13 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
                             border
                             border-slate-400
                             bg-slate-100
+                            min-w-full
+                            min-h-[50vh]
                             font-mono
                             p-2
                             rounded
                             text-xs
                         "
-                        rows="40"
-                        cols="80"
                         on:input=leptos_dom::helpers::debounce(Duration::from_millis(400), move |ev| {
                             let dot_src = event_target_value(&ev);
                             set_dot_src.set(Some(dot_src));
@@ -244,7 +248,7 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
                         } />
                 </div>
             </div>
-            <div class="diagram">
+            <div class="diagram basis-1/2 grow">
                 <DotSvg dot_src_and_styles=dot_src_and_styles />
             </div>
         </div>

@@ -1,6 +1,5 @@
 body {
     font-family: sans-serif;
-    padding: 1.0em;
 }
 
 .tabs-block {
@@ -19,18 +18,18 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-wrap: nowrap;
     cursor: pointer;
-    background-color: #000;
-    color: #fff;
-    font-family: Roboto, sans-serif;
     transition: background-color ease 0.3s;
+    border-top: 1px solid #aaaaaa;
+    border-left: 1px solid #aaaaaa;
+    border-right: 1px solid #aaaaaa;
 }
 
 .tabs .tab {
     flex-grow: 1;
     width: 100%;
     display: none;
-    color: #000;
     background-color: #fff;
 }
 
@@ -58,11 +57,6 @@ label {
 }
 
 @media (min-width: 768px) {
-
-    body {
-        font-size: 1.125rem;
-    }
-
     .tabs label {
         order: 1;
         width: auto;
@@ -77,9 +71,9 @@ label {
     }
 }
 
-.diagram{
+.diagram {
     justify-content: center;
+    align-content: center;
     display: flex;
-    padding: 1em;
     height:100%;
 }
