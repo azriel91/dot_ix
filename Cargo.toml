@@ -39,6 +39,7 @@ thiserror = { workspace = true }
 tracing = { workspace = true, optional = true }
 http = { workspace = true }
 serde_yaml = { workspace = true }
+lz-str = "0.2.1"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 js-sys = { workspace = true }
@@ -107,7 +108,6 @@ serde = "1.0.192"
 tempfile = "3.8.1"
 tokio = "1.34.0"
 tower = "0.4.13"
-tower-http = "0.4"
 wasm-bindgen = "0.2.88"
 tailwind-css = "0.13.0"
 thiserror = "1.0.50"

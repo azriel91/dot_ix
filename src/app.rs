@@ -89,6 +89,9 @@ fn HomePage() -> impl IntoView {
 
     let _set_diagram_only = set_diagram_only;
 
+    let main_div_classes = move || {
+        if diagram_only.get() { "" } else { "md:p-12" }
+    };
     let disclaimer_classes = move || {
         if diagram_only.get() {
             "hidden"
@@ -105,49 +108,39 @@ fn HomePage() -> impl IntoView {
     };
 
     view! {
-        <InfoGraph diagram_only=diagram_only />
-        <div class=disclaimer_classes>
-            <p>
-                <span class="font-bold">"🐱 GitHub: "</span>
-                <a
-                    class="text-sky-600 hover:text-sky-400 active:text-sky-300"
-                    href="https://github.com/azriel91/dot_ix"
-                >
-                    "azriel91/dot_ix"
-                </a>
-            </p>
-            <p>
-                "This is a "<i>"very early"</i>" frontend prototype for the "
-                <a
-                    class="text-sky-600 hover:text-sky-400 active:text-sky-300"
-                    href="https://peace.mk"
-                >
-                    "Peace"
-                </a>
-                " automation framework"
-            </p>
-            <p>
-                <b>"Known Issues:"</b>
-                <ol class="list-disc mx-4">
-                // The following is true for `csr`, not `ssr`.
-                <li>"On load, clicking tags doesn't highlight nodes until you edit the text."</li>
-                <li>"Nodes with tags sometimes aren't highlighted when the tags are clicked."<br />
-                    "This is because graphviz generates nodes in a non-deterministic order, and the "
+        <div class=main_div_classes>
+            <InfoGraph diagram_only=diagram_only />
+            <div class=disclaimer_classes>
+                <p>
+                    <span class="font-bold">"🐱 GitHub: "</span>
                     <a
                         class="text-sky-600 hover:text-sky-400 active:text-sky-300"
-                        href="https://developer.mozilla.org/en-US/docs/Web/CSS/General_sibling_combinator"
+                        href="https://github.com/azriel91/dot_ix"
                     >
-                        "General sibling combinator"
+                        "azriel91/dot_ix"
                     </a>
-                    " requires the tag-node (cluster) to appear before the node-node."
-                </li>
-                <li>"Nodes with multiple tags only apply either the stroke, or fill, or neither."<br />
-                    "e.g. click on Tag 1 and Tag 2, and observe node C's fill / stroke."<br />
-                    "This may be related to multiple CSS attribute rules across multiple classes and precedence."<br />
-                    "But I don't know 🥲. Please help solve it if you can."<br />
-                </li>
-                </ol>
-            </p>
+                </p>
+                <p>
+                    "This is a "<i>"very early"</i>" frontend prototype for the "
+                    <a
+                        class="text-sky-600 hover:text-sky-400 active:text-sky-300"
+                        href="https://peace.mk"
+                    >
+                        "Peace"
+                    </a>
+                    " automation framework"
+                </p>
+                <p>
+                    <b>"Known Issues:"</b>
+                    <ol class="list-disc mx-4">
+                    <li>"Nodes with multiple tags only apply either the stroke, or fill, or neither."<br />
+                        "e.g. click on Tag 1 and Tag 2, and observe node C's fill / stroke."<br />
+                        "This may be related to multiple CSS attribute rules across multiple classes and precedence."<br />
+                        "But I don't know 🥲. Please help solve it if you can."<br />
+                    </li>
+                    </ol>
+                </p>
+            </div>
         </div>
     }
 }

@@ -20,6 +20,7 @@ const QUERY_PARAM_SRC: &str = "src";
 /// `create_effect` is safe.
 #[cfg(target_arch = "wasm32")]
 fn info_graph_src_init(set_info_graph_src: WriteSignal<String>) {
+    use lz_str::decompress_from_encoded_uri_component;
     use web_sys::{Document, Url};
 
     create_effect(move |_| {
@@ -31,14 +32,18 @@ fn info_graph_src_init(set_info_graph_src: WriteSignal<String>) {
                 .get(QUERY_PARAM_SRC)
                 .map(|src| {
                     if src.contains("\n") {
+                        // Treat src as plain yaml
                         src
                     } else {
-                        serde_yaml::from_str::<crate::model::info_graph::InfoGraph>(&src)
-                            .map(|info_graph| {
-                                serde_yaml::to_string(&info_graph)
-                                    .unwrap_or_else(|e| format!("# serialize src error: {e}"))
-                            })
-                            .unwrap_or_else(|e| format!("# deserialize src error: {e}"))
+                        // Try deserialize/serialize src as lz_str
+                        decompress_from_encoded_uri_component(&src).map_or_else(
+                            || format!("# deserialize src error: invalid data"),
+                            |s| {
+                                String::from_utf16(&s).unwrap_or_else(|_| {
+                                    format!("# deserialize src error: invalid data")
+                                })
+                            },
+                        )
                     }
                 })
                 .unwrap_or_else(|| String::from(INFO_GRAPH_DEMO));
@@ -84,13 +89,17 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
 
     let layout_classes = move || {
         if diagram_only.get() {
-            "grid grid-cols-1"
+            "flex items-start"
         } else {
-            "grid grid-cols-3"
+            "flex items-start flex-wrap"
         }
     };
     let textbox_display_classes = move || {
-        if diagram_only.get() { "hidden" } else { "" }
+        if diagram_only.get() {
+            "hidden"
+        } else {
+            "tabs basis-1/2 grow"
+        }
     };
 
     // Creates a reactive value to update the button
@@ -103,6 +112,10 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
             .zip(styles.get())
             .map(|(dot_src, styles)| DotSrcAndStyles { dot_src, styles })
     };
+
+    #[cfg(target_arch = "wasm32")]
+    info_graph_src_init(set_info_graph_src);
+
     create_effect(move |_| {
         let info_graph_result =
             serde_yaml::from_str::<crate::model::info_graph::InfoGraph>(&info_graph_src.get());
@@ -116,6 +129,28 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
                 set_dot_src.set(Some(dot_src));
                 set_styles.set(Some(styles));
                 set_error_text.set(None);
+                #[cfg(target_arch = "wasm32")]
+                {
+                    use lz_str::compress_to_encoded_uri_component;
+
+                    let src_compressed = compress_to_encoded_uri_component(&info_graph_src.get());
+                    if let Some(window) = web_sys::window() {
+                        let url = {
+                            let u = web_sys::Url::new(&String::from(window.location().to_string()))
+                                .expect("Expected URL to be valid.");
+                            u.search_params().set(QUERY_PARAM_SRC, &src_compressed);
+                            u.to_string()
+                                .as_string()
+                                .expect("# Failed to decode src parameter")
+                        };
+
+                        let _ = window
+                            .history() // should this panic if url cannot be modified?
+                            .and_then(|h| {
+                                h.replace_state_with_url(&"".into(), "".into(), Some(&url))
+                            });
+                    }
+                }
             }
             Err(error) => {
                 set_dot_src.set(None);
@@ -125,96 +160,98 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
         }
     });
 
-    #[cfg(target_arch = "wasm32")]
-    info_graph_src_init(set_info_graph_src);
-
     view! {
         <div class={ move || layout_classes() }>
             <div class={ move || textbox_display_classes() }>
-                <label for="info_graph_yml">"info_graph.yml"</label><br/>
 
-                <textarea
-                    id="info_graph_yml"
-                    name="info_graph_yml"
-                    rows="40"
-                    cols="80"
-                    class="
-                        border
-                        border-slate-400
-                        bg-slate-100
-                        font-mono
-                        p-2
-                        rounded
-                        text-xs
-                    "
-                    on:input=leptos_dom::helpers::debounce(Duration::from_millis(400), move |ev| {
-                        let info_graph_src = event_target_value(&ev);
-                        set_info_graph_src.set(info_graph_src);
-                    })
+                <input type="radio" name="tabs" id="tab_info_graph_yml" checked="checked" />
+                <label for="tab_info_graph_yml">"info_graph.yml"</label>
 
-                    prop:value=info_graph_src />
-                <br />
-                <div
-                    class={
-                        move || {
-                            let error_text = error_text.get();
-                            let error_text_empty = error_text
-                                .as_deref()
-                                .map(str::is_empty)
-                                .unwrap_or(true);
-                            if error_text_empty {
-                                "hidden"
-                            } else {
-                                "
-                                border
-                                border-amber-300
-                                bg-gradient-to-b from-amber-100 to-amber-200
-                                rounded
-                                "
+                <div class="tab">
+                    <textarea
+                        id="info_graph_yml"
+                        name="info_graph_yml"
+                        class="
+                            border
+                            border-slate-400
+                            bg-slate-100
+                            font-mono
+                            min-w-full
+                            min-h-full
+                            p-2
+                            rounded
+                            text-xs
+                        "
+                        on:input=leptos_dom::helpers::debounce(Duration::from_millis(400), move |ev| {
+                            let info_graph_src = event_target_value(&ev);
+                            set_info_graph_src.set(info_graph_src);
+                        })
+
+                        prop:value=info_graph_src />
+                    <br />
+                    <div
+                        class={
+                            move || {
+                                let error_text = error_text.get();
+                                let error_text_empty = error_text
+                                    .as_deref()
+                                    .map(str::is_empty)
+                                    .unwrap_or(true);
+                                if error_text_empty {
+                                    "hidden"
+                                } else {
+                                    "
+                                    border
+                                    border-amber-300
+                                    bg-gradient-to-b from-amber-100 to-amber-200
+                                    rounded
+                                    "
+                                }
                             }
                         }
-                    }
-                    >{
-                        move || {
-                            let error_text = error_text.get();
-                            error_text.as_deref()
-                                .unwrap_or("")
-                                .to_string()
-                        }
-                    }</div>
-            </div>
-            <div>
-                <DotSvg dot_src_and_styles=dot_src_and_styles />
-            </div>
+                        >{
+                            move || {
+                                let error_text = error_text.get();
+                                error_text.as_deref()
+                                    .unwrap_or("")
+                                    .to_string()
+                            }
+                        }</div>
+                </div>
 
-            <div class={ move || textbox_display_classes() }>
-                <label for="info_graph_dot">"info_graph.dot"</label><br/>
-                <textarea
-                    id="info_graph_dot"
-                    name="info_graph_dot"
-                    class="
-                        border
-                        border-slate-400
-                        bg-slate-100
-                        font-mono
-                        p-2
-                        rounded
-                        text-xs
-                    "
-                    rows="40"
-                    cols="80"
-                    on:input=leptos_dom::helpers::debounce(Duration::from_millis(400), move |ev| {
-                        let dot_src = event_target_value(&ev);
-                        set_dot_src.set(Some(dot_src));
-                    })
-                    prop:value={
-                        move || {
-                            let dot_src = dot_src.get();
-                            dot_src.as_deref()
-                                .unwrap_or("")
-                                .to_string()
-                        }
-                    } />
+                <input type="radio" name="tabs" id="tab_info_graph_dot" />
+                <label for="tab_info_graph_dot">"info_graph.dot"</label>
+                <div class="tab">
+                    <textarea
+                        id="info_graph_dot"
+                        name="info_graph_dot"
+                        class="
+                            border
+                            border-slate-400
+                            bg-slate-100
+                            min-w-full
+                            min-h-full
+                            font-mono
+                            p-2
+                            rounded
+                            text-xs
+                        "
+                        on:input=leptos_dom::helpers::debounce(Duration::from_millis(400), move |ev| {
+                            let dot_src = event_target_value(&ev);
+                            set_dot_src.set(Some(dot_src));
+                        })
+                        prop:value={
+                            move || {
+                                let dot_src = dot_src.get();
+                                dot_src.as_deref()
+                                    .unwrap_or("")
+                                    .to_string()
+                            }
+                        } />
+                </div>
+            </div>
+            <div class="diagram basis-1/2 grow">
+                <DotSvg dot_src_and_styles=dot_src_and_styles />
             </div>
         </div>
     }
