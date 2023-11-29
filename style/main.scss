@@ -2,16 +2,11 @@ body {
     font-family: sans-serif;
 }
 
-.tabs-block {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
 .tabs {
     display: flex;
     flex-wrap: wrap;
     width: 100%;
+    height: calc(59vh);
 }
 
 .tabs label {
@@ -24,6 +19,8 @@ body {
     border-top: 1px solid #aaaaaa;
     border-left: 1px solid #aaaaaa;
     border-right: 1px solid #aaaaaa;
+    padding-left: 10px;
+    padding-right: 10px;
 }
 
 .tabs .tab {
@@ -33,12 +30,12 @@ body {
     background-color: #fff;
 }
 
-.tabs .tab>*:not(:last-child) {
-    margin-bottom: 0.8rem;
-}
-
 .tabs [type=radio] {
     display: none;
+}
+
+.tabs [type=radio] + label {
+    height: 40px;
 }
 
 .tabs [type=radio]:checked + label {
@@ -48,26 +45,23 @@ body {
     box-shadow: 0 10px 10px rgba(0, 0, 0, 0.4);
 }
 
+// Magic: <https://chenhuijing.com/blog/flexbox-and-absolute-positioning/>
 .tabs [type=radio]:checked + label + .tab {
     display: block;
-}
-
-label {
-    padding: 0.25rem;
+    position: absolute;
+    align-self: flex-end;
+    height: calc(59vh - 2.5rem);
+    flex-grow: 1;
+    justify-self: center;
 }
 
 @media (min-width: 768px) {
-    .tabs label {
-        order: 1;
-        width: auto;
-    }
-
-    .tabs .tab {
-        order: 9;
-    }
-
-    .tabs [type=radio]:checked+label {
+    .tabs [type=radio]:checked + label {
         border-bottom: none;
+    }
+
+    .tabs [type=radio]:checked + label + .tab {
+        width: 100vh;
     }
 }
 

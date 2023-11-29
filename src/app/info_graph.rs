@@ -89,9 +89,9 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
 
     let layout_classes = move || {
         if diagram_only.get() {
-            "flex items-center"
+            "flex items-start"
         } else {
-            "flex items-centre flex-wrap"
+            "flex items-start flex-wrap"
         }
     };
     let textbox_display_classes = move || {
@@ -163,8 +163,10 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
     view! {
         <div class={ move || layout_classes() }>
             <div class={ move || textbox_display_classes() }>
+
                 <input type="radio" name="tabs" id="tab_info_graph_yml" checked="checked" />
                 <label for="tab_info_graph_yml">"info_graph.yml"</label>
+
                 <div class="tab">
                     <textarea
                         id="info_graph_yml"
@@ -175,7 +177,7 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
                             bg-slate-100
                             font-mono
                             min-w-full
-                            min-h-[50vh]
+                            min-h-full
                             p-2
                             rounded
                             text-xs
@@ -228,7 +230,7 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
                             border-slate-400
                             bg-slate-100
                             min-w-full
-                            min-h-[50vh]
+                            min-h-full
                             font-mono
                             p-2
                             rounded

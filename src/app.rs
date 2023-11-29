@@ -90,7 +90,7 @@ fn HomePage() -> impl IntoView {
     let _set_diagram_only = set_diagram_only;
 
     let main_div_classes = move || {
-        if diagram_only.get() { "" } else { "p-12" }
+        if diagram_only.get() { "" } else { "md:p-12" }
     };
     let disclaimer_classes = move || {
         if diagram_only.get() {
@@ -133,18 +133,6 @@ fn HomePage() -> impl IntoView {
                 <p>
                     <b>"Known Issues:"</b>
                     <ol class="list-disc mx-4">
-                    // The following is true for `csr`, not `ssr`.
-                    <li>"On load, clicking tags doesn't highlight nodes until you edit the text."</li>
-                    <li>"Nodes with tags sometimes aren't highlighted when the tags are clicked."<br />
-                        "This is because graphviz generates nodes in a non-deterministic order, and the "
-                        <a
-                            class="text-sky-600 hover:text-sky-400 active:text-sky-300"
-                            href="https://developer.mozilla.org/en-US/docs/Web/CSS/General_sibling_combinator"
-                        >
-                            "General sibling combinator"
-                        </a>
-                        " requires the tag-node (cluster) to appear before the node-node."
-                    </li>
                     <li>"Nodes with multiple tags only apply either the stroke, or fill, or neither."<br />
                         "e.g. click on Tag 1 and Tag 2, and observe node C's fill / stroke."<br />
                         "This may be related to multiple CSS attribute rules across multiple classes and precedence."<br />
