@@ -3,8 +3,6 @@ use leptos::*;
 use crate::model::common::DotSrcAndStyles;
 
 #[cfg(not(feature = "server_side_graphviz"))]
-use indoc::formatdoc;
-#[cfg(not(feature = "server_side_graphviz"))]
 use leptos::html::Div;
 #[cfg(not(feature = "server_side_graphviz"))]
 use leptos_meta::Script;
@@ -311,7 +309,29 @@ where
         }
     });
 
-    let buttons_div_id = "buttons_div";
+    let button_tw_classes = "
+        absolute
+        w-6
+        h-6
+        border
+        rounded
+        text-sm
+
+        border-slate-400
+        bg-gradient-to-b
+        from-slate-200
+        to-slate-300
+
+        hover:border-slate-300
+        hover:bg-gradient-to-b
+        hover:from-slate-100
+        hover:to-slate-200
+
+        active:border-slate-500
+        active:bg-gradient-to-b
+        active:from-slate-300
+        active:to-slate-400
+    ";
 
     view! {
         <div
@@ -324,7 +344,6 @@ where
             <Script src="https://cdn.tailwindcss.com" />
             // Button
             <div
-                id=buttons_div_id
                 class="
                     hidden
                     group-hover:block
@@ -334,32 +353,29 @@ where
                     type="button"
                     title="Copy SVG"
                     onclick=SVG_WRITE_TO_CLIPBOARD
-                    class="
-                        absolute
+                    class=format!("
+                        {button_tw_classes}
+                        top-2
+                        right-8
+                    ")
+                    value="📄"
+                ></input>
+                <input
+                    type="button"
+                    title="Open playground"
+                    onclick=r#"
+                        window.open(
+                            window.location.toString()
+                                .replace("diagram_only=true", "diagram_only=false"),
+                            "_blank"
+                        );
+                    "#
+                    class=format!("
+                        {button_tw_classes}
                         top-2
                         right-2
-                        w-6
-                        h-6
-                        border
-                        rounded
-                        text-sm
-
-                        border-slate-400
-                        bg-gradient-to-b
-                        from-slate-200
-                        to-slate-300
-
-                        hover:border-slate-300
-                        hover:bg-gradient-to-b
-                        hover:from-slate-100
-                        hover:to-slate-200
-
-                        active:border-slate-500
-                        active:bg-gradient-to-b
-                        active:from-slate-300
-                        active:to-slate-400
-                    "
-                    value="📄"
+                    ")
+                    value="↗️"
                 ></input>
             </div>
 
