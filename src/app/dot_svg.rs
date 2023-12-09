@@ -3,6 +3,8 @@ use leptos::*;
 use crate::model::common::DotSrcAndStyles;
 
 #[cfg(not(feature = "server_side_graphviz"))]
+use indoc::formatdoc;
+#[cfg(not(feature = "server_side_graphviz"))]
 use leptos::html::Div;
 #[cfg(not(feature = "server_side_graphviz"))]
 use leptos_meta::Script;
@@ -309,18 +311,25 @@ where
         }
     });
 
+    let buttons_div_id = "buttons_div";
+
     view! {
-        <div class="relative">
+        <div
+            class="
+                relative
+                group
+            "
+        >
             // Client side tailwind processing.
             <Script src="https://cdn.tailwindcss.com" />
             // Button
-            <div class={move || {
-                if diagram_only.get() {
-                    "hidden"
-                } else {
-                    ""
-                }
-            }}>
+            <div
+                id=buttons_div_id
+                class="
+                    hidden
+                    group-hover:block
+                "
+            >
                 <input
                     type="button"
                     title="Copy SVG"
