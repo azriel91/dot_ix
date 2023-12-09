@@ -17,6 +17,9 @@ extern "C" {
     fn graphviz_dot_svg(dot_src: String) -> Result<String, JsValue>;
 }
 
+#[cfg(not(feature = "server_side_graphviz"))]
+const SVG_WRITE_TO_CLIPBOARD: &str = include_str!("dot_svg/svg_write_to_clipboard.js");
+
 #[cfg(feature = "server_side_graphviz")]
 #[server]
 pub async fn dot_svg(
@@ -139,7 +142,7 @@ async fn dot_svg_styles(dot_src: &str) -> Result<String, ServerFnError> {
 /// Renders a graphviz graph as an SVG.
 #[cfg(feature = "server_side_graphviz")]
 #[component]
-pub fn DotSvg<FDotSrc>(dot_src_and_styles: FDotSrc) -> impl IntoView
+pub fn DotSvg<FDotSrc>(dot_src_and_styles: FDotSrc, diagram_only: ReadSignal<bool>) -> impl IntoView
 where
     FDotSrc: Fn() -> Option<DotSrcAndStyles> + 'static,
 {
@@ -227,7 +230,7 @@ where
 /// ```
 #[cfg(not(feature = "server_side_graphviz"))]
 #[component]
-pub fn DotSvg<FDotSrc>(dot_src_and_styles: FDotSrc) -> impl IntoView
+pub fn DotSvg<FDotSrc>(dot_src_and_styles: FDotSrc, diagram_only: ReadSignal<bool>) -> impl IntoView
 where
     FDotSrc: Fn() -> Option<DotSrcAndStyles> + 'static,
 {
@@ -306,15 +309,84 @@ where
         }
     });
 
+    let button_tw_classes = "
+        absolute
+        w-6
+        h-6
+        border
+        rounded
+        text-sm
+
+        border-slate-400
+        bg-gradient-to-b
+        from-slate-200
+        to-slate-300
+
+        hover:border-slate-300
+        hover:bg-gradient-to-b
+        hover:from-slate-100
+        hover:to-slate-200
+
+        active:border-slate-500
+        active:bg-gradient-to-b
+        active:from-slate-300
+        active:to-slate-400
+    ";
+
     view! {
-        <div>
+        <div
+            class="
+                relative
+                group
+            "
+        >
             // Client side tailwind processing.
             <Script src="https://cdn.tailwindcss.com" />
+            // Button
+            <div
+                class="
+                    hidden
+                    group-hover:block
+                "
+            >
+                <input
+                    type="button"
+                    title="Copy SVG"
+                    onclick=SVG_WRITE_TO_CLIPBOARD
+                    class=format!("
+                        {button_tw_classes}
+                        top-2
+                        right-8
+                    ")
+                    value="📄"
+                ></input>
+                <input
+                    type="button"
+                    title="Open playground"
+                    onclick=r#"
+                        window.open(
+                            window.location.toString()
+                                .replace("diagram_only=true", "diagram_only=false"),
+                            "_blank"
+                        );
+                    "#
+                    class=format!("
+                        {button_tw_classes}
+                        top-2
+                        right-2
+                    ")
+                    value="↗️"
+                ></input>
+            </div>
+
+            // SVG container
             <div
                 id="svg_div"
                 node_ref=svg_div_ref
                 class="overflow-auto"
             />
+
+            // Errors
             <div
                 id="error_div"
                 class={

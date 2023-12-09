@@ -251,7 +251,10 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
                 </div>
             </div>
             <div class="diagram basis-1/2 grow">
-                <DotSvg dot_src_and_styles=dot_src_and_styles />
+                <DotSvg
+                    dot_src_and_styles=dot_src_and_styles
+                    diagram_only=diagram_only
+                />
             </div>
         </div>
     }
