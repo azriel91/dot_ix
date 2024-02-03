@@ -1,0 +1,21 @@
+[package]
+name = "dot_ix_model"
+description = "Model for the `dot_ix` diagramming application."
+documentation = "https://docs.rs/dot_ix_model/"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+homepage.workspace = true
+repository.workspace = true
+readme.workspace = true
+categories.workspace = true
+keywords.workspace = true
+license.workspace = true
+
+[lib]
+doctest = false
+test = false
+
+[dependencies]
+indexmap = { workspace = true, features = ["serde"] }
+serde = { workspace = true, features = ["derive"] }

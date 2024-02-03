@@ -1,7 +1,8 @@
-use serde::{de::Visitor, Deserialize, Deserializer, Serialize, Serializer};
 use std::fmt;
 
-use crate::model::common::AnyId;
+use serde::{de::Visitor, Deserialize, Deserializer, Serialize, Serializer};
+
+use crate::common::AnyId;
 
 /// Key for users to specify tailwind styles against individual nodes, edges, or
 /// tags.

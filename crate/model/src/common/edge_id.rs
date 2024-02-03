@@ -2,7 +2,7 @@ use std::borrow::Cow;
 
 use serde::{Deserialize, Serialize};
 
-use crate::model::common::AnyId;
+use crate::common::AnyId;
 
 /// Unique identifier for an edge, `Cow<'static, str>` newtype.
 ///
@@ -23,7 +23,7 @@ use crate::model::common::AnyId;
 #[derive(Clone, Debug, Hash, PartialEq, Eq, Deserialize, Serialize)]
 pub struct EdgeId(Cow<'static, str>);
 
-crate::model::common::id_newtype!(EdgeId, EdgeIdInvalidFmt, edge_id);
+crate::common::id_newtype!(EdgeId, EdgeIdInvalidFmt, edge_id);
 
 impl From<AnyId> for EdgeId {
     fn from(any_id: AnyId) -> Self {

@@ -1,7 +1,7 @@
 use indexmap::{IndexMap, IndexSet};
 use serde::{Deserialize, Serialize};
 
-use crate::model::common::{EdgeId, NodeHierarchy, NodeId, TagId, TailwindClasses};
+use crate::common::{EdgeId, NodeHierarchy, NodeId, TagId, TailwindClasses};
 
 pub use self::{graph_dir::GraphDir, node_info::NodeInfo, tag::Tag};
 

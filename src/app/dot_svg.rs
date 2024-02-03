@@ -1,6 +1,6 @@
 use leptos::*;
 
-use crate::model::common::DotSrcAndStyles;
+use dot_ix_model::common::DotSrcAndStyles;
 
 #[cfg(not(feature = "server_side_graphviz"))]
 use leptos::html::Div;

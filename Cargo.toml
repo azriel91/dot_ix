@@ -20,6 +20,7 @@ axum = { workspace = true, optional = true }
 console_error_panic_hook = { workspace = true }
 console_log = { workspace = true }
 cfg-if = { workspace = true }
+dot_ix_model = { workspace = true }
 dot_ix_static_check_macros = { workspace = true, optional = true }
 indexmap = { workspace = true, features = ["serde"] }
 indoc = { workspace = true }
@@ -87,6 +88,7 @@ license = "MIT OR Apache-2.0"
 
 [workspace.dependencies]
 # dot_ix crates
+dot_ix_model = { version = "0.1.0", path = "crate/model" }
 dot_ix_static_check_macros = { version = "0.1.0", path = "crate/static_check_macros" }
 
 # external crates

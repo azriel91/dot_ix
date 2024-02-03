@@ -4,21 +4,19 @@ use std::{
     fmt::{self, Write},
 };
 
+use dot_ix_model::{
+    common::{
+        DotSrcAndStyles, EdgeId, GraphvizDotTheme, NodeHierarchy, NodeId, TagId, TailwindClasses,
+        TailwindKey,
+    },
+    info_graph::{GraphDir, InfoGraph, NodeInfo, Tag},
+};
 use indexmap::{IndexMap, IndexSet};
 use indoc::{formatdoc, writedoc};
 #[cfg(feature = "tailwind_rs")]
 use tailwind_css::TailwindBuilder;
 
-use crate::{
-    model::{
-        common::{
-            DotSrcAndStyles, EdgeId, GraphvizDotTheme, NodeHierarchy, NodeId, TagId,
-            TailwindClasses, TailwindKey,
-        },
-        info_graph::{GraphDir, InfoGraph, NodeInfo, Tag},
-    },
-    rt::IntoGraphvizDotSrc,
-};
+use crate::rt::IntoGraphvizDotSrc;
 
 /// Renders a GraphViz Dot diagram with interactive styling.
 ///

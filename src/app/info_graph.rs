@@ -1,12 +1,9 @@
 use std::time::Duration;
 
+use dot_ix_model::common::{DotSrcAndStyles, GraphvizDotTheme};
 use leptos::*;
 
-use crate::{
-    app::DotSvg,
-    model::common::{DotSrcAndStyles, GraphvizDotTheme},
-    rt::IntoGraphvizDotSrc,
-};
+use crate::{app::DotSvg, rt::IntoGraphvizDotSrc};
 
 const INFO_GRAPH_DEMO: &str = include_str!("info_graph_example.yaml");
 
@@ -118,7 +115,7 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
 
     create_effect(move |_| {
         let info_graph_result =
-            serde_yaml::from_str::<crate::model::info_graph::InfoGraph>(&info_graph_src.get());
+            serde_yaml::from_str::<dot_ix_model::info_graph::InfoGraph>(&info_graph_src.get());
         let info_graph_result = &info_graph_result;
 
         match info_graph_result {
