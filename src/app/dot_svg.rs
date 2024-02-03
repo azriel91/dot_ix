@@ -142,7 +142,7 @@ async fn dot_svg_styles(dot_src: &str) -> Result<String, ServerFnError> {
 /// Renders a graphviz graph as an SVG.
 #[cfg(feature = "server_side_graphviz")]
 #[component]
-pub fn DotSvg<FDotSrc>(dot_src_and_styles: FDotSrc, diagram_only: ReadSignal<bool>) -> impl IntoView
+pub fn DotSvg<FDotSrc>(dot_src_and_styles: FDotSrc) -> impl IntoView
 where
     FDotSrc: Fn() -> Option<DotSrcAndStyles> + 'static,
 {
@@ -230,7 +230,7 @@ where
 /// ```
 #[cfg(not(feature = "server_side_graphviz"))]
 #[component]
-pub fn DotSvg<FDotSrc>(dot_src_and_styles: FDotSrc, diagram_only: ReadSignal<bool>) -> impl IntoView
+pub fn DotSvg<FDotSrc>(dot_src_and_styles: FDotSrc) -> impl IntoView
 where
     FDotSrc: Fn() -> Option<DotSrcAndStyles> + 'static,
 {
