@@ -5,8 +5,29 @@ async fn main() {
     use dot_ix::{app::*, fileserv::file_and_error_handler};
     use leptos::{logging::log, *};
     use leptos_axum::{generate_route_list, LeptosRoutes};
+    use log4rs::{
+        append::console::{ConsoleAppender, Target},
+        config::Appender,
+        filter::threshold::ThresholdFilter,
+    };
 
-    simple_logger::init_with_level(log::Level::Info).expect("couldn't initialize logging");
+    let stderr = ConsoleAppender::builder().target(Target::Stderr).build();
+    // Log Trace level output to file where trace is the default level
+    // and the programmatically specified level to stderr.
+    let log4rs_config = log4rs::config::Config::builder()
+        .appender(
+            Appender::builder()
+                .filter(Box::new(ThresholdFilter::new(log::LevelFilter::Info)))
+                .build("stderr", Box::new(stderr)),
+        )
+        .build(
+            log4rs::config::Root::builder()
+                .appender("stderr")
+                .build(log::LevelFilter::Trace),
+        )
+        .unwrap();
+
+    let _log4rs_handle = log4rs::init_config(log4rs_config).expect("Failed to set logger");
 
     // Setting `get_configuration(None)` means we'll be using cargo-leptos's env
     // values.
