@@ -166,7 +166,7 @@ impl IntoGraphvizDotSrc for &InfoGraph {
         tag_legend(
             &mut tag_legend_buffer,
             theme,
-            &self.tailwind_classes(),
+            self.tailwind_classes(),
             self.tags(),
         )
         .expect("Failed to write `tag_legend` string.");
@@ -325,11 +325,11 @@ fn node_cluster_internal(
     let node_point_size = theme.node_point_size();
     let node_info = node_infos.get(node_id);
     // TODO: escape
-    let node_label = node_info.map(NodeInfo::name).unwrap_or(&node_id);
+    let node_label = node_info.map(NodeInfo::name).unwrap_or(node_id);
     // TODO: escape
     let node_desc = node_info
         .and_then(NodeInfo::desc)
-        .map(|desc| desc.replace("\n", "<br />"))
+        .map(|desc| desc.replace('\n', "<br />"))
         .map(|desc| format!("<tr><td balign=\"left\">{desc}</td></tr>"));
 
     let emoji = node_info.and_then(NodeInfo::emoji).map(|emoji| {
@@ -404,7 +404,7 @@ fn node_cluster_internal(
             Ok(node_tag_classes)
         })
         .transpose()?
-        .unwrap_or_else(|| String::new());
+        .unwrap_or_else(String::new);
 
     if node_hierarchy.is_empty() {
         writedoc!(
@@ -605,7 +605,7 @@ fn tag_legend(
     // Add invisible edge between tags to enforce ordering
     let mut tag_ids_iter = tags.keys();
     if let Some(mut tag_id_current) = tag_ids_iter.next() {
-        while let Some(tag_id_next) = tag_ids_iter.next() {
+        for tag_id_next in tag_ids_iter {
             writeln!(
                 buffer,
                 "    {tag_id_current} -> {tag_id_next} [style = invis]"

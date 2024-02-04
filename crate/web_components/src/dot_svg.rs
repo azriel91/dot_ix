@@ -147,7 +147,7 @@ where
     FDotSrc: Fn() -> Option<DotSrcAndStyles> + 'static,
 {
     let dot_svg_and_error_resource = create_resource(
-        move || dot_src_and_styles(),
+        dot_src_and_styles,
         |dot_src_and_styles| async move {
             if let Some(dot_src_and_styles) = dot_src_and_styles {
                 if !dot_src_and_styles.dot_src.is_empty() {

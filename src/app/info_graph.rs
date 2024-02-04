@@ -158,8 +158,8 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
     });
 
     view! {
-        <div class={ move || layout_classes() }>
-            <div class={ move || textbox_display_classes() }>
+        <div class={ layout_classes }>
+            <div class={ textbox_display_classes }>
 
                 <input type="radio" name="tabs" id="tab_info_graph_yml" checked="checked" />
                 <label for="tab_info_graph_yml">"info_graph.yml"</label>
