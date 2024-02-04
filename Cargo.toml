@@ -21,9 +21,8 @@ console_error_panic_hook = { workspace = true }
 console_log = { workspace = true }
 cfg-if = { workspace = true }
 dot_ix_model = { workspace = true }
+dot_ix_rt = { workspace = true }
 dot_ix_static_check_macros = { workspace = true, optional = true }
-indexmap = { workspace = true, features = ["serde"] }
-indoc = { workspace = true }
 leptos = { workspace = true }
 leptos_axum = { workspace = true, optional = true }
 leptos_meta = { workspace = true }
@@ -31,7 +30,6 @@ leptos_router = { workspace = true }
 log = { workspace = true }
 simple_logger = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
-tailwind-css = { workspace = true, optional = true }
 tempfile = { workspace = true, optional = true }
 tokio = { workspace = true, optional = true }
 tower = { workspace = true, optional = true }
@@ -70,7 +68,7 @@ csr = [
     "leptos_router/csr",
 ]
 server_side_graphviz = []
-tailwind_rs = ["dep:tailwind-css"]
+tailwind_rs = ["dot_ix_rt/tailwind_rs"]
 
 [workspace]
 members = ["crate/*"]
@@ -89,6 +87,7 @@ license = "MIT OR Apache-2.0"
 [workspace.dependencies]
 # dot_ix crates
 dot_ix_model = { version = "0.1.0", path = "crate/model" }
+dot_ix_rt = { version = "0.1.0", path = "crate/rt" }
 dot_ix_static_check_macros = { version = "0.1.0", path = "crate/static_check_macros" }
 
 # external crates

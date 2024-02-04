@@ -16,7 +16,7 @@ use indoc::{formatdoc, writedoc};
 #[cfg(feature = "tailwind_rs")]
 use tailwind_css::TailwindBuilder;
 
-use crate::rt::IntoGraphvizDotSrc;
+use crate::IntoGraphvizDotSrc;
 
 /// Renders a GraphViz Dot diagram with interactive styling.
 ///

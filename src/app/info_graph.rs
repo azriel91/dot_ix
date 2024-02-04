@@ -1,9 +1,10 @@
 use std::time::Duration;
 
 use dot_ix_model::common::{DotSrcAndStyles, GraphvizDotTheme};
+use dot_ix_rt::IntoGraphvizDotSrc;
 use leptos::*;
 
-use crate::{app::DotSvg, rt::IntoGraphvizDotSrc};
+use crate::app::DotSvg;
 
 const INFO_GRAPH_DEMO: &str = include_str!("info_graph_example.yaml");
 
