@@ -33,7 +33,7 @@ log4rs = { workspace = true, optional = true, default-features = false, features
 serde = { workspace = true, features = ["derive"] }
 tokio = { workspace = true, optional = true }
 tower = { workspace = true, optional = true }
-tower-http = { version = "0.4", features = ["fs"], optional = true }
+tower-http = { version = "0.5", features = ["fs"], optional = true }
 tracing = { workspace = true, optional = true }
 http = { workspace = true }
 serde_yaml = { workspace = true }
@@ -91,33 +91,33 @@ dot_ix_static_check_macros = { version = "0.1.0", path = "crate/static_check_mac
 dot_ix_web_components = { version = "0.1.0", path = "crate/web_components" }
 
 # external crates
-axum = "0.6.20"
+axum = "0.7.4"
 console_error_panic_hook = "0.1"
 console_log = "1"
 cfg-if = "1"
-indexmap = "2.1.0"
+indexmap = "2.2.2"
 indoc = "2.0.4"
-js-sys = "0.3.65"
-web-sys = "0.3.65"
-leptos = { version = "0.5" }
-leptos_axum = "0.5"
-leptos_meta = { version = "0.5" }
-leptos_router = { version = "0.5" }
+js-sys = "0.3.67"
+web-sys = "0.3.67"
+leptos = { version = "0.6" }
+leptos_axum = "0.6"
+leptos_meta = { version = "0.6" }
+leptos_router = { version = "0.6" }
 log = "0.4"
 log4rs = { version = "1.2.0", default-features = false }
-serde = "1.0.192"
-tempfile = "3.8.1"
-tokio = "1.34.0"
+serde = "1.0.196"
+tempfile = "3.9.0"
+tokio = "1.36.0"
 tower = "0.4.13"
-wasm-bindgen = "0.2.88"
+wasm-bindgen = "0.2.90"
 tailwind-css = "0.13.0"
-thiserror = "1.0.50"
+thiserror = "1.0.56"
 tracing = "0.1.40"
-http = "0.2.11"
-proc-macro2 = "1.0.69"
-quote = "1.0.33"
-syn = "2.0.39"
-serde_yaml = "0.9.27"
+http = "1.0.0"
+proc-macro2 = "1.0.78"
+quote = "1.0.35"
+syn = "2.0.48"
+serde_yaml = "0.9.31"
 
 [package.metadata.cargo-all-features]
 denylist = ["axum", "tokio", "tower", "tower-http", "leptos_axum"]
