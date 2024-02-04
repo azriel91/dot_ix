@@ -2,14 +2,14 @@ use cfg_if::cfg_if;
 
 cfg_if! { if #[cfg(feature = "ssr")] {
     use axum::{
-        body::{boxed, Body, BoxBody},
+        body::{Body},
         extract::State,
         response::IntoResponse,
         http::{Request, Response, StatusCode, Uri},
     };
     use axum::response::Response as AxumResponse;
     use tower::ServiceExt;
-    use tower_http::services::ServeDir;
+    use tower_http::services::{fs::ServeFileSystemResponseBody, ServeDir};
     use leptos::*;
     use crate::app::App;
 
@@ -25,12 +25,12 @@ cfg_if! { if #[cfg(feature = "ssr")] {
         }
     }
 
-    async fn get_static_file(uri: Uri, root: &str) -> Result<Response<BoxBody>, (StatusCode, String)> {
+    async fn get_static_file(uri: Uri, root: &str) -> Result<Response<ServeFileSystemResponseBody>, (StatusCode, String)> {
         let req = Request::builder().uri(uri.clone()).body(Body::empty()).unwrap();
         // `ServeDir` implements `tower::Service` so we can call it with `tower::ServiceExt::oneshot`
         // This path is relative to the crate root
         match ServeDir::new(root).oneshot(req).await {
-            Ok(res) => Ok(res.map(boxed)),
+            Ok(res) => Ok(res),
             Err(err) => Err((
                 StatusCode::INTERNAL_SERVER_ERROR,
                 format!("Something went wrong: {err}"),

@@ -53,6 +53,7 @@ ssr = [
     "dep:tokio",
     "tokio?/macros",
     "tokio?/process",
+    "tokio?/rt-multi-thread",
     "dep:tower",
     "dep:tower-http",
     "dep:leptos_axum",

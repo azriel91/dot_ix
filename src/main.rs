@@ -42,23 +42,22 @@ async fn main() {
     // deployment.
     let conf = get_configuration(None).await.unwrap();
     let leptos_options = conf.leptos_options;
-    let addr = leptos_options.site_addr;
+    let socket_addr = leptos_options.site_addr;
     let routes = generate_route_list(|| view! { <App/> });
 
     // build our application with a route
-    let app = Router::new()
+    let router = Router::new()
         .route("/api/*fn_name", post(leptos_axum::handle_server_fns))
         .leptos_routes(&leptos_options, routes, || view! { <App/> })
         .fallback(file_and_error_handler)
         .with_state(leptos_options);
 
     // run our app with hyper
-    // `axum::Server` is a re-export of `hyper::Server`
-    log!("listening on http://{}", &addr);
-    axum::Server::bind(&addr)
-        .serve(app.into_make_service())
+    let listener = tokio::net::TcpListener::bind(socket_addr)
         .await
-        .unwrap();
+        .unwrap_or_else(|e| panic!("Failed to listen on {socket_addr}. Error: {e}"));
+    log!("listening on http://{}", &socket_addr);
+    axum::serve(listener, router).await.unwrap();
 }
 
 #[cfg(feature = "csr")]
