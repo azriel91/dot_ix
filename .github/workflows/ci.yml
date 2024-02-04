@@ -1,0 +1,141 @@
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - '**'
+
+name: CI
+
+jobs:
+  audit:
+    name: Audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions-rust-lang/audit@v1
+        name: Audit Rust Dependencies
+        with:
+          denyWarnings: true
+          createIssues: false
+
+  licenses:
+    name: Licenses
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: EmbarkStudios/cargo-deny-action@v1
+
+    - name: cargo-about cache
+      id: cargo-about-cache
+      uses: actions/cache@v3
+      with:
+        path: ~/.cargo/bin/cargo-about
+        key: cargo-about-${{ runner.os }}
+
+    - name: cargo-about install
+      if: steps.cargo-about-cache.outputs.cache-hit != 'true'
+      run: cargo install --locked cargo-about
+
+    - name: cargo-about generate licenses
+      run: cargo about generate --workspace --features "server_side_graphviz" about.hbs > doc/src/licenses.html
+
+  fmt:
+    name: Rustfmt
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: nightly
+          components: rustfmt
+
+      - run: cargo fmt --all -- --check
+
+  docs_and_spell_check:
+    name: Docs and Spell Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      RUSTDOCFLAGS: "-Dwarnings"
+    steps:
+      - name: Checkout Actions Repository
+        uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Check spelling
+        uses: crate-ci/typos@master
+
+      - run: cargo doc --no-deps
+
+  clippy:
+    name: Clippy
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: nightly
+          components: clippy
+
+      - name: 'Run clippy (client side graphviz)'
+        run: |
+          cargo clippy --workspace -- -D warnings
+
+      - name: 'Run clippy (server side graphviz)'
+        # we cannot use `--all-features` because `dot_ix` has features that are mutually exclusive.
+        run: |
+          cargo clippy --workspace --features "server_side_graphviz" -- -D warnings
+
+  coverage:
+    name: Coverage
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: nightly
+          components: llvm-tools-preview
+
+      - uses: taiki-e/install-action@cargo-llvm-cov
+
+      - name: 'Collect coverage'
+        run: ./coverage.sh
+
+      - name: 'Print directory sizes'
+        run: du -sh target/coverage target/llvm-cov-target
+
+      - name: Upload to codecov.io
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./target/coverage/lcov.info
+
+  build_and_test_linux:
+    name: Build and Test (Linux)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: 'Build and test'
+        run: cargo test --workspace
+
+  build_and_test_windows:
+    name: Build and Test (Windows)
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - name: Prepare symlink configuration
+        run: git config --global core.symlinks true
+
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: 'Build and test'
+        run: cargo test --workspace
