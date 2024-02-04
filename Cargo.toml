@@ -15,6 +15,10 @@ license.workspace = true
 [lib]
 crate-type = ["cdylib", "rlib"]
 
+[[bin]]
+name = "dot-ix"
+path = "src/main.rs"
+
 [dependencies]
 axum = { workspace = true, optional = true }
 console_error_panic_hook = { workspace = true }
