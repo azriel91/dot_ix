@@ -27,7 +27,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
 
       - name: 'Build and test'
-        run: run: cargo test --workspace
+        run: cargo test --workspace
 
   build_and_test_windows:
     name: Build and Test (Windows)
@@ -41,7 +41,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
 
       - name: 'Build and test'
-        run: run: cargo test --workspace
+        run: cargo test --workspace
 
   crates_io_publish:
     name: Publish (crates.io)
