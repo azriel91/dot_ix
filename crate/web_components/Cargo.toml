@@ -1,0 +1,46 @@
+[package]
+name = "dot_ix_web_components"
+description = "Web components provided by the `dot_ix` library."
+documentation = "https://docs.rs/dot_ix_rt/"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+homepage.workspace = true
+repository.workspace = true
+readme.workspace = true
+categories.workspace = true
+keywords.workspace = true
+license.workspace = true
+
+[lib]
+doctest = false
+test = false
+
+[dependencies]
+cfg-if = { workspace = true }
+dot_ix_model = { workspace = true }
+http = { workspace = true }
+leptos = { workspace = true }
+leptos_axum = { workspace = true, optional = true }
+leptos_meta = { workspace = true }
+serde = { workspace = true, optional = true, features = ["derive"] }
+tempfile = { workspace = true, optional = true }
+tokio = { workspace = true, optional = true }
+thiserror = { workspace = true }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+js-sys = { workspace = true }
+wasm-bindgen = { workspace = true }
+web-sys = { workspace = true, features = ["Document", "Element", "HtmlElement", "Url", "UrlSearchParams", "Window"] }
+
+[features]
+ssr = [
+    "dep:leptos_axum",
+    "dep:tempfile",
+    "leptos/ssr",
+    "leptos_meta/ssr",
+]
+server_side_graphviz = [
+    "dep:serde",
+    "dep:tokio",
+]

@@ -1,17 +1,12 @@
 #![allow(non_snake_case)] // Components are all PascalCase.
 
+use dot_ix_web_components::{AppError, ErrorTemplate};
 use leptos::*;
 use leptos_meta::*;
 use leptos_router::*;
 
-use self::{
-    dot_svg::DotSvg,
-    error_template::{AppError, ErrorTemplate},
-    info_graph::InfoGraph,
-};
+use self::info_graph::InfoGraph;
 
-mod dot_svg;
-mod error_template;
 mod info_graph;
 
 /// Whether to only draw the diagram and hide the text boxes.
