@@ -1,0 +1,6 @@
+[alias]
+# Coverage for different feature combinations
+coverage_clean = ["llvm-cov", "clean", "--workspace"]
+coverage_0 = ["llvm-cov", "--no-report", "test", "--workspace"]
+coverage_merge = 'llvm-cov report --lcov --output-path ./target/coverage/lcov.info'
+coverage_open = 'llvm-cov report --open --output-dir ./target/coverage'
