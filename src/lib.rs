@@ -1,8 +1,10 @@
 use cfg_if::cfg_if;
+
 pub mod app;
 pub mod fileserv;
-pub mod model;
-pub mod rt;
+
+pub use dot_ix_model as model;
+pub use dot_ix_rt as rt;
 
 cfg_if! { if #[cfg(feature = "hydrate")] {
     use leptos::*;

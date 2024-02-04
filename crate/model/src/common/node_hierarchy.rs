@@ -1,13 +1,13 @@
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 
-use crate::model::common::NodeId;
+use crate::common::NodeId;
 
 /// A node's child nodes -- this doesn't include itself.
 ///
 /// The root hierarchy is on the graph type you are using, e.g. [`InfoGraph`].
 ///
-/// [`InfoGraph`]: crate::model::info_graph::InfoGraph
+/// [`InfoGraph`]: crate::info_graph::InfoGraph
 #[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub struct NodeHierarchy(IndexMap<NodeId, NodeHierarchy>);
 

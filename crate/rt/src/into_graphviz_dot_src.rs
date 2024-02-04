@@ -1,4 +1,4 @@
-use crate::model::common::{DotSrcAndStyles, GraphvizDotTheme};
+use dot_ix_model::common::{DotSrcAndStyles, GraphvizDotTheme};
 
 mod info_graph;
 

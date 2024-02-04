@@ -3,7 +3,7 @@ use std::ops::{Deref, DerefMut};
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 
-use crate::model::common::{EdgeId, NodeId, TailwindKey};
+use crate::common::{EdgeId, NodeId, TailwindKey};
 
 /// Map of tailwind keys to tailwind classes to apply for that key.
 #[derive(Clone, Debug, Default, PartialEq, Eq, Deserialize, Serialize)]

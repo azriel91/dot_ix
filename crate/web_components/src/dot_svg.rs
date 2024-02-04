@@ -1,6 +1,8 @@
+#[cfg(feature = "server_side_graphviz")]
+use leptos::server_fn::error::NoCustomError;
 use leptos::*;
 
-use crate::model::common::DotSrcAndStyles;
+use dot_ix_model::common::DotSrcAndStyles;
 
 #[cfg(not(feature = "server_side_graphviz"))]
 use leptos::html::Div;
@@ -24,7 +26,7 @@ const SVG_WRITE_TO_CLIPBOARD: &str = include_str!("dot_svg/svg_write_to_clipboar
 #[server]
 pub async fn dot_svg(
     dot_src_and_styles: DotSrcAndStyles,
-) -> Result<(String, String), ServerFnError> {
+) -> Result<(String, String), ServerFnError<NoCustomError>> {
     use std::process::Stdio;
     use tokio::io::{AsyncReadExt, AsyncWriteExt};
 
@@ -42,7 +44,7 @@ pub async fn dot_svg(
         stdin
             .write_all(dot_src.as_bytes())
             .await
-            .map_err(|error| ServerFnError::ServerError(format!("{error}")))?;
+            .map_err(|error| ServerFnError::<NoCustomError>::ServerError(format!("{error}")))?;
     }
 
     let mut dot_svg = String::with_capacity(dot_src.len());
@@ -50,7 +52,7 @@ pub async fn dot_svg(
         stdout
             .read_to_string(&mut dot_svg)
             .await
-            .map_err(|error| ServerFnError::ServerError(format!("{error}")))?;
+            .map_err(|error| ServerFnError::<NoCustomError>::ServerError(format!("{error}")))?;
     }
 
     let mut dot_stderr = String::new();
@@ -58,13 +60,12 @@ pub async fn dot_svg(
         stderr
             .read_to_string(&mut dot_stderr)
             .await
-            .map_err(|error| ServerFnError::ServerError(format!("{error}")))?;
+            .map_err(|error| ServerFnError::<NoCustomError>::ServerError(format!("{error}")))?;
     }
 
-    dot_process
-        .wait()
-        .await
-        .map_err(|error| ServerFnError::ServerError(format!("{dot_stderr}{error}")))?;
+    dot_process.wait().await.map_err(|error| {
+        ServerFnError::<NoCustomError>::ServerError(format!("{dot_stderr}{error}"))
+    })?;
 
     let styles = dot_svg_styles(&dot_src).await?;
 
@@ -80,12 +81,12 @@ pub async fn dot_svg(
 
 #[cfg(feature = "ssr")]
 #[cfg(feature = "server_side_graphviz")]
-async fn dot_svg_styles(dot_src: &str) -> Result<String, ServerFnError> {
+async fn dot_svg_styles(dot_src: &str) -> Result<String, ServerFnError<NoCustomError>> {
     use std::process::Stdio;
     use tokio::io::AsyncReadExt;
 
-    let tempdir =
-        tempfile::tempdir().map_err(|error| ServerFnError::ServerError(format!("{error}")))?;
+    let tempdir = tempfile::tempdir()
+        .map_err(|error| ServerFnError::<NoCustomError>::ServerError(format!("{error}")))?;
 
     let dot_path = tempdir.path().join("dot.dot");
     let dot_write = tokio::fs::write(&dot_path, dot_src);
@@ -103,7 +104,7 @@ async fn dot_svg_styles(dot_src: &str) -> Result<String, ServerFnError> {
     );
 
     let ((), (), ()) = tokio::try_join!(tailwind_config_write, dot_write, tailwind_css_write,)
-        .map_err(|error| ServerFnError::ServerError(format!("{error}")))?;
+        .map_err(|error| ServerFnError::<NoCustomError>::ServerError(format!("{error}")))?;
 
     let mut tailwind_process = tokio::process::Command::new("tailwind")
         .current_dir(tempdir.path())
@@ -113,14 +114,14 @@ async fn dot_svg_styles(dot_src: &str) -> Result<String, ServerFnError> {
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .spawn()
-        .map_err(|error| ServerFnError::ServerError(format!("{error}")))?;
+        .map_err(|error| ServerFnError::<NoCustomError>::ServerError(format!("{error}")))?;
 
     let mut svg_styles = String::with_capacity(dot_src.len());
     if let Some(mut stdout) = tailwind_process.stdout.take() {
         stdout
             .read_to_string(&mut svg_styles)
             .await
-            .map_err(|error| ServerFnError::ServerError(format!("{error}")))?;
+            .map_err(|error| ServerFnError::<NoCustomError>::ServerError(format!("{error}")))?;
     }
 
     let mut tailwind_stderr = String::new();
@@ -128,13 +129,12 @@ async fn dot_svg_styles(dot_src: &str) -> Result<String, ServerFnError> {
         stderr
             .read_to_string(&mut tailwind_stderr)
             .await
-            .map_err(|error| ServerFnError::ServerError(format!("{error}")))?;
+            .map_err(|error| ServerFnError::<NoCustomError>::ServerError(format!("{error}")))?;
     }
 
-    tailwind_process
-        .wait()
-        .await
-        .map_err(|error| ServerFnError::ServerError(format!("{tailwind_stderr}{error}")))?;
+    tailwind_process.wait().await.map_err(|error| {
+        ServerFnError::<NoCustomError>::ServerError(format!("{tailwind_stderr}{error}"))
+    })?;
 
     Ok(svg_styles)
 }
@@ -142,13 +142,12 @@ async fn dot_svg_styles(dot_src: &str) -> Result<String, ServerFnError> {
 /// Renders a graphviz graph as an SVG.
 #[cfg(feature = "server_side_graphviz")]
 #[component]
-pub fn DotSvg<FDotSrc>(dot_src_and_styles: FDotSrc, diagram_only: ReadSignal<bool>) -> impl IntoView
+pub fn DotSvg<FDotSrc>(dot_src_and_styles: FDotSrc) -> impl IntoView
 where
     FDotSrc: Fn() -> Option<DotSrcAndStyles> + 'static,
 {
-    let dot_svg_and_error_resource = create_resource(
-        move || dot_src_and_styles(),
-        |dot_src_and_styles| async move {
+    let dot_svg_and_error_resource =
+        create_resource(dot_src_and_styles, |dot_src_and_styles| async move {
             if let Some(dot_src_and_styles) = dot_src_and_styles {
                 if !dot_src_and_styles.dot_src.is_empty() {
                     match dot_svg(dot_src_and_styles).await {
@@ -161,8 +160,7 @@ where
             } else {
                 (String::from(""), String::from(""))
             }
-        },
-    );
+        });
 
     view! {
         <Suspense
@@ -230,7 +228,7 @@ where
 /// ```
 #[cfg(not(feature = "server_side_graphviz"))]
 #[component]
-pub fn DotSvg<FDotSrc>(dot_src_and_styles: FDotSrc, diagram_only: ReadSignal<bool>) -> impl IntoView
+pub fn DotSvg<FDotSrc>(dot_src_and_styles: FDotSrc) -> impl IntoView
 where
     FDotSrc: Fn() -> Option<DotSrcAndStyles> + 'static,
 {

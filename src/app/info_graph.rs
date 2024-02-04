@@ -1,12 +1,9 @@
 use std::time::Duration;
 
+use dot_ix_model::common::{DotSrcAndStyles, GraphvizDotTheme};
+use dot_ix_rt::IntoGraphvizDotSrc;
+use dot_ix_web_components::DotSvg;
 use leptos::*;
-
-use crate::{
-    app::DotSvg,
-    model::common::{DotSrcAndStyles, GraphvizDotTheme},
-    rt::IntoGraphvizDotSrc,
-};
 
 const INFO_GRAPH_DEMO: &str = include_str!("info_graph_example.yaml");
 
@@ -16,7 +13,7 @@ const QUERY_PARAM_SRC: &str = "src";
 
 /// Sets the info graph src using logic purely executed on the client side.
 ///
-/// This is for a pure client side rendered app, so updating a signal withing
+/// This is for a pure client side rendered app, so updating a signal within
 /// `create_effect` is safe.
 #[cfg(target_arch = "wasm32")]
 fn info_graph_src_init(set_info_graph_src: WriteSignal<String>) {
@@ -118,7 +115,7 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
 
     create_effect(move |_| {
         let info_graph_result =
-            serde_yaml::from_str::<crate::model::info_graph::InfoGraph>(&info_graph_src.get());
+            serde_yaml::from_str::<dot_ix_model::info_graph::InfoGraph>(&info_graph_src.get());
         let info_graph_result = &info_graph_result;
 
         match info_graph_result {
@@ -161,8 +158,8 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
     });
 
     view! {
-        <div class={ move || layout_classes() }>
-            <div class={ move || textbox_display_classes() }>
+        <div class={ layout_classes }>
+            <div class={ textbox_display_classes }>
 
                 <input type="radio" name="tabs" id="tab_info_graph_yml" checked="checked" />
                 <label for="tab_info_graph_yml">"info_graph.yml"</label>
@@ -253,7 +250,6 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
             <div class="diagram basis-1/2 grow">
                 <DotSvg
                     dot_src_and_styles=dot_src_and_styles
-                    diagram_only=diagram_only
                 />
             </div>
         </div>

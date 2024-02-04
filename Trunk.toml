@@ -1,6 +1,6 @@
 [[hooks]]
 stage = "pre_build"
 command = "cargo"
-command_arguments = ["leptos", "build", "--bin-features", "ssr", "-v"]
+command_arguments = ["leptos", "build", "-v"]
 # command = "sh"
 # command_arguments = ["-c", "npx tailwindcss -c style/tailwind.config.js -i style/tailwind.css -o target/site/pkg/dot_ix.css"]

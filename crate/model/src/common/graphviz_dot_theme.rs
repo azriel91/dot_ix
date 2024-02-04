@@ -1,85 +1,49 @@
 #[derive(Clone, Debug, PartialEq)]
 pub struct GraphvizDotTheme {
-    edge_color: &'static str,
+    pub edge_color: &'static str,
 
     // Node attributes:
     //
     // <https://graphviz.org/docs/nodes/>
-    node_text_color: &'static str,
+    pub node_text_color: &'static str,
     /// Width of a node, but it is allowed to expand.
-    node_width: f64,
+    pub node_width: f64,
     /// Height of a node, but it is allowed to expand.
-    node_height: f64,
+    pub node_height: f64,
     /// Left and right margin in inches.
     ///
     /// Default: `0.04`.
     ///
     /// Graphviz default: `0.11`.
-    node_margin_x: f64,
+    pub node_margin_x: f64,
     /// Top and bottom margin in inches.
     ///
     /// Default: `0.04`.
     ///
     /// Graphviz default: `0.055`.
-    node_margin_y: f64,
-    plain_text_color: &'static str,
-    emoji_point_size: u32,
-    node_point_size: u32,
-    tag_width: f64,
-    tag_height: f64,
+    pub node_margin_y: f64,
+    pub plain_text_color: &'static str,
+    pub emoji_point_size: u32,
+    pub node_point_size: u32,
+    pub tag_width: f64,
+    pub tag_height: f64,
     /// Left and right margin in inches.
     ///
     /// Default: `0.03`.
     ///
     /// Graphviz default: `0.11`.
-    tag_margin_x: f64,
+    pub tag_margin_x: f64,
     /// Top and bottom margin in inches.
     ///
     /// Default: `0.02`.
     ///
     /// Graphviz default: `0.055`.
-    tag_margin_y: f64,
-    tag_point_size: u32,
-    tag_classes: &'static str,
+    pub tag_margin_y: f64,
+    pub tag_point_size: u32,
+    pub tag_classes: &'static str,
 }
 
 impl GraphvizDotTheme {
-    pub fn new(
-        edge_color: &'static str,
-        node_text_color: &'static str,
-        node_width: f64,
-        node_height: f64,
-        node_margin_x: f64,
-        node_margin_y: f64,
-        plain_text_color: &'static str,
-        emoji_point_size: u32,
-        node_point_size: u32,
-        tag_width: f64,
-        tag_height: f64,
-        tag_margin_x: f64,
-        tag_margin_y: f64,
-        tag_point_size: u32,
-        tag_classes: &'static str,
-    ) -> Self {
-        Self {
-            edge_color,
-            node_text_color,
-            node_width,
-            node_height,
-            node_margin_x,
-            node_margin_y,
-            plain_text_color,
-            emoji_point_size,
-            node_point_size,
-            tag_width,
-            tag_height,
-            tag_margin_x,
-            tag_margin_y,
-            tag_point_size,
-            tag_classes,
-        }
-    }
-
     pub fn edge_color(&self) -> &str {
         self.edge_color
     }

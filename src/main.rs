@@ -5,8 +5,29 @@ async fn main() {
     use dot_ix::{app::*, fileserv::file_and_error_handler};
     use leptos::{logging::log, *};
     use leptos_axum::{generate_route_list, LeptosRoutes};
+    use log4rs::{
+        append::console::{ConsoleAppender, Target},
+        config::Appender,
+        filter::threshold::ThresholdFilter,
+    };
 
-    simple_logger::init_with_level(log::Level::Info).expect("couldn't initialize logging");
+    let stderr = ConsoleAppender::builder().target(Target::Stderr).build();
+    // Log Trace level output to file where trace is the default level
+    // and the programmatically specified level to stderr.
+    let log4rs_config = log4rs::config::Config::builder()
+        .appender(
+            Appender::builder()
+                .filter(Box::new(ThresholdFilter::new(log::LevelFilter::Info)))
+                .build("stderr", Box::new(stderr)),
+        )
+        .build(
+            log4rs::config::Root::builder()
+                .appender("stderr")
+                .build(log::LevelFilter::Trace),
+        )
+        .unwrap();
+
+    let _log4rs_handle = log4rs::init_config(log4rs_config).expect("Failed to set logger");
 
     // Setting `get_configuration(None)` means we'll be using cargo-leptos's env
     // values.
@@ -21,23 +42,22 @@ async fn main() {
     // deployment.
     let conf = get_configuration(None).await.unwrap();
     let leptos_options = conf.leptos_options;
-    let addr = leptos_options.site_addr;
+    let socket_addr = leptos_options.site_addr;
     let routes = generate_route_list(|| view! { <App/> });
 
     // build our application with a route
-    let app = Router::new()
+    let router = Router::new()
         .route("/api/*fn_name", post(leptos_axum::handle_server_fns))
         .leptos_routes(&leptos_options, routes, || view! { <App/> })
         .fallback(file_and_error_handler)
         .with_state(leptos_options);
 
     // run our app with hyper
-    // `axum::Server` is a re-export of `hyper::Server`
-    log!("listening on http://{}", &addr);
-    axum::Server::bind(&addr)
-        .serve(app.into_make_service())
+    let listener = tokio::net::TcpListener::bind(socket_addr)
         .await
-        .unwrap();
+        .unwrap_or_else(|e| panic!("Failed to listen on {socket_addr}. Error: {e}"));
+    log!("listening on http://{}", &socket_addr);
+    axum::serve(listener, router).await.unwrap();
 }
 
 #[cfg(feature = "csr")]

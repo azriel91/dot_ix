@@ -20,47 +20,46 @@ axum = { workspace = true, optional = true }
 console_error_panic_hook = { workspace = true }
 console_log = { workspace = true }
 cfg-if = { workspace = true }
+dot_ix_model = { workspace = true }
+dot_ix_rt = { workspace = true }
 dot_ix_static_check_macros = { workspace = true, optional = true }
-indexmap = { workspace = true, features = ["serde"] }
-indoc = { workspace = true }
+dot_ix_web_components = { workspace = true }
 leptos = { workspace = true }
 leptos_axum = { workspace = true, optional = true }
 leptos_meta = { workspace = true }
 leptos_router = { workspace = true }
 log = { workspace = true }
-simple_logger = { workspace = true }
+log4rs = { workspace = true, optional = true, default-features = false, features = ["console_appender", "threshold_filter"] }
 serde = { workspace = true, features = ["derive"] }
-tailwind-css = { workspace = true, optional = true }
-tempfile = { workspace = true, optional = true }
 tokio = { workspace = true, optional = true }
 tower = { workspace = true, optional = true }
-tower-http = { version = "0.4", features = ["fs"], optional = true }
-thiserror = { workspace = true }
+tower-http = { version = "0.5", features = ["fs"], optional = true }
 tracing = { workspace = true, optional = true }
 http = { workspace = true }
 serde_yaml = { workspace = true }
 lz-str = "0.2.1"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
-js-sys = { workspace = true }
 wasm-bindgen = { workspace = true }
 web-sys = { workspace = true, features = ["Document", "Element", "HtmlElement", "Url", "UrlSearchParams", "Window"] }
 
 [features]
 hydrate = ["leptos/hydrate", "leptos_meta/hydrate", "leptos_router/hydrate"]
 ssr = [
+    "dot_ix_web_components/ssr",
     "dep:axum",
     "dep:dot_ix_static_check_macros",
+    "dep:log4rs",
     "dep:tokio",
     "tokio?/macros",
     "tokio?/process",
+    "tokio?/rt-multi-thread",
     "dep:tower",
     "dep:tower-http",
     "dep:leptos_axum",
     "leptos/ssr",
     "leptos_meta/ssr",
     "leptos_router/ssr",
-    "dep:tempfile",
     "dep:tracing",
 ]
 csr = [
@@ -68,8 +67,7 @@ csr = [
     "leptos_meta/csr",
     "leptos_router/csr",
 ]
-server_side_graphviz = []
-tailwind_rs = ["dep:tailwind-css"]
+server_side_graphviz = ["dot_ix_web_components/server_side_graphviz"]
 
 [workspace]
 members = ["crate/*"]
@@ -87,36 +85,39 @@ license = "MIT OR Apache-2.0"
 
 [workspace.dependencies]
 # dot_ix crates
+dot_ix_model = { version = "0.1.0", path = "crate/model" }
+dot_ix_rt = { version = "0.1.0", path = "crate/rt" }
 dot_ix_static_check_macros = { version = "0.1.0", path = "crate/static_check_macros" }
+dot_ix_web_components = { version = "0.1.0", path = "crate/web_components" }
 
 # external crates
-axum = "0.6.20"
+axum = "0.7.4"
 console_error_panic_hook = "0.1"
 console_log = "1"
 cfg-if = "1"
-indexmap = "2.1.0"
+indexmap = "2.2.2"
 indoc = "2.0.4"
-js-sys = "0.3.65"
-web-sys = "0.3.65"
-leptos = { version = "0.5" }
-leptos_axum = "0.5"
-leptos_meta = { version = "0.5" }
-leptos_router = { version = "0.5" }
+js-sys = "0.3.67"
+web-sys = "0.3.67"
+leptos = { version = "0.6" }
+leptos_axum = "0.6"
+leptos_meta = { version = "0.6" }
+leptos_router = { version = "0.6" }
 log = "0.4"
-simple_logger = "4"
-serde = "1.0.192"
-tempfile = "3.8.1"
-tokio = "1.34.0"
+log4rs = { version = "1.2.0", default-features = false }
+serde = "1.0.196"
+tempfile = "3.9.0"
+tokio = "1.36.0"
 tower = "0.4.13"
-wasm-bindgen = "0.2.88"
+wasm-bindgen = "0.2.90"
 tailwind-css = "0.13.0"
-thiserror = "1.0.50"
+thiserror = "1.0.56"
 tracing = "0.1.40"
-http = "0.2.11"
-proc-macro2 = "1.0.69"
-quote = "1.0.33"
-syn = "2.0.39"
-serde_yaml = "0.9.27"
+http = "1.0.0"
+proc-macro2 = "1.0.78"
+quote = "1.0.35"
+syn = "2.0.48"
+serde_yaml = "0.9.31"
 
 [package.metadata.cargo-all-features]
 denylist = ["axum", "tokio", "tower", "tower-http", "leptos_axum"]
@@ -186,6 +187,3 @@ lib-features = ["hydrate"]
 #
 # Optional. Defaults to false.
 lib-default-features = false
-
-# Makes builds go much faster.
-separate-front-target-dir = true

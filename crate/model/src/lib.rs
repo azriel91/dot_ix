@@ -1,4 +1,4 @@
-//! Graph models to represent data.
+//! Model for the `dot_ix` diagramming application.
 //!
 //! # Design
 //!
