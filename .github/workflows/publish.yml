@@ -1,0 +1,96 @@
+on:
+  push:
+    tags:
+      - '*'
+
+name: Publish
+
+jobs:
+  audit:
+    name: Audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions-rust-lang/audit@v1
+        name: Audit Rust Dependencies
+        with:
+          denyWarnings: true
+          createIssues: false
+
+  build_and_test_linux:
+    name: Build and Test (Linux)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: 'Build and test'
+        run: run: cargo test --workspace
+
+  build_and_test_windows:
+    name: Build and Test (Windows)
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - name: Prepare symlink configuration
+        run: git config --global core.symlinks true
+
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: 'Build and test'
+        run: run: cargo test --workspace
+
+  crates_io_publish:
+    name: Publish (crates.io)
+    needs:
+      - audit
+      - build_and_test_linux
+      - build_and_test_windows
+
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: cargo-release Cache
+        id: cargo_release_cache
+        uses: actions/cache@v3
+        with:
+          path: ~/.cargo/bin/cargo-release
+          key: ${{ runner.os }}-cargo-release
+
+      - run: cargo install cargo-release
+        if: steps.cargo_release_cache.outputs.cache-hit != 'true'
+
+      - name: cargo login
+        run: cargo login ${{ secrets.CRATES_IO_API_TOKEN }}
+
+      # allow-branch HEAD is because GitHub actions switches
+      # to the tag while building, which is a detached head
+
+      # Publishing is currently messy, because:
+      #
+      # * `peace_rt_model_core` exports `NativeError` or `WebError` depending on the target.
+      # * `peace_rt_model_web` fails to build when publishing the workspace for a native target.
+      # * `peace_rt_model_web` still needs its dependencies to be published before it can be
+      #    published.
+      # * `peace_rt_model_hack` needs `peace_rt_model_web` to be published before it can be
+      #    published.
+      #
+      # We *could* pass through `--no-verify` so `cargo` doesn't build the crate before publishing,
+      # which is reasonable, since this job only runs after the Linux, Windows, and WASM builds
+      # have passed.
+      - name: "cargo release publish"
+        run: |-
+          cargo release \
+            publish \
+            --workspace \
+            --all-features \
+            --allow-branch HEAD \
+            --no-confirm \
+            --no-verify \
+            --execute
