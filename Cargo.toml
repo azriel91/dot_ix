@@ -68,7 +68,6 @@ csr = [
     "leptos_router/csr",
 ]
 server_side_graphviz = ["dot_ix_web_components/server_side_graphviz"]
-tailwind_rs = ["dot_ix_rt/tailwind_rs"]
 
 [workspace]
 members = ["crate/*"]
