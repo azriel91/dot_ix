@@ -146,9 +146,8 @@ pub fn DotSvg<FDotSrc>(dot_src_and_styles: FDotSrc) -> impl IntoView
 where
     FDotSrc: Fn() -> Option<DotSrcAndStyles> + 'static,
 {
-    let dot_svg_and_error_resource = create_resource(
-        dot_src_and_styles,
-        |dot_src_and_styles| async move {
+    let dot_svg_and_error_resource =
+        create_resource(dot_src_and_styles, |dot_src_and_styles| async move {
             if let Some(dot_src_and_styles) = dot_src_and_styles {
                 if !dot_src_and_styles.dot_src.is_empty() {
                     match dot_svg(dot_src_and_styles).await {
@@ -161,8 +160,7 @@ where
             } else {
                 (String::from(""), String::from(""))
             }
-        },
-    );
+        });
 
     view! {
         <Suspense
