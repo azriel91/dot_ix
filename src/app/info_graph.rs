@@ -13,7 +13,7 @@ const QUERY_PARAM_SRC: &str = "src";
 
 /// Sets the info graph src using logic purely executed on the client side.
 ///
-/// This is for a pure client side rendered app, so updating a signal withing
+/// This is for a pure client side rendered app, so updating a signal within
 /// `create_effect` is safe.
 #[cfg(target_arch = "wasm32")]
 fn info_graph_src_init(set_info_graph_src: WriteSignal<String>) {
