@@ -126,6 +126,33 @@ jobs:
       - name: 'Build and test'
         run: cargo test --workspace
 
+  build_playground_linux:
+    name: Build Playground (Linux)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: cargo-leptos cache
+        id: cargo-leptos-cache
+        uses: actions/cache@v3
+        with:
+          path: ~/.cargo/bin/cargo-leptos
+          key: cargo-leptos-${{ runner.os }}
+
+      - name: cargo-leptos install
+        if: steps.cargo-leptos-cache.outputs.cache-hit != 'true'
+        run: cargo install cargo-leptos
+
+      - name: 'Build playground'
+        working-directory: ./playground
+        run: cargo leptos build -v
+
+      - name: 'Build playground (server side graphviz)'
+        working-directory: ./playground
+        run: cargo leptos build --features "server_side_graphviz" -v
+
   build_and_test_windows:
     name: Build and Test (Windows)
     runs-on: windows-latest
@@ -139,3 +166,33 @@ jobs:
 
       - name: 'Build and test'
         run: cargo test --workspace
+
+  build_playground_windows:
+    name: Build Playground (Windows)
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - name: Prepare symlink configuration
+        run: git config --global core.symlinks true
+
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: cargo-leptos cache
+        id: cargo-leptos-cache
+        uses: actions/cache@v3
+        with:
+          path: ~/.cargo/bin/cargo-leptos
+          key: cargo-leptos-${{ runner.os }}
+
+      - name: cargo-leptos install
+        if: steps.cargo-leptos-cache.outputs.cache-hit != 'true'
+        run: cargo install cargo-leptos
+
+      - name: 'Build playground'
+        working-directory: ./playground
+        run: cargo leptos build -v
+
+      - name: 'Build playground (server side graphviz)'
+        working-directory: ./playground
+        run: cargo leptos build --features "server_side_graphviz" -v

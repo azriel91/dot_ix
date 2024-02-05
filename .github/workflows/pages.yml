@@ -38,17 +38,6 @@ jobs:
           toolchain: nightly
           targets: wasm32-unknown-unknown
 
-      - name: cargo-leptos cache
-        id: cargo-leptos-cache
-        uses: actions/cache@v3
-        with:
-          path: ~/.cargo/bin/cargo-leptos
-          key: cargo-leptos-${{ runner.os }}
-
-      - name: cargo-leptos install
-        if: steps.cargo-leptos-cache.outputs.cache-hit != 'true'
-        run: cargo install cargo-leptos
-
       - name: Setup Pages
         uses: actions/configure-pages@v3
 
@@ -67,13 +56,14 @@ jobs:
         # this is necessary for github pages where the site is deployed to username.github.io/repo_name and all files must be requested
         # relatively as favicon.ico. if we skip public-url option, the href paths will instead request username.github.io/favicon.ico which
         # will obviously return error 404 not found.
-        run: ./trunk build --release --public-url "${GITHUB_REPOSITORY#*/}"
+        working-directory: ./playground
+        run: ../trunk build --release --public-url "${GITHUB_REPOSITORY#*/}"
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v2
         with:
-          # Upload entire repository
-          path: 'dist'
+          # Upload playground/dist directory
+          path: 'playground/dist'
 
       - name: Deploy to GitHub Pages
         id: deployment
