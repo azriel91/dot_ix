@@ -2,7 +2,7 @@
 #[tokio::main]
 async fn main() {
     use axum::{routing::post, Router};
-    use dot_ix::{app::*, fileserv::file_and_error_handler};
+    use dot_ix_playground::{app::*, fileserv::file_and_error_handler};
     use leptos::{logging::log, *};
     use leptos_axum::{generate_route_list, LeptosRoutes};
     use log4rs::{

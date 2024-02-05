@@ -1,25 +1,5 @@
-use cfg_if::cfg_if;
-
-pub mod app;
-pub mod fileserv;
+//! Interactive dot graphs.
 
 pub use dot_ix_model as model;
 pub use dot_ix_rt as rt;
 pub use dot_ix_web_components as web_components;
-
-cfg_if! { if #[cfg(feature = "hydrate")] {
-    use leptos::*;
-    use wasm_bindgen::prelude::wasm_bindgen;
-    use crate::app::*;
-
-    #[wasm_bindgen]
-    pub fn hydrate() {
-        // initializes logging using the `log` crate
-        _ = console_log::init_with_level(log::Level::Debug);
-        console_error_panic_hook::set_once();
-
-        leptos::mount_to_body(move || {
-            view! { <App/> }
-        });
-    }
-}}

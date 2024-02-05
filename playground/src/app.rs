@@ -1,6 +1,6 @@
 #![allow(non_snake_case)] // Components are all PascalCase.
 
-use dot_ix_web_components::{AppError, ErrorTemplate};
+use dot_ix::web_components::{AppError, ErrorTemplate};
 use leptos::*;
 use leptos_meta::*;
 use leptos_router::*;
