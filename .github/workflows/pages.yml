@@ -38,6 +38,17 @@ jobs:
           toolchain: nightly
           targets: wasm32-unknown-unknown
 
+      - name: cargo-leptos cache
+        id: cargo-leptos-cache
+        uses: actions/cache@v3
+        with:
+          path: ~/.cargo/bin/cargo-leptos
+          key: cargo-leptos-${{ runner.os }}
+
+      - name: cargo-leptos install
+        if: steps.cargo-leptos-cache.outputs.cache-hit != 'true'
+        run: cargo install cargo-leptos
+
       - name: Setup Pages
         uses: actions/configure-pages@v3
 
