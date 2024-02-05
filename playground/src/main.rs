@@ -1,8 +1,10 @@
+mod app;
+mod fileserv;
+
 #[cfg(feature = "ssr")]
 #[tokio::main]
 async fn main() {
     use axum::{routing::post, Router};
-    use dot_ix_playground::{app::*, fileserv::file_and_error_handler};
     use leptos::{logging::log, *};
     use leptos_axum::{generate_route_list, LeptosRoutes};
     use log4rs::{
@@ -10,6 +12,8 @@ async fn main() {
         config::Appender,
         filter::threshold::ThresholdFilter,
     };
+
+    use crate::{app::*, fileserv::file_and_error_handler};
 
     let stderr = ConsoleAppender::builder().target(Target::Stderr).build();
     // Log Trace level output to file where trace is the default level
@@ -64,7 +68,7 @@ async fn main() {
 pub fn main() {
     use leptos::{logging::log, *};
 
-    use dot_ix::app::App;
+    use crate::app::App;
 
     // client-side main function
     // so that this can work with e.g. Trunk for a purely client-side app

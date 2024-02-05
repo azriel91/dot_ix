@@ -3,7 +3,7 @@
   <head>
     <link
       data-trunk rel="rust"
-      data-target-name="dot-ix"
+      data-bin="dot_ix_playground"
       data-wasm-opt="z"
       data-cargo-features="csr" />
 
@@ -13,9 +13,9 @@
       Would be good if we can just specify `target/site`,
       and `trunk` copies the contents of the `site` directory.
     -->
-    <link data-trunk rel="copy-dir" href="/target/site/fonts" />
-    <link data-trunk rel="copy-dir" href="/target/site/pkg" />
-    <link data-trunk rel="copy-file" href="/target/site/favicon.ico" />
+    <link data-trunk rel="copy-dir" href="../target/site/fonts" />
+    <link data-trunk rel="copy-dir" href="../target/site/pkg" />
+    <link data-trunk rel="copy-file" href="../target/site/favicon.ico" />
   </head>
   <body></body>
 </html>
