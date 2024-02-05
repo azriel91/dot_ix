@@ -132,7 +132,11 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
+      - name: 'Install Rust'
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+          targets: wasm32-unknown-unknown
 
       - name: cargo-leptos cache
         id: cargo-leptos-cache
@@ -176,7 +180,11 @@ jobs:
         run: git config --global core.symlinks true
 
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
+      - name: 'Install Rust'
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+          targets: wasm32-unknown-unknown
 
       - name: cargo-leptos cache
         id: cargo-leptos-cache
