@@ -101,6 +101,7 @@ impl IntoGraphvizDotSrc for &InfoGraph {
                 node_cluster(
                     theme,
                     self.tailwind_classes(),
+                    self.direction(),
                     self.node_infos(),
                     self.node_tags(),
                     node_id,
@@ -264,6 +265,7 @@ fn edge_attrs(theme: &GraphvizDotTheme, tailwind_classes: &TailwindClasses) -> S
 fn node_cluster(
     theme: &GraphvizDotTheme,
     tailwind_classes: &TailwindClasses,
+    graph_dir: GraphDir,
     node_infos: &IndexMap<NodeId, NodeInfo>,
     node_tags: &IndexMap<NodeId, IndexSet<TagId>>,
     node_id: &NodeId,
@@ -274,6 +276,7 @@ fn node_cluster(
     node_cluster_internal(
         theme,
         tailwind_classes,
+        graph_dir,
         node_infos,
         node_tags,
         node_id,
@@ -288,6 +291,7 @@ fn node_cluster(
 fn node_cluster_internal(
     theme: &GraphvizDotTheme,
     tailwind_classes: &TailwindClasses,
+    graph_dir: GraphDir,
     node_infos: &IndexMap<NodeId, NodeInfo>,
     node_tags: &IndexMap<NodeId, IndexSet<TagId>>,
     node_id: &NodeId,
@@ -399,32 +403,45 @@ fn node_cluster_internal(
                     ]
                 "#
             )?,
-            GraphStyle::Circle => writedoc!(
-                buffer,
-                r#"
-                    subgraph cluster_{node_id} {{
-                        {node_id} [
-                            label = ""
-                            class = "{node_tailwind_classes} {node_tag_classes}"
-                        ]
-                        {node_id}_text [
-                            shape="plain"
-                            style=""
-                            label = <<table
-                                border="0"
-                                cellborder="0"
-                                cellpadding="0"
-                                cellspacing="0"
-                            >
-                                <tr>
-                                    {emoji} <td align="left" balign="left">{node_label}</td>
-                                </tr>
-                                {node_desc}
-                            </table>>
-                        ]
-                    }}
-                "#
-            )?,
+            GraphStyle::Circle => {
+                // `margin` doesn't apply to `plain` shaped nodes, so we use rectangle and use
+                // an invisible colour.
+                let margin = match graph_dir {
+                    GraphDir::Horizontal => "margin = \"0.11,0.07\"",
+                    GraphDir::Vertical => "margin = \"0.13,0.055\"",
+                };
+
+                let no_color = "#00000000";
+
+                writedoc!(
+                    buffer,
+                    r#"
+                        subgraph cluster_{node_id} {{
+                            {node_id} [
+                                label = ""
+                                class = "{node_tailwind_classes} {node_tag_classes}"
+                                {margin}
+                            ]
+                            {node_id}_text [
+                                fillcolor="{no_color}"
+                                shape="rectangle"
+                                {margin}
+                                label = <<table
+                                    border="0"
+                                    cellborder="0"
+                                    cellpadding="0"
+                                    cellspacing="0"
+                                >
+                                    <tr>
+                                        {emoji} <td align="left" balign="left">{node_label}</td>
+                                    </tr>
+                                    {node_desc}
+                                </table>>
+                            ]
+                        }}
+                    "#
+                )?
+            }
         }
     } else {
         writedoc!(
@@ -454,6 +471,7 @@ fn node_cluster_internal(
                 node_cluster_internal(
                     theme,
                     tailwind_classes,
+                    graph_dir,
                     node_infos,
                     node_tags,
                     child_node_id,
