@@ -6,8 +6,8 @@ use std::{
 
 use dot_ix_model::{
     common::{
-        DotSrcAndStyles, EdgeId, GraphvizDotTheme, NodeHierarchy, NodeId, TagId, TailwindClasses,
-        TailwindKey,
+        graphviz_dot_theme::GraphStyle, DotSrcAndStyles, EdgeId, GraphvizDotTheme, NodeHierarchy,
+        NodeId, TagId, TailwindClasses, TailwindKey,
     },
     info_graph::{GraphDir, InfoGraph, NodeInfo, Tag},
 };
@@ -210,6 +210,16 @@ fn graph_attrs(theme: &GraphvizDotTheme, graph_dir: GraphDir) -> String {
 }
 
 fn node_attrs(theme: &GraphvizDotTheme, tailwind_classes: &TailwindClasses) -> String {
+    let node_style_and_shape = match theme.graph_style {
+        GraphStyle::Boxes => {
+            "shape     = \"rect\"
+            style     = \"rounded,filled\""
+        }
+        GraphStyle::Circle => {
+            "shape    = \"circle\"
+            style     = \"filled\""
+        }
+    };
     let node_text_color = theme.node_text_color();
     let node_point_size = theme.node_point_size();
     let node_width = theme.node_width();
@@ -224,8 +234,7 @@ fn node_attrs(theme: &GraphvizDotTheme, tailwind_classes: &TailwindClasses) -> S
             fontcolor = "{node_text_color}"
             fontname  = "liberationmono"
             fontsize  = {node_point_size}
-            shape     = "rect"
-            style     = "rounded,filled"
+            {node_style_and_shape}
             width     = {node_width}
             height    = {node_height}
             margin    = "{node_margin_x:.3},{node_margin_y:.3}"
@@ -370,25 +379,53 @@ fn node_cluster_internal(
         .unwrap_or_else(String::new);
 
     if node_hierarchy.is_empty() {
-        writedoc!(
-            buffer,
-            r#"
-                {node_id} [
-                    label = <<table
-                        border="0"
-                        cellborder="0"
-                        cellpadding="0"
-                        cellspacing="0"
-                    >
-                        <tr>
-                            {emoji} <td align="left" balign="left">{node_label}</td>
-                        </tr>
-                        {node_desc}
-                    </table>>
-                    class = "{node_tailwind_classes} {node_tag_classes}"
-                ]
-            "#
-        )?;
+        match theme.graph_style {
+            GraphStyle::Boxes => writedoc!(
+                buffer,
+                r#"
+                    {node_id} [
+                        label = <<table
+                            border="0"
+                            cellborder="0"
+                            cellpadding="0"
+                            cellspacing="0"
+                        >
+                            <tr>
+                                {emoji} <td align="left" balign="left">{node_label}</td>
+                            </tr>
+                            {node_desc}
+                        </table>>
+                        class = "{node_tailwind_classes} {node_tag_classes}"
+                    ]
+                "#
+            )?,
+            GraphStyle::Circle => writedoc!(
+                buffer,
+                r#"
+                    subgraph cluster_{node_id} {{
+                        {node_id} [
+                            label = ""
+                            class = "{node_tailwind_classes} {node_tag_classes}"
+                        ]
+                        {node_id}_text [
+                            shape="plain"
+                            style=""
+                            label = <<table
+                                border="0"
+                                cellborder="0"
+                                cellpadding="0"
+                                cellspacing="0"
+                            >
+                                <tr>
+                                    {emoji} <td align="left" balign="left">{node_label}</td>
+                                </tr>
+                                {node_desc}
+                            </table>>
+                        ]
+                    }}
+                "#
+            )?,
+        }
     } else {
         writedoc!(
             buffer,

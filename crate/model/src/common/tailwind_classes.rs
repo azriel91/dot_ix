@@ -47,6 +47,17 @@ impl TailwindClasses {
                 [&>path]:focus:outline-lime-600 \
                 [&>path]:focus:outline-dashed \
                 [&>path]:focus:rounded-xl \
+                [&>ellipse]:fill-slate-300 \
+                [&>ellipse]:stroke-1 \
+                [&>ellipse]:stroke-slate-600 \
+                [&>ellipse]:hover:fill-slate-200 \
+                [&>ellipse]:hover:stroke-slate-600 \
+                [&>ellipse]:hover:stroke-2 \
+                [&>ellipse]:focus:fill-lime-200 \
+                [&>ellipse]:focus:outline-1 \
+                [&>ellipse]:focus:outline-lime-600 \
+                [&>ellipse]:focus:outline-dashed \
+                [&>ellipse]:focus:rounded-xl \
                 cursor-pointer \
             "
                 .trim()
