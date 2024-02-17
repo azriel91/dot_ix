@@ -1,11 +1,15 @@
-use indexmap::{IndexMap, IndexSet};
+pub use indexmap::{IndexMap, IndexSet};
+
 use serde::{Deserialize, Serialize};
 
 use crate::common::{EdgeId, NodeHierarchy, NodeId, TagId, TailwindClasses};
 
-pub use self::{graph_dir::GraphDir, node_info::NodeInfo, tag::Tag};
+pub use self::{
+    graph_dir::GraphDir, info_graph_builder::InfoGraphBuilder, node_info::NodeInfo, tag::Tag,
+};
 
 mod graph_dir;
+mod info_graph_builder;
 mod node_info;
 mod tag;
 
@@ -13,22 +17,27 @@ mod tag;
 #[serde(default)]
 pub struct InfoGraph {
     /// Direction of the graph, `vertical` or `horizontal`.
-    direction: GraphDir,
+    pub(crate) direction: GraphDir,
     /// Nested nodes.
-    hierarchy: NodeHierarchy,
+    pub(crate) hierarchy: NodeHierarchy,
     /// Logical / ordering dependencies.
-    edges: IndexMap<EdgeId, [NodeId; 2]>,
+    pub(crate) edges: IndexMap<EdgeId, [NodeId; 2]>,
     /// List of nodes and basic node info.
-    node_infos: IndexMap<NodeId, NodeInfo>,
+    pub(crate) node_infos: IndexMap<NodeId, NodeInfo>,
     /// Tags associated with each node.
-    node_tags: IndexMap<NodeId, IndexSet<TagId>>,
+    pub(crate) node_tags: IndexMap<NodeId, IndexSet<TagId>>,
     /// Tags to associate with nodes.
-    tags: IndexMap<TagId, Tag>,
+    pub(crate) tags: IndexMap<TagId, Tag>,
     /// Tailwind classes to add to nodes with the given tag.
-    tailwind_classes: TailwindClasses,
+    pub(crate) tailwind_classes: TailwindClasses,
 }
 
 impl InfoGraph {
+    /// Returns a builder to instantiate an `InfoGraph`.
+    pub fn builder() -> InfoGraphBuilder {
+        InfoGraphBuilder::default()
+    }
+
     pub fn direction(&self) -> GraphDir {
         self.direction
     }
