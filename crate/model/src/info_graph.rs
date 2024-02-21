@@ -30,6 +30,8 @@ pub struct InfoGraph {
     pub(crate) tags: IndexMap<TagId, Tag>,
     /// Tailwind classes to add to nodes with the given tag.
     pub(crate) tailwind_classes: TailwindClasses,
+    /// Additional CSS to add in the spreadsheet.
+    pub(crate) css: String,
 }
 
 impl InfoGraph {
@@ -38,31 +40,43 @@ impl InfoGraph {
         InfoGraphBuilder::default()
     }
 
+    /// Returns the direction of the graph, `vertical` or `horizontal`.
     pub fn direction(&self) -> GraphDir {
         self.direction
     }
 
+    /// Returns the nested nodes.
     pub fn hierarchy(&self) -> &NodeHierarchy {
         &self.hierarchy
     }
 
+    /// Returns the logical / ordering dependencies.
     pub fn edges(&self) -> &IndexMap<EdgeId, [NodeId; 2]> {
         &self.edges
     }
 
+    /// Returns the list of nodes and basic node info.
     pub fn node_infos(&self) -> &IndexMap<NodeId, NodeInfo> {
         &self.node_infos
     }
 
+    /// Returns the tags associated with each node.
     pub fn node_tags(&self) -> &IndexMap<NodeId, IndexSet<TagId>> {
         &self.node_tags
     }
 
+    /// Returns the tags to associate with nodes.
     pub fn tags(&self) -> &IndexMap<TagId, Tag> {
         &self.tags
     }
 
+    /// Returns the tailwind classes to add to nodes with the given tag.
     pub fn tailwind_classes(&self) -> &TailwindClasses {
         &self.tailwind_classes
+    }
+
+    /// Returns the additional CSS to add in the spreadsheet.
+    pub fn css(&self) -> &str {
+        &self.css
     }
 }

@@ -172,7 +172,7 @@ impl IntoGraphvizDotSrc for &InfoGraph {
             }}"
         );
 
-        let styles = String::new();
+        let styles = self.css().to_string();
 
         DotSrcAndStyles { dot_src, styles }
     }

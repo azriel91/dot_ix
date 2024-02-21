@@ -24,6 +24,8 @@ pub struct InfoGraphBuilder {
     tags: IndexMap<TagId, Tag>,
     /// Tailwind classes to add to nodes with the given tag.
     tailwind_classes: TailwindClasses,
+    /// Additional CSS to add in the spreadsheet.
+    css: String,
 }
 
 impl InfoGraphBuilder {
@@ -69,6 +71,12 @@ impl InfoGraphBuilder {
         self
     }
 
+    /// Sets the additional CSS to add in the spreadsheet.
+    pub fn with_css(mut self, css: String) -> Self {
+        self.css = css;
+        self
+    }
+
     /// Returns an [`InfoGraph`] from the collected parameters.
     pub fn build(self) -> InfoGraph {
         let InfoGraphBuilder {
@@ -79,6 +87,7 @@ impl InfoGraphBuilder {
             node_tags,
             tags,
             tailwind_classes,
+            css,
         } = self;
 
         InfoGraph {
@@ -89,6 +98,7 @@ impl InfoGraphBuilder {
             node_tags,
             tags,
             tailwind_classes,
+            css,
         }
     }
 }
