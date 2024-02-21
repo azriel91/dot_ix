@@ -30,7 +30,7 @@ pub async fn dot_svg(
     use std::process::Stdio;
     use tokio::io::{AsyncReadExt, AsyncWriteExt};
 
-    let DotSrcAndStyles { dot_src, styles } = dot_src_and_styles;
+    let DotSrcAndStyles { dot_src, styles: _ } = dot_src_and_styles;
 
     let mut dot_process = tokio::process::Command::new("dot")
         .arg("-Tsvg")
@@ -67,14 +67,10 @@ pub async fn dot_svg(
         ServerFnError::<NoCustomError>::ServerError(format!("{dot_stderr}{error}"))
     })?;
 
-    let dot_svg_styles = dot_svg_styles(&dot_src).await?;
+    let styles = dot_svg_styles(&dot_src).await?;
 
     dot_svg = dot_svg
-        .replacen(
-            "<g",
-            &format!("<style>{styles}\n{dot_svg_styles}</style>\n<g"),
-            1,
-        )
+        .replacen("<g", &format!("<style>{styles}</style>\n<g"), 1)
         .replace("<g ", "<g tabindex=\"0\" ")
         .replace("fill=\"#000000\"", "")
         .replace("stroke=\"#000000\"", "")
@@ -266,8 +262,8 @@ where
                     Ok(dot_svg) => {
                         let dot_svg = dot_svg
                             .replacen(
-                                "<g ",
-                                &format!("<style>\n/* TW_PLACEHOLDER */\n{styles}</style>\n<g "),
+                                "<g id=\"graph_0\"",
+                                &format!("<styles>{styles}</styles>\n<g id=\"graph_0\""),
                                 1,
                             )
                             .replace("<g ", "<g tabindex=\"0\" ")
