@@ -152,13 +152,13 @@ where
                 if !dot_src_and_styles.dot_src.is_empty() {
                     match dot_svg(dot_src_and_styles).await {
                         Ok((dot_svg, error_text)) => (dot_svg, error_text),
-                        Err(error) => (String::from(""), format!("{error}")),
+                        Err(error) => (String::new(), format!("{error}")),
                     }
                 } else {
-                    (String::from(""), String::from(""))
+                    (String::new(), String::new())
                 }
             } else {
-                (String::from(""), String::from(""))
+                (String::new(), String::new())
             }
         });
 
@@ -262,8 +262,8 @@ where
                     Ok(dot_svg) => {
                         let dot_svg = dot_svg
                             .replacen(
-                                "<g id=\"graph_0\"",
-                                &format!("<styles>{styles}</styles>\n<g id=\"graph_0\""),
+                                "<g ",
+                                &format!("<style>\n/* TW_PLACEHOLDER */\n{styles}</style>\n<g "),
                                 1,
                             )
                             .replace("<g ", "<g tabindex=\"0\" ")

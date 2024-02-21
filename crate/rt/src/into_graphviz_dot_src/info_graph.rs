@@ -6,8 +6,8 @@ use std::{
 
 use dot_ix_model::{
     common::{
-        DotSrcAndStyles, EdgeId, GraphvizDotTheme, NodeHierarchy, NodeId, TagId, TailwindClasses,
-        TailwindKey,
+        graphviz_dot_theme::GraphStyle, DotSrcAndStyles, EdgeId, GraphvizDotTheme, NodeHierarchy,
+        NodeId, TagId, TailwindClasses, TailwindKey,
     },
     info_graph::{GraphDir, InfoGraph, NodeInfo, Tag},
 };
@@ -101,6 +101,7 @@ impl IntoGraphvizDotSrc for &InfoGraph {
                 node_cluster(
                     theme,
                     self.tailwind_classes(),
+                    self.direction(),
                     self.node_infos(),
                     self.node_tags(),
                     node_id,
@@ -171,7 +172,7 @@ impl IntoGraphvizDotSrc for &InfoGraph {
             }}"
         );
 
-        let styles = String::new();
+        let styles = self.css().to_string();
 
         DotSrcAndStyles { dot_src, styles }
     }
@@ -210,6 +211,16 @@ fn graph_attrs(theme: &GraphvizDotTheme, graph_dir: GraphDir) -> String {
 }
 
 fn node_attrs(theme: &GraphvizDotTheme, tailwind_classes: &TailwindClasses) -> String {
+    let node_style_and_shape = match theme.graph_style {
+        GraphStyle::Boxes => {
+            "shape     = \"rect\"
+            style     = \"rounded,filled\""
+        }
+        GraphStyle::Circle => {
+            "shape    = \"circle\"
+            style     = \"filled\""
+        }
+    };
     let node_text_color = theme.node_text_color();
     let node_point_size = theme.node_point_size();
     let node_width = theme.node_width();
@@ -224,8 +235,7 @@ fn node_attrs(theme: &GraphvizDotTheme, tailwind_classes: &TailwindClasses) -> S
             fontcolor = "{node_text_color}"
             fontname  = "liberationmono"
             fontsize  = {node_point_size}
-            shape     = "rect"
-            style     = "rounded,filled"
+            {node_style_and_shape}
             width     = {node_width}
             height    = {node_height}
             margin    = "{node_margin_x:.3},{node_margin_y:.3}"
@@ -255,6 +265,7 @@ fn edge_attrs(theme: &GraphvizDotTheme, tailwind_classes: &TailwindClasses) -> S
 fn node_cluster(
     theme: &GraphvizDotTheme,
     tailwind_classes: &TailwindClasses,
+    graph_dir: GraphDir,
     node_infos: &IndexMap<NodeId, NodeInfo>,
     node_tags: &IndexMap<NodeId, IndexSet<TagId>>,
     node_id: &NodeId,
@@ -265,6 +276,7 @@ fn node_cluster(
     node_cluster_internal(
         theme,
         tailwind_classes,
+        graph_dir,
         node_infos,
         node_tags,
         node_id,
@@ -276,9 +288,11 @@ fn node_cluster(
     buffer
 }
 
+#[allow(clippy::too_many_arguments)] // Fix this when using buffer for everything.
 fn node_cluster_internal(
     theme: &GraphvizDotTheme,
     tailwind_classes: &TailwindClasses,
+    graph_dir: GraphDir,
     node_infos: &IndexMap<NodeId, NodeInfo>,
     node_tags: &IndexMap<NodeId, IndexSet<TagId>>,
     node_id: &NodeId,
@@ -370,25 +384,66 @@ fn node_cluster_internal(
         .unwrap_or_else(String::new);
 
     if node_hierarchy.is_empty() {
-        writedoc!(
-            buffer,
-            r#"
-                {node_id} [
-                    label = <<table
-                        border="0"
-                        cellborder="0"
-                        cellpadding="0"
-                        cellspacing="0"
-                    >
-                        <tr>
-                            {emoji} <td align="left" balign="left">{node_label}</td>
-                        </tr>
-                        {node_desc}
-                    </table>>
-                    class = "{node_tailwind_classes} {node_tag_classes}"
-                ]
-            "#
-        )?;
+        match theme.graph_style {
+            GraphStyle::Boxes => writedoc!(
+                buffer,
+                r#"
+                    {node_id} [
+                        label = <<table
+                            border="0"
+                            cellborder="0"
+                            cellpadding="0"
+                            cellspacing="0"
+                        >
+                            <tr>
+                                {emoji} <td align="left" balign="left">{node_label}</td>
+                            </tr>
+                            {node_desc}
+                        </table>>
+                        class = "{node_tailwind_classes} {node_tag_classes}"
+                    ]
+                "#
+            )?,
+            GraphStyle::Circle => {
+                // `margin` doesn't apply to `plain` shaped nodes, so we use rectangle and use
+                // an invisible colour.
+                let margin = match graph_dir {
+                    GraphDir::Horizontal => "margin = \"0.11,0.07\"",
+                    GraphDir::Vertical => "margin = \"0.13,0.055\"",
+                };
+
+                let no_color = "#00000000";
+
+                writedoc!(
+                    buffer,
+                    r#"
+                        subgraph cluster_{node_id} {{
+                            {node_id} [
+                                label = ""
+                                class = "{node_tailwind_classes} {node_tag_classes}"
+                                {margin}
+                            ]
+                            {node_id}_text [
+                                fillcolor="{no_color}"
+                                shape="rectangle"
+                                {margin}
+                                label = <<table
+                                    border="0"
+                                    cellborder="0"
+                                    cellpadding="0"
+                                    cellspacing="0"
+                                >
+                                    <tr>
+                                        {emoji} <td align="left" balign="left">{node_label}</td>
+                                    </tr>
+                                    {node_desc}
+                                </table>>
+                            ]
+                        }}
+                    "#
+                )?
+            }
+        }
     } else {
         writedoc!(
             buffer,
@@ -417,6 +472,7 @@ fn node_cluster_internal(
                 node_cluster_internal(
                     theme,
                     tailwind_classes,
+                    graph_dir,
                     node_infos,
                     node_tags,
                     child_node_id,

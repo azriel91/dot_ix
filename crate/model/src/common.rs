@@ -12,11 +12,12 @@ pub use self::{
     tailwind_key::TailwindKey,
 };
 
+pub mod graphviz_dot_theme;
+
 mod any_id;
 mod dot_src_and_styles;
 mod edge;
 mod edge_id;
-mod graphviz_dot_theme;
 mod id_newtype;
 mod node_hierarchy;
 mod node_id;
