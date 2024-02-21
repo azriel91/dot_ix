@@ -288,6 +288,7 @@ fn node_cluster(
     buffer
 }
 
+#[allow(clippy::too_many_arguments)] // Fix this when using buffer for everything.
 fn node_cluster_internal(
     theme: &GraphvizDotTheme,
     tailwind_classes: &TailwindClasses,
