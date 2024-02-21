@@ -13,12 +13,19 @@ const INFO_GRAPH_DEMO: &str = include_str!("info_graph_example.yaml");
 #[cfg(target_arch = "wasm32")]
 const QUERY_PARAM_SRC: &str = "src";
 
+/// User provided info graph styles.
+#[cfg(target_arch = "wasm32")]
+const QUERY_PARAM_CSS: &str = "css";
+
 /// Sets the info graph src using logic purely executed on the client side.
 ///
 /// This is for a pure client side rendered app, so updating a signal within
 /// `create_effect` is safe.
 #[cfg(target_arch = "wasm32")]
-fn info_graph_src_init(set_info_graph_src: WriteSignal<String>) {
+fn info_graph_src_init(
+    set_info_graph_src: WriteSignal<String>,
+    set_info_graph_css: WriteSignal<String>,
+) {
     use lz_str::decompress_from_encoded_uri_component;
     use web_sys::{Document, Url};
 
@@ -47,7 +54,23 @@ fn info_graph_src_init(set_info_graph_src: WriteSignal<String>) {
                 })
                 .unwrap_or_else(|| String::from(INFO_GRAPH_DEMO));
 
+            let info_graph_css_initial = url_search_params
+                .get(QUERY_PARAM_CSS)
+                .map(|css| {
+                    if css.contains("\n") {
+                        // Treat css as plain yaml
+                        css
+                    } else {
+                        // Try deserialize/serialize css as lz_str
+                        decompress_from_encoded_uri_component(&css).map_or_else(String::new, |s| {
+                            String::from_utf16(&s).unwrap_or_default()
+                        })
+                    }
+                })
+                .unwrap_or_default();
+
             set_info_graph_src.set(info_graph_src_initial);
+            set_info_graph_css.set(info_graph_css_initial);
 
             // Hack: Get Tailwind CSS from CDN to reevaluate document.
             set_timeout(
@@ -104,16 +127,16 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
     // Creates a reactive value to update the button
     let (error_text, set_error_text) = create_signal(None::<String>);
     let (dot_src, set_dot_src) = create_signal(None::<String>);
-    let (styles, set_styles) = create_signal(None::<String>);
+    let (styles, set_styles) = create_signal(String::from(""));
     let dot_src_and_styles = move || {
+        let styles = styles.get();
         dot_src
             .get()
-            .zip(styles.get())
-            .map(|(dot_src, styles)| DotSrcAndStyles { dot_src, styles })
+            .map(|dot_src| DotSrcAndStyles { dot_src, styles })
     };
 
     #[cfg(target_arch = "wasm32")]
-    info_graph_src_init(set_info_graph_src);
+    info_graph_src_init(set_info_graph_src, set_styles);
 
     create_effect(move |_| {
         let info_graph_result =
@@ -122,22 +145,23 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
 
         match info_graph_result {
             Ok(info_graph) => {
-                let DotSrcAndStyles { dot_src, styles } =
+                let DotSrcAndStyles { dot_src, styles: _ } =
                     IntoGraphvizDotSrc::into(info_graph, &GraphvizDotTheme::default());
 
                 set_dot_src.set(Some(dot_src));
-                set_styles.set(Some(styles));
                 set_error_text.set(None);
                 #[cfg(target_arch = "wasm32")]
                 {
                     use lz_str::compress_to_encoded_uri_component;
 
                     let src_compressed = compress_to_encoded_uri_component(&info_graph_src.get());
+                    let css_compressed = compress_to_encoded_uri_component(&styles.get());
                     if let Some(window) = web_sys::window() {
                         let url = {
                             let u = web_sys::Url::new(&String::from(window.location().to_string()))
                                 .expect("Expected URL to be valid.");
                             u.search_params().set(QUERY_PARAM_SRC, &src_compressed);
+                            u.search_params().set(QUERY_PARAM_CSS, &css_compressed);
                             u.to_string()
                                 .as_string()
                                 .expect("# Failed to decode src parameter")
@@ -153,7 +177,6 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
             }
             Err(error) => {
                 set_dot_src.set(None);
-                set_styles.set(None);
                 set_error_text.set(Some(format!("{error}")));
             }
         }
@@ -165,7 +188,6 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
 
                 <input type="radio" name="tabs" id="tab_info_graph_yml" checked="checked" />
                 <label for="tab_info_graph_yml">"info_graph.yml"</label>
-
                 <div class="tab">
                     <textarea
                         id="info_graph_yml"
@@ -248,7 +270,32 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
                             }
                         } />
                 </div>
+
+                <input type="radio" name="tabs" id="tab_info_graph_css" />
+                <label for="tab_info_graph_css">"CSS"</label>
+                <div class="tab">
+                    <textarea
+                        id="info_graph_css"
+                        name="info_graph_css"
+                        class="
+                            border
+                            border-slate-400
+                            bg-slate-100
+                            min-w-full
+                            min-h-full
+                            font-mono
+                            p-2
+                            rounded
+                            text-xs
+                        "
+                        on:input=leptos_dom::helpers::debounce(Duration::from_millis(400), move |ev| {
+                            let styles = event_target_value(&ev);
+                            set_styles.set(styles);
+                        })
+                        prop:value=styles />
+                </div>
             </div>
+
             <div class="diagram basis-1/2 grow">
                 <DotSvg
                     dot_src_and_styles=dot_src_and_styles
