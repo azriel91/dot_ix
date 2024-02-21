@@ -1,6 +1,6 @@
 # Changelog
 
-## unreleased
+## 0.2.0 (2024-02-22)
 
 * Split `dot_ix` library and `dot_ix_playground` binary.
 * Add `InfoGraph::builder` and `InfoGraphBuilder`.
