@@ -20,7 +20,7 @@ fn divs(info_graph: Rc<InfoGraph>, hierarchy: NodeHierarchy) -> impl IntoView {
                 let name = node_info.map(NodeInfo::name).map(str::to_string).unwrap_or_default();
                 let desc = node_info.and_then(NodeInfo::desc).map(str::to_string).unwrap_or_default();
                 view! {
-                    <div>
+                    <div id=move || node_id.to_string()>
                         {emoji} {name} {desc}
                         {divs(Rc::clone(&info_graph), child_hierarchy)}
                     </div>
