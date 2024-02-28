@@ -34,6 +34,8 @@ wasm-bindgen = { workspace = true }
 web-sys = { workspace = true, features = ["Document", "Element", "HtmlElement", "Url", "UrlSearchParams", "Window"] }
 
 [features]
+default = []
+div_diag = []
 ssr = [
     "dep:leptos_axum",
     "dep:tempfile",

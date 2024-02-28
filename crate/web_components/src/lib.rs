@@ -9,3 +9,9 @@ pub use crate::{
 
 mod dot_svg;
 mod error_template;
+
+#[cfg(feature = "div_diag")]
+pub use crate::div_diag::DivDiag;
+
+#[cfg(feature = "div_diag")]
+mod div_diag;

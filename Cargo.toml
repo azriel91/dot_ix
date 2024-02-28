@@ -21,6 +21,8 @@ dot_ix_rt = { workspace = true }
 dot_ix_web_components = { workspace = true }
 
 [features]
+default = []
+div_diag = ["dot_ix_web_components/div_diag"]
 ssr = [
     "dot_ix_model/ssr",
     "dot_ix_web_components/ssr",
