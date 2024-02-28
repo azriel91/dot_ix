@@ -1,12 +1,14 @@
 //! Diagram created using HTML `div` elements.
 
+use std::rc::Rc;
+
 use dot_ix_model::{
     common::NodeHierarchy,
     info_graph::{InfoGraph, NodeInfo},
 };
 use leptos::*;
 
-fn divs(info_graph: InfoGraph, hierarchy: NodeHierarchy) -> impl IntoView {
+fn divs(info_graph: Rc<InfoGraph>, hierarchy: NodeHierarchy) -> impl IntoView {
     view! {
         <For
             each=move || hierarchy.clone().into_inner().into_iter()
@@ -20,7 +22,7 @@ fn divs(info_graph: InfoGraph, hierarchy: NodeHierarchy) -> impl IntoView {
                 view! {
                     <div>
                         {emoji} {name} {desc}
-                        {divs(info_graph.clone(), child_hierarchy.clone())}
+                        {divs(Rc::clone(&info_graph), child_hierarchy)}
                     </div>
                 }
             }
@@ -33,9 +35,9 @@ fn divs(info_graph: InfoGraph, hierarchy: NodeHierarchy) -> impl IntoView {
 pub fn DivDiag(info_graph: ReadSignal<InfoGraph>) -> impl IntoView {
     view! {
         {move || {
-            let info_graph = info_graph.get();
-            let root_nodes = info_graph.hierarchy();
-            divs(info_graph.clone(), root_nodes.clone())}
+            let info_graph = Rc::new(info_graph.get());
+            let root_nodes = info_graph.hierarchy().clone();
+            divs(info_graph, root_nodes)}
         }
     }
 }
