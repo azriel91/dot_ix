@@ -3,7 +3,7 @@ use std::time::Duration;
 use dot_ix::{
     model::common::{DotSrcAndStyles, GraphvizDotTheme},
     rt::IntoGraphvizDotSrc,
-    web_components::DotSvg,
+    web_components::{DivDiag, DotSvg},
 };
 use leptos::*;
 
@@ -115,6 +115,9 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
     #[cfg(target_arch = "wasm32")]
     info_graph_src_init(set_info_graph_src);
 
+    let (info_graph, set_info_graph) =
+        create_signal(dot_ix::model::info_graph::InfoGraph::default());
+
     create_effect(move |_| {
         let info_graph_result =
             serde_yaml::from_str::<dot_ix::model::info_graph::InfoGraph>(&info_graph_src.get());
@@ -122,6 +125,8 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
 
         match info_graph_result {
             Ok(info_graph) => {
+                set_info_graph.set(info_graph.clone());
+
                 let DotSrcAndStyles { dot_src, styles } =
                     IntoGraphvizDotSrc::into(info_graph, &GraphvizDotTheme::default());
 
@@ -248,6 +253,9 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
                             }
                         } />
                 </div>
+            </div>
+            <div class="diagram basis-1/2 grow">
+                <DivDiag info_graph=info_graph />
             </div>
             <div class="diagram basis-1/2 grow">
                 <DotSvg
