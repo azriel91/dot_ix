@@ -55,8 +55,14 @@ fn divs(info_graph: Rc<InfoGraph>, hierarchy: NodeHierarchy) -> impl IntoView {
                 let emoji = node_info.and_then(NodeInfo::emoji).map(str::to_string).unwrap_or_default();
                 let name = node_info.map(NodeInfo::name).map(str::to_string).unwrap_or_else(|| node_id.to_string());
                 let desc = node_info.and_then(NodeInfo::desc).map(str::to_string).unwrap_or_default();
+
+                let node_classes = info_graph.tailwind_classes()
+                    .node_classes(node_id.clone())
+                    .unwrap_or(NODE_CLASSES)
+                    .to_string();
+
                 view! {
-                    <div id={move || node_id.to_string()} tabindex="0" class=NODE_CLASSES>
+                    <div id={move || node_id.to_string()} tabindex="0" class=node_classes>
                         <div class=NODE_LABEL_WRAPPER_CLASSES>
                             <div class=NODE_EMOJI_WRAPPER_CLASSES><div>{emoji}</div></div>
                             <div class=NODE_NAME_DESC_WRAPPER_CLASSES>
