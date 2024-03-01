@@ -9,7 +9,7 @@ use dot_ix_model::{
 use leptos::*;
 
 const NODE_CLASSES: &str = "\
-    node
+    node \
     bg-slate-300 \
     border-2 \
     border-solid \
@@ -27,6 +27,22 @@ const NODE_CLASSES: &str = "\
     focus:hover:[&:not(:has(.node:hover))]:border-lime-400 \
     cursor-pointer \
 ";
+const NODE_LABEL_WRAPPER_CLASSES: &str = "\
+    flex \
+    flex-initial \
+    justify-center \
+    gap-x-4 \
+";
+const NODE_EMOJI_WRAPPER_CLASSES: &str = "\
+    flex \
+    flex-col \
+    justify-center \
+";
+const NODE_NAME_DESC_WRAPPER_CLASSES: &str = "\
+    flex \
+    flex-col \
+    content-start \
+";
 
 fn divs(info_graph: Rc<InfoGraph>, hierarchy: NodeHierarchy) -> impl IntoView {
     view! {
@@ -41,7 +57,13 @@ fn divs(info_graph: Rc<InfoGraph>, hierarchy: NodeHierarchy) -> impl IntoView {
                 let desc = node_info.and_then(NodeInfo::desc).map(str::to_string).unwrap_or_default();
                 view! {
                     <div id={move || node_id.to_string()} tabindex="0" class=NODE_CLASSES>
-                        {emoji} {name} {desc}
+                        <div class=NODE_LABEL_WRAPPER_CLASSES>
+                            <div class=NODE_EMOJI_WRAPPER_CLASSES><div>{emoji}</div></div>
+                            <div class=NODE_NAME_DESC_WRAPPER_CLASSES>
+                                <div>{name}</div>
+                                <div>{desc}</div>
+                            </div>
+                        </div>
                         {divs(Rc::clone(&info_graph), child_hierarchy)}
                     </div>
                 }
