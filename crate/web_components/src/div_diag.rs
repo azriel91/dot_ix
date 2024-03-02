@@ -24,6 +24,7 @@ use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 #[cfg(target_arch = "wasm32")]
 #[wasm_bindgen]
 extern "C" {
+    #[derive(Clone)]
     pub type LeaderLine;
 
     #[wasm_bindgen(method)]
@@ -51,7 +52,11 @@ pub struct LeaderLineOpts {
 #[wasm_bindgen(module = "/public/js/leader-line.min.js")]
 extern "C" {
     #[wasm_bindgen(catch)]
-    fn leader_line(src_id: &str, dest_id: &str, opts: &JsValue) -> Result<LeaderLine, JsValue>;
+    fn leader_line(
+        src_id: &str,
+        dest_id: &str,
+        opts: &JsValue,
+    ) -> Result<Option<LeaderLine>, JsValue>;
 }
 
 const NODE_CLASSES: &str = "\
@@ -179,6 +184,9 @@ fn divs(info_graph: Rc<InfoGraph>, hierarchy: NodeHierarchy) -> impl IntoView {
 /// Renders a diagram using `div`s.
 #[component]
 pub fn DivDiag(info_graph: ReadSignal<InfoGraph>) -> impl IntoView {
+    #[cfg(target_arch = "wasm32")]
+    let (leader_lines, leader_lines_set) = create_signal(Vec::<LeaderLine>::new());
+
     view! {
         <div class="flex flex-initial items-stretch">
         { move || {
@@ -187,30 +195,46 @@ pub fn DivDiag(info_graph: ReadSignal<InfoGraph>) -> impl IntoView {
             divs(info_graph, root_nodes)
         } }
         { move || {
+            #[cfg(not(target_arch = "wasm32"))]
             let _info_graph = info_graph.get();
 
             #[cfg(target_arch = "wasm32")]
-            info_graph
-                .get()
-                .edges()
-                .iter()
-                .for_each(|(_edge_id, [src, dest])| {
-                    let opts = LeaderLineOpts {
-                        color: "#336699".to_string(),
-                        dash: DashOpts {
-                            animation: true,
-                        },
-                        size: 3,
-                        startSocketGravity: 20,
-                        endSocketGravity: 40,
-                        endPlugSize: 1.2,
-                    };
-                    leader_line(
-                        src,
-                        dest,
-                        &serde_wasm_bindgen::to_value(&opts).unwrap(),
-                    ).unwrap();
-                });
+            {
+                let leader_lines = leader_lines.get();
+                leader_lines.iter().for_each(LeaderLine::remove);
+
+                let info_graph = info_graph.get();
+                let edges = info_graph.edges();
+
+                let leader_lines = edges
+                    .iter()
+                    .fold(
+                        Vec::with_capacity(edges.len()),
+                        |mut leader_lines, (_edge_id, [src, dest])|
+                        {
+                            let opts = LeaderLineOpts {
+                                color: "#336699".to_string(),
+                                dash: DashOpts {
+                                    animation: true,
+                                },
+                                size: 3,
+                                startSocketGravity: 20,
+                                endSocketGravity: 40,
+                                endPlugSize: 1.2,
+                            };
+                            if let Ok(Some(leader_line)) = leader_line(
+                                src,
+                                dest,
+                                &serde_wasm_bindgen::to_value(&opts).unwrap(),
+                            ) {
+                                leader_lines.push(leader_line);
+                            }
+
+                            leader_lines
+                        });
+
+                leader_lines_set.set(leader_lines);
+            }
         } }
         </div>
     }
