@@ -1,4 +1,14 @@
 //! Diagram created using HTML `div` elements.
+//!
+//! Lines between `div`s are drawn using [`leader-line`].
+//!
+//! The `leader-line.min.js` is retrieved using the command:
+//!
+//! ```bash
+//! curl -Lfs --remote-name https://cdn.jsdelivr.net/npm/leader-line/leader-line.min.js
+//! ```
+//!
+//! [`leader-line`]: https://anseki.github.io/leader-line/
 
 use std::rc::Rc;
 
@@ -7,6 +17,42 @@ use dot_ix_model::{
     info_graph::{IndexMap, InfoGraph, NodeInfo},
 };
 use leptos::*;
+
+#[cfg(target_arch = "wasm32")]
+use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
+
+#[cfg(target_arch = "wasm32")]
+#[wasm_bindgen]
+extern "C" {
+    pub type LeaderLine;
+
+    #[wasm_bindgen(method)]
+    fn remove(this: &LeaderLine);
+}
+
+#[cfg(target_arch = "wasm32")]
+#[derive(Clone, Debug, PartialEq, Eq, serde::Deserialize, serde::Serialize)]
+pub struct DashOpts {
+    pub animation: bool,
+}
+
+#[cfg(target_arch = "wasm32")]
+#[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
+pub struct LeaderLineOpts {
+    pub color: String,
+    pub dash: DashOpts,
+    pub size: u32,
+    pub startSocketGravity: u32,
+    pub endSocketGravity: u32,
+    pub endPlugSize: f64,
+}
+
+#[cfg(target_arch = "wasm32")]
+#[wasm_bindgen(module = "/public/js/leader-line.min.js")]
+extern "C" {
+    #[wasm_bindgen(catch)]
+    fn leader_line(src_id: &str, dest_id: &str, opts: &JsValue) -> Result<LeaderLine, JsValue>;
+}
 
 const NODE_CLASSES: &str = "\
     node \
@@ -139,6 +185,32 @@ pub fn DivDiag(info_graph: ReadSignal<InfoGraph>) -> impl IntoView {
             let info_graph = Rc::new(info_graph.get());
             let root_nodes = info_graph.hierarchy().clone();
             divs(info_graph, root_nodes)
+        } }
+        { move || {
+            let _info_graph = info_graph.get();
+
+            #[cfg(target_arch = "wasm32")]
+            info_graph
+                .get()
+                .edges()
+                .iter()
+                .for_each(|(_edge_id, [src, dest])| {
+                    let opts = LeaderLineOpts {
+                        color: "#336699".to_string(),
+                        dash: DashOpts {
+                            animation: true,
+                        },
+                        size: 3,
+                        startSocketGravity: 20,
+                        endSocketGravity: 40,
+                        endPlugSize: 1.2,
+                    };
+                    leader_line(
+                        src,
+                        dest,
+                        &serde_wasm_bindgen::to_value(&opts).unwrap(),
+                    ).unwrap();
+                });
         } }
         </div>
     }
