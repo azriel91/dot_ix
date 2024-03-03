@@ -46,6 +46,7 @@ pub struct LeaderLineOpts {
     pub startSocketGravity: u32,
     pub endSocketGravity: u32,
     pub endPlugSize: f64,
+    pub classes: String,
 }
 
 #[cfg(target_arch = "wasm32")]
@@ -205,13 +206,18 @@ pub fn DivDiag(info_graph: ReadSignal<InfoGraph>) -> impl IntoView {
 
                 let info_graph = info_graph.get();
                 let edges = info_graph.edges();
+                let tailwind_classes = info_graph.tailwind_classes();
 
                 let leader_lines = edges
                     .iter()
                     .fold(
                         Vec::with_capacity(edges.len()),
-                        |mut leader_lines, (_edge_id, [src, dest])|
+                        |mut leader_lines, (edge_id, [src, dest])|
                         {
+                            let classes = tailwind_classes
+                                .edge_classes_or_default(edge_id.clone())
+                                .to_string();
+
                             let opts = LeaderLineOpts {
                                 color: "#336699".to_string(),
                                 dash: DashOpts {
@@ -221,6 +227,7 @@ pub fn DivDiag(info_graph: ReadSignal<InfoGraph>) -> impl IntoView {
                                 startSocketGravity: 20,
                                 endSocketGravity: 40,
                                 endPlugSize: 1.2,
+                                classes,
                             };
                             if let Ok(Some(leader_line)) = leader_line(
                                 src,
