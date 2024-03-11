@@ -24,7 +24,6 @@ dot_ix_web_components = { workspace = true }
 default = []
 div_diag = ["dot_ix_web_components/div_diag"]
 ssr = [
-    "dot_ix_model/ssr",
     "dot_ix_web_components/ssr",
 ]
 server_side_graphviz = ["dot_ix_web_components/server_side_graphviz"]
@@ -72,7 +71,7 @@ serde = "1.0.197"
 tempfile = "3.10.0"
 tokio = "1.36.0"
 tower = "0.4.13"
-wasm-bindgen = "0.2.91"
+wasm-bindgen = "0.2.92"
 tailwind-css = "0.13.0"
 thiserror = "1.0.57"
 tracing = "0.1.40"

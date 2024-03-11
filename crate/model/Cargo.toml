@@ -19,9 +19,4 @@ test = false
 [dependencies]
 indexmap = { workspace = true, features = ["serde"] }
 serde = { workspace = true, features = ["derive"] }
-dot_ix_static_check_macros = { workspace = true, optional = true }
-
-[features]
-ssr = [
-    "dep:dot_ix_static_check_macros",
-]
+dot_ix_static_check_macros = { workspace = true }
