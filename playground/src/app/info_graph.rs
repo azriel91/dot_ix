@@ -168,7 +168,7 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
         <div class={ layout_classes }>
             <div class={ textbox_display_classes }>
 
-                <input type="radio" name="tabs" id="tab_info_graph_yml" checked="checked" />
+                <input type="radio" name="src_tabs" id="tab_info_graph_yml" checked="checked" />
                 <label for="tab_info_graph_yml">"info_graph.yml"</label>
 
                 <div class="tab">
@@ -223,7 +223,7 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
                         }</div>
                 </div>
 
-                <input type="radio" name="tabs" id="tab_info_graph_dot" />
+                <input type="radio" name="src_tabs" id="tab_info_graph_dot" />
                 <label for="tab_info_graph_dot">"info_graph.dot"</label>
                 <div class="tab">
                     <textarea
@@ -254,13 +254,24 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
                         } />
                 </div>
             </div>
-            <div class="diagram basis-1/2 grow">
-                <DivDiag info_graph=info_graph />
-            </div>
-            <div class="diagram basis-1/2 grow">
-                <DotSvg
-                    dot_src_and_styles=dot_src_and_styles
-                />
+            <div class="tabs basis-1/2 grow">
+                <input type="radio" name="diagram_tabs" id="tab_dot_svg" checked="checked" />
+                <label for="tab_dot_svg">"Dot SVG"</label>
+                <div class="tab">
+                    <div class="diagram basis-1/2 grow">
+                        <DotSvg
+                            dot_src_and_styles=dot_src_and_styles
+                        />
+                    </div>
+                </div>
+
+                <input type="radio" name="diagram_tabs" id="tab_div_diag" />
+                <label for="tab_div_diag">"Div Diagram"</label>
+                <div class="tab">
+                    <div class="diagram basis-1/2 grow">
+                        <DivDiag info_graph=info_graph />
+                    </div>
+                </div>
             </div>
         </div>
     }
