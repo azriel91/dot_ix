@@ -29,6 +29,9 @@ extern "C" {
 
     #[wasm_bindgen(method)]
     fn remove(this: &LeaderLine);
+
+    #[wasm_bindgen(method)]
+    fn position(this: &LeaderLine);
 }
 
 #[cfg(target_arch = "wasm32")]
@@ -201,18 +204,18 @@ pub fn DivDiag(info_graph: ReadSignal<InfoGraph>) -> impl IntoView {
 
             #[cfg(target_arch = "wasm32")]
             {
-                let leader_lines = leader_lines.get();
-                leader_lines.iter().for_each(LeaderLine::remove);
+                let leader_lines_vec = leader_lines.get();
+                leader_lines_vec.iter().for_each(LeaderLine::remove);
 
                 let info_graph = info_graph.get();
                 let edges = info_graph.edges();
                 let tailwind_classes = info_graph.tailwind_classes();
 
-                let leader_lines = edges
+                let leader_lines_vec = edges
                     .iter()
                     .fold(
                         Vec::with_capacity(edges.len()),
-                        |mut leader_lines, (edge_id, [src, dest])|
+                        |mut leader_lines_vec, (edge_id, [src, dest])|
                         {
                             let classes = tailwind_classes
                                 .edge_classes_or_default(edge_id.clone())
@@ -234,13 +237,18 @@ pub fn DivDiag(info_graph: ReadSignal<InfoGraph>) -> impl IntoView {
                                 dest,
                                 &serde_wasm_bindgen::to_value(&opts).unwrap(),
                             ) {
-                                leader_lines.push(leader_line);
+                                leader_lines_vec.push(leader_line);
                             }
 
-                            leader_lines
+                            leader_lines_vec
                         });
 
-                leader_lines_set.set(leader_lines);
+                leader_lines_set.set(leader_lines_vec.clone());
+
+                // Hack to get leader-line render arrows after `div`s have been laid out.
+                leptos::request_animation_frame(move || {
+                    leader_lines_vec.iter().for_each(LeaderLine::position);
+                });
             }
         } }
         </div>
