@@ -130,7 +130,6 @@
 //! ```
 
 // Re-exports
-#[cfg(feature = "ssr")]
 pub use dot_ix_static_check_macros::{edge_id, node_id};
 
 pub mod common;

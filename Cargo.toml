@@ -21,8 +21,9 @@ dot_ix_rt = { workspace = true }
 dot_ix_web_components = { workspace = true }
 
 [features]
+default = []
+flex_diag = ["dot_ix_web_components/flex_diag"]
 ssr = [
-    "dot_ix_model/ssr",
     "dot_ix_web_components/ssr",
 ]
 server_side_graphviz = ["dot_ix_web_components/server_side_graphviz"]
@@ -34,7 +35,7 @@ members = [
 ]
 
 [workspace.package]
-version = "0.2.0"
+version = "0.3.0"
 authors = ["Azriel Hoh <azriel91@gmail.com>"]
 edition = "2021"
 homepage = "https://github.com/azriel91/dot_ix"
@@ -46,20 +47,20 @@ license = "MIT OR Apache-2.0"
 
 [workspace.dependencies]
 # dot_ix crates
-dot_ix_model = { version = "0.2.0", path = "crate/model" }
-dot_ix_rt = { version = "0.2.0", path = "crate/rt" }
-dot_ix_static_check_macros = { version = "0.2.0", path = "crate/static_check_macros" }
-dot_ix_web_components = { version = "0.2.0", path = "crate/web_components" }
+dot_ix_model = { version = "0.3.0", path = "crate/model" }
+dot_ix_rt = { version = "0.3.0", path = "crate/rt" }
+dot_ix_static_check_macros = { version = "0.3.0", path = "crate/static_check_macros" }
+dot_ix_web_components = { version = "0.3.0", path = "crate/web_components" }
 
 # external crates
 axum = "0.7.4"
 console_error_panic_hook = "0.1"
 console_log = "1"
 cfg-if = "1"
-indexmap = "2.2.3"
+indexmap = "2.2.5"
 indoc = "2.0.4"
-js-sys = "0.3.68"
-web-sys = "0.3.68"
+js-sys = "0.3.69"
+web-sys = "0.3.69"
 leptos = { version = "0.6" }
 leptos_axum = "0.6"
 leptos_meta = { version = "0.6" }
@@ -67,15 +68,15 @@ leptos_router = { version = "0.6" }
 log = "0.4"
 log4rs = { version = "1.3.0", default-features = false }
 serde = "1.0.197"
-tempfile = "3.10.0"
+tempfile = "3.10.1"
 tokio = "1.36.0"
 tower = "0.4.13"
-wasm-bindgen = "0.2.91"
+wasm-bindgen = "0.2.92"
 tailwind-css = "0.13.0"
-thiserror = "1.0.57"
+thiserror = "1.0.58"
 tracing = "0.1.40"
-http = "1.0.0"
-proc-macro2 = "1.0.78"
+http = "1.1.0"
+proc-macro2 = "1.0.79"
 quote = "1.0.35"
-syn = "2.0.50"
+syn = "2.0.52"
 serde_yaml = "0.9.32"

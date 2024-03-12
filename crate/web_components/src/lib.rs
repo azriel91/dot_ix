@@ -9,3 +9,9 @@ pub use crate::{
 
 mod dot_svg;
 mod error_template;
+
+#[cfg(feature = "flex_diag")]
+pub use crate::flex_diag::FlexDiag;
+
+#[cfg(feature = "flex_diag")]
+mod flex_diag;

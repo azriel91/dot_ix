@@ -97,6 +97,9 @@ impl IntoGraphvizDotSrc for &InfoGraph {
         let node_clusters = self
             .hierarchy()
             .iter()
+            // Reversing the order we feed nodes to Graphviz dot tends to produce a more natural
+            // layout order.
+            .rev()
             .map(|(node_id, node_hierarchy)| {
                 node_cluster(
                     theme,

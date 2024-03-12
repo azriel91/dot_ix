@@ -38,6 +38,7 @@ fn diagram_only_init(set_diagram_only: WriteSignal<bool>) {
     });
 }
 
+/// Top level playground application.
 #[component]
 pub fn App() -> impl IntoView {
     // Provides context that manages stylesheets, titles, meta tags, etc.

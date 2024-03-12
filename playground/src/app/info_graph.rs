@@ -3,7 +3,7 @@ use std::time::Duration;
 use dot_ix::{
     model::common::{DotSrcAndStyles, GraphvizDotTheme},
     rt::IntoGraphvizDotSrc,
-    web_components::DotSvg,
+    web_components::{DotSvg, FlexDiag},
 };
 use leptos::*;
 
@@ -85,6 +85,19 @@ fn info_graph_src_init(set_info_graph_src: WriteSignal<String>) {
 #[component]
 pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
     let (info_graph_src, set_info_graph_src) = create_signal(String::from(INFO_GRAPH_DEMO));
+    let flex_diag_radio = create_node_ref::<html::Input>();
+    let (flex_diag_visible, flex_diag_visible_set) = create_signal(false);
+    let flex_diag_visible_update = move |_ev| {
+        flex_diag_visible_set.set(
+            flex_diag_radio
+                .get()
+                .map(|input| input.checked())
+                .unwrap_or(true),
+        );
+        // flex_diag_visible_set.update(|visible| {
+        //     *visible = leptos::event_target_checked(&ev);
+        // })
+    };
 
     let layout_classes = move || {
         if diagram_only.get() {
@@ -115,6 +128,9 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
     #[cfg(target_arch = "wasm32")]
     info_graph_src_init(set_info_graph_src);
 
+    let (info_graph, set_info_graph) =
+        create_signal(dot_ix::model::info_graph::InfoGraph::default());
+
     create_effect(move |_| {
         let info_graph_result =
             serde_yaml::from_str::<dot_ix::model::info_graph::InfoGraph>(&info_graph_src.get());
@@ -122,6 +138,8 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
 
         match info_graph_result {
             Ok(info_graph) => {
+                set_info_graph.set(info_graph.clone());
+
                 let DotSrcAndStyles { dot_src, styles } =
                     IntoGraphvizDotSrc::into(info_graph, &GraphvizDotTheme::default());
 
@@ -163,7 +181,7 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
         <div class={ layout_classes }>
             <div class={ textbox_display_classes }>
 
-                <input type="radio" name="tabs" id="tab_info_graph_yml" checked="checked" />
+                <input type="radio" name="src_tabs" id="tab_info_graph_yml" checked="checked" />
                 <label for="tab_info_graph_yml">"info_graph.yml"</label>
 
                 <div class="tab">
@@ -218,7 +236,7 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
                         }</div>
                 </div>
 
-                <input type="radio" name="tabs" id="tab_info_graph_dot" />
+                <input type="radio" name="src_tabs" id="tab_info_graph_dot" />
                 <label for="tab_info_graph_dot">"info_graph.dot"</label>
                 <div class="tab">
                     <textarea
@@ -249,10 +267,29 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
                         } />
                 </div>
             </div>
-            <div class="diagram basis-1/2 grow">
-                <DotSvg
-                    dot_src_and_styles=dot_src_and_styles
+            <div class="tabs basis-1/2 grow">
+                <input type="radio" name="diagram_tabs" id="tab_dot_svg"
+                    checked="checked"
+                    on:change=flex_diag_visible_update />
+                <label for="tab_dot_svg">"Dot SVG"</label>
+                <div class="tab">
+                    <div class="diagram basis-1/2 grow">
+                        <DotSvg
+                            dot_src_and_styles=dot_src_and_styles
+                        />
+                    </div>
+                </div>
+
+                <input type="radio" name="diagram_tabs" id="tab_flex_diag"
+                    node_ref=flex_diag_radio
+                    on:change=flex_diag_visible_update
                 />
+                <label for="tab_flex_diag">"Flex Diagram"</label>
+                <div class="tab">
+                    <div class="diagram basis-1/2 grow">
+                        <FlexDiag info_graph=info_graph visible=flex_diag_visible />
+                    </div>
+                </div>
             </div>
         </div>
     }

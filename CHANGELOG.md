@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.0 (2024-03-13)
+
+* Reverse order of nodes fed to graphviz.
+* Add `FlexDiag` web component behind `"flex_diag"` feature.
+
+
 ## 0.2.0 (2024-02-22)
 
 * Split `dot_ix` library and `dot_ix_playground` binary.
