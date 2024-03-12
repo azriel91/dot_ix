@@ -1,0 +1,4 @@
+[files]
+extend-exclude = [
+    "crate/web_components/public/js/leader-line.min.js",
+]
