@@ -187,7 +187,7 @@ fn divs(info_graph: Rc<InfoGraph>, hierarchy: NodeHierarchy) -> impl IntoView {
 
 /// Renders a diagram using `div`s.
 #[component]
-pub fn DivDiag(info_graph: ReadSignal<InfoGraph>) -> impl IntoView {
+pub fn DivDiag(info_graph: ReadSignal<InfoGraph>, visible: ReadSignal<bool>) -> impl IntoView {
     #[cfg(target_arch = "wasm32")]
     let (leader_lines, leader_lines_set) = create_signal(Vec::<LeaderLine>::new());
 
@@ -199,56 +199,73 @@ pub fn DivDiag(info_graph: ReadSignal<InfoGraph>) -> impl IntoView {
             divs(info_graph, root_nodes)
         } }
         { move || {
+
             #[cfg(not(target_arch = "wasm32"))]
-            let _info_graph = info_graph.get();
+            {
+                let _info_graph = info_graph.get();
+                let _visible = visible.get();
+            }
 
             #[cfg(target_arch = "wasm32")]
             {
                 let leader_lines_vec = leader_lines.get();
-                leader_lines_vec.iter().for_each(LeaderLine::remove);
+                let visible = visible.get();
 
-                let info_graph = info_graph.get();
-                let edges = info_graph.edges();
-                let tailwind_classes = info_graph.tailwind_classes();
+                if visible {
+                    let info_graph = info_graph.get();
+                    let edges = info_graph.edges();
+                    let tailwind_classes = info_graph.tailwind_classes();
 
-                let leader_lines_vec = edges
-                    .iter()
-                    .fold(
-                        Vec::with_capacity(edges.len()),
-                        |mut leader_lines_vec, (edge_id, [src, dest])|
-                        {
-                            let classes = tailwind_classes
-                                .edge_classes_or_default(edge_id.clone())
-                                .to_string();
+                    let leader_lines_new = edges
+                        .iter()
+                        .fold(
+                            Vec::with_capacity(edges.len()),
+                            |mut leader_lines_new, (edge_id, [src, dest])|
+                            {
+                                let classes = tailwind_classes
+                                    .edge_classes_or_default(edge_id.clone())
+                                    .to_string();
 
-                            let opts = LeaderLineOpts {
-                                color: "#336699".to_string(),
-                                dash: DashOpts {
-                                    animation: true,
-                                },
-                                size: 3,
-                                startSocketGravity: 20,
-                                endSocketGravity: 40,
-                                endPlugSize: 1.2,
-                                classes,
-                            };
-                            if let Ok(Some(leader_line)) = leader_line(
-                                src,
-                                dest,
-                                &serde_wasm_bindgen::to_value(&opts).unwrap(),
-                            ) {
-                                leader_lines_vec.push(leader_line);
-                            }
+                                let opts = LeaderLineOpts {
+                                    color: "#336699".to_string(),
+                                    dash: DashOpts {
+                                        animation: true,
+                                    },
+                                    size: 3,
+                                    startSocketGravity: 20,
+                                    endSocketGravity: 40,
+                                    endPlugSize: 1.2,
+                                    classes,
+                                };
+                                if let Ok(Some(leader_line)) = leader_line(
+                                    src,
+                                    dest,
+                                    &serde_wasm_bindgen::to_value(&opts).unwrap(),
+                                ) {
+                                    leader_lines_new.push(leader_line);
+                                }
 
-                            leader_lines_vec
-                        });
+                                leader_lines_new
+                            });
 
-                leader_lines_set.set(leader_lines_vec.clone());
+                    leader_lines_set.set(leader_lines_new.clone());
 
-                // Hack to get leader-line render arrows after `div`s have been laid out.
+                    // Hack to get leader-line render arrows after `div`s have been laid out.
+                    leptos::request_animation_frame(move || {
+                        leader_lines_new.iter().for_each(LeaderLine::position);
+                    });
+
+                } else {
+                    leader_lines_set.set(Vec::new());
+                }
+
+                // Hack to remove leader-line arrows;
                 leptos::request_animation_frame(move || {
-                    leader_lines_vec.iter().for_each(LeaderLine::position);
+                    leader_lines_vec
+                        .into_iter()
+                        .for_each(|leader_line| leader_line.remove());
                 });
+
             }
         } }
         </div>

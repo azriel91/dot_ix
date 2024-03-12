@@ -85,6 +85,19 @@ fn info_graph_src_init(set_info_graph_src: WriteSignal<String>) {
 #[component]
 pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
     let (info_graph_src, set_info_graph_src) = create_signal(String::from(INFO_GRAPH_DEMO));
+    let div_diag_radio = create_node_ref::<html::Input>();
+    let (div_diag_visible, div_diag_visible_set) = create_signal(false);
+    let div_diag_visible_update = move |_ev| {
+        div_diag_visible_set.set(
+            div_diag_radio
+                .get()
+                .map(|input| input.checked())
+                .unwrap_or(true),
+        );
+        // div_diag_visible_set.update(|visible| {
+        //     *visible = leptos::event_target_checked(&ev);
+        // })
+    };
 
     let layout_classes = move || {
         if diagram_only.get() {
@@ -255,7 +268,9 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
                 </div>
             </div>
             <div class="tabs basis-1/2 grow">
-                <input type="radio" name="diagram_tabs" id="tab_dot_svg" checked="checked" />
+                <input type="radio" name="diagram_tabs" id="tab_dot_svg"
+                    checked="checked"
+                    on:change=div_diag_visible_update />
                 <label for="tab_dot_svg">"Dot SVG"</label>
                 <div class="tab">
                     <div class="diagram basis-1/2 grow">
@@ -265,11 +280,14 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
                     </div>
                 </div>
 
-                <input type="radio" name="diagram_tabs" id="tab_div_diag" />
+                <input type="radio" name="diagram_tabs" id="tab_div_diag"
+                    node_ref=div_diag_radio
+                    on:change=div_diag_visible_update
+                />
                 <label for="tab_div_diag">"Div Diagram"</label>
                 <div class="tab">
                     <div class="diagram basis-1/2 grow">
-                        <DivDiag info_graph=info_graph />
+                        <DivDiag info_graph=info_graph visible=div_diag_visible />
                     </div>
                 </div>
             </div>
