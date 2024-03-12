@@ -3,7 +3,7 @@ use std::time::Duration;
 use dot_ix::{
     model::common::{DotSrcAndStyles, GraphvizDotTheme},
     rt::IntoGraphvizDotSrc,
-    web_components::{DivDiag, DotSvg},
+    web_components::{DotSvg, FlexDiag},
 };
 use leptos::*;
 
@@ -85,16 +85,16 @@ fn info_graph_src_init(set_info_graph_src: WriteSignal<String>) {
 #[component]
 pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
     let (info_graph_src, set_info_graph_src) = create_signal(String::from(INFO_GRAPH_DEMO));
-    let div_diag_radio = create_node_ref::<html::Input>();
-    let (div_diag_visible, div_diag_visible_set) = create_signal(false);
-    let div_diag_visible_update = move |_ev| {
-        div_diag_visible_set.set(
-            div_diag_radio
+    let flex_diag_radio = create_node_ref::<html::Input>();
+    let (flex_diag_visible, flex_diag_visible_set) = create_signal(false);
+    let flex_diag_visible_update = move |_ev| {
+        flex_diag_visible_set.set(
+            flex_diag_radio
                 .get()
                 .map(|input| input.checked())
                 .unwrap_or(true),
         );
-        // div_diag_visible_set.update(|visible| {
+        // flex_diag_visible_set.update(|visible| {
         //     *visible = leptos::event_target_checked(&ev);
         // })
     };
@@ -270,7 +270,7 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
             <div class="tabs basis-1/2 grow">
                 <input type="radio" name="diagram_tabs" id="tab_dot_svg"
                     checked="checked"
-                    on:change=div_diag_visible_update />
+                    on:change=flex_diag_visible_update />
                 <label for="tab_dot_svg">"Dot SVG"</label>
                 <div class="tab">
                     <div class="diagram basis-1/2 grow">
@@ -280,14 +280,14 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
                     </div>
                 </div>
 
-                <input type="radio" name="diagram_tabs" id="tab_div_diag"
-                    node_ref=div_diag_radio
-                    on:change=div_diag_visible_update
+                <input type="radio" name="diagram_tabs" id="tab_flex_diag"
+                    node_ref=flex_diag_radio
+                    on:change=flex_diag_visible_update
                 />
-                <label for="tab_div_diag">"Div Diagram"</label>
+                <label for="tab_flex_diag">"Flex Diagram"</label>
                 <div class="tab">
                     <div class="diagram basis-1/2 grow">
-                        <DivDiag info_graph=info_graph visible=div_diag_visible />
+                        <FlexDiag info_graph=info_graph visible=flex_diag_visible />
                     </div>
                 </div>
             </div>

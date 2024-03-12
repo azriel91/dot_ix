@@ -187,7 +187,7 @@ fn divs(info_graph: Rc<InfoGraph>, hierarchy: NodeHierarchy) -> impl IntoView {
 
 /// Renders a diagram using `div`s.
 #[component]
-pub fn DivDiag(info_graph: ReadSignal<InfoGraph>, visible: ReadSignal<bool>) -> impl IntoView {
+pub fn FlexDiag(info_graph: ReadSignal<InfoGraph>, visible: ReadSignal<bool>) -> impl IntoView {
     #[cfg(target_arch = "wasm32")]
     let (leader_lines, leader_lines_set) = create_signal(Vec::<LeaderLine>::new());
 

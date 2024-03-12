@@ -37,7 +37,7 @@ web-sys = { workspace = true, features = ["Document", "Element", "HtmlElement", 
 
 [features]
 default = []
-div_diag = ["dep:serde"]
+flex_diag = ["dep:serde"]
 ssr = [
     "dep:leptos_axum",
     "dep:tempfile",

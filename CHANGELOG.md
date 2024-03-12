@@ -3,7 +3,7 @@
 ## unreleased
 
 * Reverse order of nodes fed to graphviz.
-* Add `DivDiag` web component behind `"div_diag"` feature.
+* Add `FlexDiag` web component behind `"flex_diag"` feature.
 
 
 ## 0.2.0 (2024-02-22)

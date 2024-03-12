@@ -10,8 +10,8 @@ pub use crate::{
 mod dot_svg;
 mod error_template;
 
-#[cfg(feature = "div_diag")]
-pub use crate::div_diag::DivDiag;
+#[cfg(feature = "flex_diag")]
+pub use crate::flex_diag::FlexDiag;
 
-#[cfg(feature = "div_diag")]
-mod div_diag;
+#[cfg(feature = "flex_diag")]
+mod flex_diag;
