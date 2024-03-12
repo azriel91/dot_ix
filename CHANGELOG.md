@@ -1,6 +1,6 @@
 # Changelog
 
-## unreleased
+## 0.3.0 (2024-03-13)
 
 * Reverse order of nodes fed to graphviz.
 * Add `FlexDiag` web component behind `"flex_diag"` feature.

@@ -9,6 +9,24 @@ Original concept:
 https://user-images.githubusercontent.com/2993230/253878816-0729970f-651f-45ef-a986-470f383b8018.mp4
 
 
+# Usage
+
+Add the following to `Cargo.toml`
+
+```toml
+dot_ix = "0.3.0"
+
+# Enables the `FlexDiag` web component.
+dot_ix = { version = "0.3.0", features = ["flex_diag"] }
+
+# Enables server side dot generation.
+# Requires graphviz `dot` to be installed server side.
+dot_ix = { version = "0.3.0", features = ["server_side_graphviz"] }
+```
+
+
+## Development
+
 ```bash
 cargo install cargo-leptos
 
