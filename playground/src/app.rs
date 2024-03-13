@@ -60,6 +60,10 @@ pub fn App() -> impl IntoView {
             fallback=|| {
                 let route_context = leptos_router::use_route();
 
+                // TODO: `route_context.path()` returns `/`, though
+                // I'm sure it should return `site_prefix`, since the
+                // `site_prefix` is needed in the `path` for the
+                // router to route to the ``HomePage`.
                 let mut outside_errors = Errors::default();
                 outside_errors.insert_with_default_key(AppError::RouteNotFound {
                     path: route_context.path(),
@@ -72,7 +76,16 @@ pub fn App() -> impl IntoView {
         >
             <main>
                 <Routes>
-                    <Route path="/" view=|| view! { <HomePage/> }/>
+                    <Route
+                        path=site_prefix
+                        trailing_slash=TrailingSlash::Exact
+                        view=|| view! { <HomePage/> }
+                    />
+                    <Route
+                        path=format!("{site_prefix}/")
+                        trailing_slash=TrailingSlash::Exact
+                        view=|| view! { <HomePage/> }
+                    />
                 </Routes>
             </main>
         </Router>
