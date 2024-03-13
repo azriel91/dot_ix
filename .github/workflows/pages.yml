@@ -62,13 +62,20 @@ jobs:
         env:
           SITE_PREFIX: "/dot_ix"
 
-        # "${GITHUB_REPOSITORY#*/}" evaluates into the name of the repository
-        # using --public-url something will allow trunk to modify all the href paths like from favicon.ico to repo_name/favicon.ico .
-        # this is necessary for github pages where the site is deployed to username.github.io/repo_name and all files must be requested
-        # relatively as favicon.ico. if we skip public-url option, the href paths will instead request username.github.io/favicon.ico which
-        # will obviously return error 404 not found.
+        # "${GITHUB_REPOSITORY}" is `azriel91/dot_ix`
+        # "${GITHUB_REPOSITORY#*/}" is `dot_ix` (remove everything before the `/`).
+        #
+        # Using `--public-url something` will allow trunk to modify all the href paths
+        # like from `favicon.ico` to `repo_name/favicon.ico`.
+        #
+        # This is necessary for github pages where the site is deployed to
+        # `username.github.io/repo_name` and all files must be requested
+        # relatively as `favicon.ico`.
+        #
+        # If we omit the `--public-url` option, the href paths will instead request
+        # `username.github.io/favicon.ico` which will return 404 not found.
         working-directory: ./playground
-        run: ../trunk build --release --public-url "${GITHUB_REPOSITORY#*/}"
+        run: ../trunk build --release --public-url "/${GITHUB_REPOSITORY#*/}"
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v2
