@@ -58,8 +58,12 @@ pub fn App() -> impl IntoView {
         // content for this welcome page
         <Router
             fallback=|| {
+                let route_context = leptos_router::use_route();
+
                 let mut outside_errors = Errors::default();
-                outside_errors.insert_with_default_key(AppError::RouteNotFound);
+                outside_errors.insert_with_default_key(AppError::RouteNotFound {
+                    path: route_context.path(),
+                });
                 view! {
                     <ErrorTemplate outside_errors/>
                 }
@@ -68,7 +72,6 @@ pub fn App() -> impl IntoView {
         >
             <main>
                 <Routes>
-                    <Route path="/" view=|| view! { <HomePage/> }/>
                     <Route path=site_prefix view=|| view! { <HomePage/> }/>
                 </Routes>
             </main>
