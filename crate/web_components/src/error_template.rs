@@ -40,7 +40,7 @@ pub fn ErrorTemplate(
         },
     };
     // Get Errors from Signal
-    let errors = errors.get();
+    let errors = errors.get_untracked();
 
     // Downcast lets us take a type that implements `std::error::Error`
     let errors: Vec<AppError> = errors
