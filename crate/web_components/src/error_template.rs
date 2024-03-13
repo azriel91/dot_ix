@@ -8,7 +8,9 @@ use leptos_axum::ResponseOptions;
 
 #[derive(Clone, Debug, Error)]
 pub enum AppError {
-    #[error("Route Not Found: {path}. Check that the site prefix is correctly set and routed to.")]
+    #[error(
+        "Route Not Found: `{path}`. Check that the site prefix is correctly set and routed to."
+    )]
     RouteNotFound {
         /// The path that isn't routed.
         path: String,
