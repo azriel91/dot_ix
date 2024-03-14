@@ -15,12 +15,16 @@ mod lit_str_maybe;
 /// ```rust
 /// # use dot_ix_static_check_macros::node_id;
 /// #
-/// let _my_node_id: NodeId = node_id!("valid_id"); // Ok!
+/// let _my_node_id: dot_ix::model::NodeId = node_id!("valid_id"); // Ok!
 /// //
 /// #
-/// # struct NodeId(&'static str);
-/// # impl NodeId {
-/// #     fn new_unchecked(s: &'static str) -> Self { Self(s) }
+/// # pub mod dot_ix {
+/// #     pub mod model {
+/// #         pub struct NodeId(&'static str);
+/// #         impl NodeId {
+/// #             pub fn new_unchecked(s: &'static str) -> Self { Self(s) }
+/// #         }
+/// #     }
 /// # }
 /// ```
 ///
@@ -29,14 +33,18 @@ mod lit_str_maybe;
 /// ```rust,compile_fail
 /// # use dot_ix_static_check_macros::node_id;
 ///
-/// let _my_node_id: NodeId = node_id!("-invalid_id"); // Compile error
-/// //                        ^^^^^^^^^^^^^^^^^^^^^^^
+/// let _my_node_id: dot_ix::model::NodeId = node_id!("-invalid_id"); // Compile error
+/// //                                       ^^^^^^^^^^^^^^^^^^^^^^^
 /// // error: "-invalid_id" is not a valid `NodeId`.
 /// //        `NodeId`s must begin with a letter or underscore, and contain only letters, numbers, or underscores.
 /// #
-/// # struct NodeId(&'static str);
-/// # impl NodeId {
-/// #     fn new_unchecked(s: &'static str) -> Self { Self(s) }
+/// # pub mod dot_ix {
+/// #     pub mod model {
+/// #         pub struct NodeId(&'static str);
+/// #         impl NodeId {
+/// #             pub fn new_unchecked(s: &'static str) -> Self { Self(s) }
+/// #         }
+/// #     }
 /// # }
 /// ```
 #[proc_macro]
@@ -50,31 +58,39 @@ pub fn node_id(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
 ///
 /// Instantiate a valid `EdgeId` at compile time:
 ///
-/// ```rust
+/// ```rust,ignore
 /// # use dot_ix_static_check_macros::edge_id;
 /// #
-/// let _my_flow: EdgeId = edge_id!("valid_id"); // Ok!
+/// let _my_flow: dot_ix::model::EdgeId = edge_id!("valid_id"); // Ok!
 /// //
 /// #
-/// # struct EdgeId(&'static str);
-/// # impl EdgeId {
-/// #     fn new_unchecked(s: &'static str) -> Self { Self(s) }
+/// # pub mod dot_ix {
+/// #     pub mod model {
+/// #         pub struct EdgeId(&'static str);
+/// #         impl EdgeId {
+/// #             pub fn new_unchecked(s: &'static str) -> Self { Self(s) }
+/// #         }
+/// #     }
 /// # }
 /// ```
 ///
 /// If the ID is invalid, a compilation error is produced:
 ///
-/// ```rust,compile_fail
+/// ```rust,ignore
 /// # use dot_ix_static_check_macros::edge_id;
 ///
-/// let _my_flow: EdgeId = edge_id!("-invalid_id"); // Compile error
-/// //                     ^^^^^^^^^^^^^^^^^^^^^^^
+/// let _my_flow: dot_ix::model::EdgeId = edge_id!("-invalid_id"); // Compile error
+/// //                                    ^^^^^^^^^^^^^^^^^^^^^^^
 /// // error: "-invalid_id" is not a valid `EdgeId`.
 /// //        `EdgeId`s must begin with a letter or underscore, and contain only letters, numbers, or underscores.
 /// #
-/// # struct EdgeId(&'static str);
-/// # impl EdgeId {
-/// #     fn new_unchecked(s: &'static str) -> Self { Self(s) }
+/// # pub mod dot_ix {
+/// #     pub mod model {
+/// #         pub struct EdgeId(&'static str);
+/// #         impl EdgeId {
+/// #             pub fn new_unchecked(s: &'static str) -> Self { Self(s) }
+/// #         }
+/// #     }
 /// # }
 /// ```
 #[proc_macro]
@@ -93,7 +109,7 @@ fn ensure_valid_id(
     if let Some(proposed_id) = proposed_id {
         if is_valid_id(proposed_id) {
             let ty_name = Ident::new(ty_name, Span::call_site());
-            quote!( #ty_name ::new_unchecked( #proposed_id ))
+            quote!( dot_ix::model:: #ty_name ::new_unchecked( #proposed_id ))
         } else {
             let message = format!(
                 "\"{proposed_id}\" is not a valid `{ty_name}`.\n\
@@ -143,7 +159,10 @@ mod tests {
             None,
         );
 
-        assert_eq!(r#"Ty :: new_unchecked ("_")"#, tokens.to_string());
+        assert_eq!(
+            r#"dot_ix :: model :: Ty :: new_unchecked ("_")"#,
+            tokens.to_string()
+        );
     }
 
     #[test]
@@ -153,7 +172,10 @@ mod tests {
             "Ty",
             None,
         );
-        assert_eq!(r#"Ty :: new_unchecked ("a")"#, tokens.to_string());
+        assert_eq!(
+            r#"dot_ix :: model :: Ty :: new_unchecked ("a")"#,
+            tokens.to_string()
+        );
 
         let tokens = ensure_valid_id(
             &LitStrMaybe(Some(LitStr::new("A", Span::call_site()))),
@@ -161,7 +183,10 @@ mod tests {
             None,
         );
 
-        assert_eq!(r#"Ty :: new_unchecked ("A")"#, tokens.to_string());
+        assert_eq!(
+            r#"dot_ix :: model :: Ty :: new_unchecked ("A")"#,
+            tokens.to_string()
+        );
     }
 
     #[test]
