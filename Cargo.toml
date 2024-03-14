@@ -17,16 +17,20 @@ crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 dot_ix_model = { workspace = true }
-dot_ix_rt = { workspace = true }
-dot_ix_web_components = { workspace = true }
+dot_ix_rt = { workspace = true, optional = true }
+dot_ix_web_components = { workspace = true, optional = true }
 
 [features]
-default = []
-flex_diag = ["dot_ix_web_components/flex_diag"]
-ssr = [
-    "dot_ix_web_components/ssr",
+default = [
+    "rt",
+    "web_components",
 ]
-server_side_graphviz = ["dot_ix_web_components/server_side_graphviz"]
+rt = ["dep:dot_ix_rt"]
+web_components = ["dep:dot_ix_web_components"]
+
+flex_diag = ["dot_ix_web_components?/flex_diag"]
+ssr = ["dot_ix_web_components?/ssr"]
+server_side_graphviz = ["dot_ix_web_components?/server_side_graphviz"]
 
 [workspace]
 members = [
