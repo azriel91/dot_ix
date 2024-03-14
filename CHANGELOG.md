@@ -1,5 +1,11 @@
 # Changelog
 
+## unreleased
+
+* Include `dot_ix::model::common::` module prefix for `node_id!` and `edge_id!` macros.
+* Re-export `IndexMap`.
+
+
 ## 0.4.0 (2024-03-14)
 
 * Include `dot_ix::model::` module prefix for `node_id!` and `edge_id!` macros.
