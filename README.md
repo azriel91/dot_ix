@@ -1,5 +1,10 @@
 # ✒️ dot_ix
 
+[![Crates.io](https://img.shields.io/crates/v/dot_ix.svg)](https://crates.io/crates/dot_ix)
+[![docs.rs](https://img.shields.io/docsrs/dot_ix)](https://docs.rs/dot_ix)
+[![CI](https://github.com/azriel91/dot_ix/workflows/CI/badge.svg)](https://github.com/azriel91/dot_ix/actions/workflows/ci.yml)
+[![Coverage Status](https://codecov.io/gh/azriel91/dot_ix/branch/main/graph/badge.svg)](https://codecov.io/gh/azriel91/dot_ix)
+
 > 🚧 This is very much a work in progress
 
 Try it yourself: ([demo_1][demo_1], [demo_2][demo_2])
