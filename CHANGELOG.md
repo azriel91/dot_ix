@@ -1,6 +1,6 @@
 # Changelog
 
-## unreleased
+## 0.4.0 (2024-03-14)
 
 * Include `dot_ix::model::` module prefix for `node_id!` and `edge_id!` macros.
 * Gate `dot_ix_rt` behind `"rt"` feature, enabled by default.
