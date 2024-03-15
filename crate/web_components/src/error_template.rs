@@ -29,16 +29,13 @@ impl AppError {
 // Feel free to do more complicated things here than just displaying the error.
 #[component]
 pub fn ErrorTemplate(
-    #[prop(optional)] outside_errors: Option<Errors>,
+    #[prop(optional)] outside_errors: Option<RwSignal<Errors>>,
     #[prop(optional)] errors: Option<RwSignal<Errors>>,
 ) -> impl IntoView {
-    let errors = match outside_errors {
-        Some(e) => create_rw_signal(e),
-        None => match errors {
-            Some(e) => e,
-            None => panic!("No Errors found and we expected errors!"),
-        },
-    };
+    let errors = outside_errors
+        .or(errors)
+        .expect("No Errors found and we expected errors!");
+
     // Get Errors from Signal
     let errors = errors.get_untracked();
 

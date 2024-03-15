@@ -48,47 +48,90 @@ pub fn App() -> impl IntoView {
     let stylesheet_path = format!("{site_prefix}/pkg/dot_ix.css");
     let fonts_path = format!("{site_prefix}/fonts/fonts.css");
 
+    // I *think* this is necessary because the `TrailingSlash` logic doesn't work
+    // when the app is served through a static site, e.g. GitHub pages.
+    //
+    // When the site prefix is empty, we cannot mount both `""` and `"/"`, because
+    // `axum` panics, as both paths map to the root resource.
+    //
+    // When the site prefix is *not* empty, then we have to mount both
+    // `{site_prefix}` and `{site_prefix}/`, because when served through a static
+    // site, we don't have server site logic to apply the `TrailingSlash` logic.
+    // That is, I'm assuming `TrailingSlash` is applied through `"ssr"`, and not
+    // through client side routing.
+    if site_prefix.is_empty() {
+        view! {
+            // injects a stylesheet into the document <head>
+            // id=leptos means cargo-leptos will hot-reload this stylesheet
+            <Stylesheet id="leptos" href=stylesheet_path />
+            <Stylesheet id="fonts" href=fonts_path />
+            <Title text="dot_ix: Interactive dot graphs" />
+
+            // content for this welcome page
+            <Router
+                fallback=|| RouterFallback.into_view()
+            >
+                <main>
+                    <Routes>
+                        <Route
+                            path=""
+                            trailing_slash=TrailingSlash::Drop
+                            view=|| view! { <HomePage/> }
+                        />
+                    </Routes>
+                </main>
+            </Router>
+        }
+    } else {
+        view! {
+            // injects a stylesheet into the document <head>
+            // id=leptos means cargo-leptos will hot-reload this stylesheet
+            <Stylesheet id="leptos" href=stylesheet_path />
+            <Stylesheet id="fonts" href=fonts_path />
+            <Title text="dot_ix: Interactive dot graphs" />
+
+            // content for this welcome page
+            <Router
+                fallback=|| RouterFallback.into_view()
+            >
+                <main>
+                    <Routes>
+                        <Route
+                            path=site_prefix
+                            trailing_slash=TrailingSlash::Exact
+                            view=|| view! { <HomePage/> }
+                        />
+                        <Route
+                            path=format!("{site_prefix}/")
+                            trailing_slash=TrailingSlash::Exact
+                            view=|| view! { <HomePage/> }
+                        />
+                    </Routes>
+                </main>
+            </Router>
+        }
+    }
+}
+
+/// Renders the home page of your application.
+#[component]
+fn RouterFallback() -> impl IntoView {
+    let route_context = leptos_router::use_route();
+    let path = route_context.path();
+    let path_unresolved = route_context.resolve_path("").is_none();
+
+    let mut outside_errors = Errors::default();
+    if path_unresolved {
+        outside_errors.insert_with_default_key(AppError::RouteNotFound { path });
+    }
+
+    let outside_errors = create_rw_signal(outside_errors);
     view! {
-        // injects a stylesheet into the document <head>
-        // id=leptos means cargo-leptos will hot-reload this stylesheet
-        <Stylesheet id="leptos" href=stylesheet_path />
-        <Stylesheet id="fonts" href=fonts_path />
-        <Title text="dot_ix: Interactive dot graphs" />
-
-        // content for this welcome page
-        <Router
-            fallback=|| {
-                let route_context = leptos_router::use_route();
-
-                // TODO: `route_context.path()` returns `/`, though
-                // I'm sure it should return `site_prefix`, since the
-                // `site_prefix` is needed in the `path` for the
-                // router to route to the ``HomePage`.
-                let mut outside_errors = Errors::default();
-                outside_errors.insert_with_default_key(AppError::RouteNotFound {
-                    path: route_context.path(),
-                });
-                view! {
-                    <ErrorTemplate outside_errors/>
-                }
-                .into_view()
-            }
+        <Show
+            when=move || path_unresolved
         >
-            <main>
-                <Routes>
-                    <Route
-                        path=site_prefix
-                        trailing_slash=TrailingSlash::Exact
-                        view=|| view! { <HomePage/> }
-                    />
-                    <Route
-                        path=format!("{site_prefix}/")
-                        trailing_slash=TrailingSlash::Exact
-                        view=|| view! { <HomePage/> }
-                    />
-                </Routes>
-            </main>
-        </Router>
+            <ErrorTemplate outside_errors />
+        </Show>
     }
 }
 
