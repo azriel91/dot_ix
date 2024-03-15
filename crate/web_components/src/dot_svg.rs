@@ -1,8 +1,9 @@
-#[cfg(feature = "server_side_graphviz")]
-use leptos::server_fn::error::NoCustomError;
-use leptos::*;
+use leptos::{component, view, IntoView, Signal, SignalGet};
 
 use dot_ix_model::common::DotSrcAndStyles;
+
+#[cfg(feature = "server_side_graphviz")]
+use leptos::{server, server_fn::error::NoCustomError, ServerFnError, Suspense};
 
 #[cfg(not(feature = "server_side_graphviz"))]
 use leptos::html::Div;
@@ -142,12 +143,10 @@ async fn dot_svg_styles(dot_src: &str) -> Result<String, ServerFnError<NoCustomE
 /// Renders a graphviz graph as an SVG.
 #[cfg(feature = "server_side_graphviz")]
 #[component]
-pub fn DotSvg<FDotSrc>(dot_src_and_styles: FDotSrc) -> impl IntoView
-where
-    FDotSrc: Fn() -> Option<DotSrcAndStyles> + 'static,
-{
-    let dot_svg_and_error_resource =
-        create_resource(dot_src_and_styles, |dot_src_and_styles| async move {
+pub fn DotSvg(dot_src_and_styles: Signal<Option<DotSrcAndStyles>>) -> impl IntoView {
+    let dot_svg_and_error_resource = leptos::create_resource(
+        move || dot_src_and_styles.get(),
+        |dot_src_and_styles| async move {
             if let Some(dot_src_and_styles) = dot_src_and_styles {
                 if !dot_src_and_styles.dot_src.is_empty() {
                     match dot_svg(dot_src_and_styles).await {
@@ -160,7 +159,8 @@ where
             } else {
                 (String::new(), String::new())
             }
-        });
+        },
+    );
 
     view! {
         <Suspense
@@ -228,14 +228,11 @@ where
 /// ```
 #[cfg(not(feature = "server_side_graphviz"))]
 #[component]
-pub fn DotSvg<FDotSrc>(dot_src_and_styles: FDotSrc) -> impl IntoView
-where
-    FDotSrc: Fn() -> Option<DotSrcAndStyles> + 'static,
-{
+pub fn DotSvg(dot_src_and_styles: Signal<Option<DotSrcAndStyles>>) -> impl IntoView {
     // DOM elements for the graph and error
-    let svg_div_ref = create_node_ref::<Div>();
+    let svg_div_ref = leptos::create_node_ref::<Div>();
 
-    let (error_text, set_error_text) = create_signal(None::<String>);
+    let (error_text, set_error_text) = leptos::create_signal(None::<String>);
 
     #[cfg(not(target_arch = "wasm32"))]
     {
@@ -243,12 +240,14 @@ where
         let _set_error_text = set_error_text;
     }
 
-    create_effect(move |_| {
+    leptos::create_effect(move |_| {
         #[cfg(not(target_arch = "wasm32"))]
         let _svg_div_ref = svg_div_ref;
 
         #[cfg(target_arch = "wasm32")]
-        if let Some(dot_src_and_styles) = dot_src_and_styles() {
+        use leptos::SignalSet;
+        #[cfg(target_arch = "wasm32")]
+        if let Some(dot_src_and_styles) = dot_src_and_styles.get() {
             if !dot_src_and_styles.dot_src.is_empty() {
                 use std::borrow::Cow;
 
@@ -302,7 +301,7 @@ where
                 // > in the sense "don't reactively read a signal inside an effect, and use it to
                 // > set another signal". It's not the end of the world to do so, just not the best
                 // > practice and can be hard to do correctly.
-                set_error_text.update(|error_text| *error_text = error);
+                set_error_text.set(error);
             }
         }
     });
