@@ -109,82 +109,6 @@ const NODE_CHILDREN_VERT_WRAPPER_CLASSES: &str = "\
     flex-col \
 ";
 
-fn divs(info_graph: Rc<InfoGraph>, hierarchy: NodeHierarchy) -> impl IntoView {
-    view! {
-        <For
-            each=move || hierarchy.clone().into_inner().into_iter()
-            key=|(node_id, _node_hierarchy)| node_id.clone()
-            children=move |(node_id, child_hierarchy)| {
-                let node_infos = info_graph.node_infos();
-                let node_info = node_infos.get(&node_id);
-                let emoji = node_info.and_then(NodeInfo::emoji).map(str::to_string).unwrap_or_default();
-                let name = node_info.map(NodeInfo::name).map(str::to_string).unwrap_or_else(|| node_id.to_string());
-                let desc = node_info.and_then(NodeInfo::desc).map(str::to_string).unwrap_or_default();
-
-                let node_classes = info_graph.tailwind_classes()
-                    .node_classes(node_id.clone())
-                    .unwrap_or(NODE_CLASSES)
-                    .to_string();
-
-                // Partition children from this node's child hierarchy, based on their rank.
-                let child_hierarchy_groups = child_hierarchy.into_inner().into_iter()
-                    .fold(IndexMap::<NodeId, NodeHierarchy>::new(), |mut groups, (node_id, sub_hierarchy)| {
-                        // key: the last node id in the hierarchy
-                        // val: the group to put the current node into
-
-                        let predecessor_node_id = info_graph.edges().iter().find_map(|(_edge_id, [src, dest])| {
-                            if dest == &node_id {
-                                Some(src)
-                            } else {
-                                None
-                            }
-                        });
-
-                        if let Some(mut node_hierarchy) = predecessor_node_id
-                            .and_then(|predecessor_node_id| groups.shift_remove(predecessor_node_id))
-                        {
-                            node_hierarchy.insert(node_id.clone(), sub_hierarchy);
-                            groups.insert(node_id, node_hierarchy);
-                        } else {
-                            let mut node_hierarchy = NodeHierarchy::new();
-                            node_hierarchy.insert(node_id.clone(), sub_hierarchy);
-                            groups.insert(node_id, node_hierarchy);
-                        }
-
-                        groups
-                    });
-
-                let info_graph = Rc::clone(&info_graph);
-
-                view! {
-                    <div id={move || node_id.to_string()} tabindex="0" class=node_classes>
-                        <div class=NODE_LABEL_WRAPPER_CLASSES>
-                            <div class=NODE_EMOJI_WRAPPER_CLASSES><div>{emoji}</div></div>
-                            <div class=NODE_NAME_DESC_WRAPPER_CLASSES>
-                                <div>{name}</div>
-                                <div>{desc}</div>
-                            </div>
-                        </div>
-                        <div class=NODE_CHILDREN_WRAPPER_CLASSES>
-                            <For
-                                each=move || child_hierarchy_groups.clone().into_iter()
-                                key=|(node_id, _node_hierarchy)| format!("{node_id}_group")
-                                children=move |(_node_id, child_hierarchy_group)| {
-                                    view! {
-                                        <div class=NODE_CHILDREN_VERT_WRAPPER_CLASSES>
-                                            {divs(Rc::clone(&info_graph), child_hierarchy_group)}
-                                        </div>
-                                    }
-                                }
-                            />
-                        </div>
-                    </div>
-                }
-            }
-        />
-    }
-}
-
 /// Renders a diagram using `div`s.
 #[component]
 pub fn FlexDiag(info_graph: ReadSignal<InfoGraph>, visible: ReadSignal<bool>) -> impl IntoView {
@@ -269,5 +193,81 @@ pub fn FlexDiag(info_graph: ReadSignal<InfoGraph>, visible: ReadSignal<bool>) ->
             }
         } }
         </div>
+    }
+}
+
+fn divs(info_graph: Rc<InfoGraph>, hierarchy: NodeHierarchy) -> impl IntoView {
+    view! {
+        <For
+            each=move || hierarchy.clone().into_inner().into_iter()
+            key=|(node_id, _node_hierarchy)| node_id.clone()
+            children=move |(node_id, child_hierarchy)| {
+                let node_infos = info_graph.node_infos();
+                let node_info = node_infos.get(&node_id);
+                let emoji = node_info.and_then(NodeInfo::emoji).map(str::to_string).unwrap_or_default();
+                let name = node_info.map(NodeInfo::name).map(str::to_string).unwrap_or_else(|| node_id.to_string());
+                let desc = node_info.and_then(NodeInfo::desc).map(str::to_string).unwrap_or_default();
+
+                let node_classes = info_graph.tailwind_classes()
+                    .node_classes(node_id.clone())
+                    .unwrap_or(NODE_CLASSES)
+                    .to_string();
+
+                // Partition children from this node's child hierarchy, based on their rank.
+                let child_hierarchy_groups = child_hierarchy.into_inner().into_iter()
+                    .fold(IndexMap::<NodeId, NodeHierarchy>::new(), |mut groups, (node_id, sub_hierarchy)| {
+                        // key: the last node id in the hierarchy
+                        // val: the group to put the current node into
+
+                        let predecessor_node_id = info_graph.edges().iter().find_map(|(_edge_id, [src, dest])| {
+                            if dest == &node_id {
+                                Some(src)
+                            } else {
+                                None
+                            }
+                        });
+
+                        if let Some(mut node_hierarchy) = predecessor_node_id
+                            .and_then(|predecessor_node_id| groups.shift_remove(predecessor_node_id))
+                        {
+                            node_hierarchy.insert(node_id.clone(), sub_hierarchy);
+                            groups.insert(node_id, node_hierarchy);
+                        } else {
+                            let mut node_hierarchy = NodeHierarchy::new();
+                            node_hierarchy.insert(node_id.clone(), sub_hierarchy);
+                            groups.insert(node_id, node_hierarchy);
+                        }
+
+                        groups
+                    });
+
+                let info_graph = Rc::clone(&info_graph);
+
+                view! {
+                    <div id={move || node_id.to_string()} tabindex="0" class=node_classes>
+                        <div class=NODE_LABEL_WRAPPER_CLASSES>
+                            <div class=NODE_EMOJI_WRAPPER_CLASSES><div>{emoji}</div></div>
+                            <div class=NODE_NAME_DESC_WRAPPER_CLASSES>
+                                <div>{name}</div>
+                                <div>{desc}</div>
+                            </div>
+                        </div>
+                        <div class=NODE_CHILDREN_WRAPPER_CLASSES>
+                            <For
+                                each=move || child_hierarchy_groups.clone().into_iter()
+                                key=|(node_id, _node_hierarchy)| format!("{node_id}_group")
+                                children=move |(_node_id, child_hierarchy_group)| {
+                                    view! {
+                                        <div class=NODE_CHILDREN_VERT_WRAPPER_CLASSES>
+                                            {divs(Rc::clone(&info_graph), child_hierarchy_group)}
+                                        </div>
+                                    }
+                                }
+                            />
+                        </div>
+                    </div>
+                }
+            }
+        />
     }
 }
