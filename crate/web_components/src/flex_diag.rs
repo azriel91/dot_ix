@@ -115,83 +115,75 @@ pub fn FlexDiag(info_graph: ReadSignal<InfoGraph>, visible: ReadSignal<bool>) ->
     #[cfg(target_arch = "wasm32")]
     let (leader_lines, leader_lines_set) = create_signal(Vec::<LeaderLine>::new());
 
+    let flex_diag_divs = move || {
+        let info_graph = Rc::new(info_graph.get());
+        let root_nodes = info_graph.hierarchy().clone();
+        divs(info_graph, root_nodes)
+    };
+
+    #[cfg(not(target_arch = "wasm32"))]
+    let leader_lines_redraw = move || {
+        let _info_graph = info_graph.get();
+        let _visible = visible.get();
+    };
+    #[cfg(target_arch = "wasm32")]
+    let leader_lines_redraw = move || {
+        let leader_lines_vec = leader_lines.get();
+        let visible = visible.get();
+
+        if visible {
+            let info_graph = info_graph.get();
+            let edges = info_graph.edges();
+            let tailwind_classes = info_graph.tailwind_classes();
+
+            let leader_lines_new = edges.iter().fold(
+                Vec::with_capacity(edges.len()),
+                |mut leader_lines_new, (edge_id, [src, dest])| {
+                    let classes = tailwind_classes
+                        .edge_classes_or_default(edge_id.clone())
+                        .to_string();
+
+                    let opts = LeaderLineOpts {
+                        color: "#336699".to_string(),
+                        dash: DashOpts { animation: true },
+                        size: 3,
+                        startSocketGravity: 20,
+                        endSocketGravity: 40,
+                        endPlugSize: 1.2,
+                        classes,
+                    };
+                    if let Ok(Some(leader_line)) =
+                        leader_line(src, dest, &serde_wasm_bindgen::to_value(&opts).unwrap())
+                    {
+                        leader_lines_new.push(leader_line);
+                    }
+
+                    leader_lines_new
+                },
+            );
+
+            leader_lines_set.set(leader_lines_new.clone());
+
+            // Hack to get leader-line render arrows after `div`s have been laid out.
+            leptos::request_animation_frame(move || {
+                leader_lines_new.iter().for_each(LeaderLine::position);
+            });
+        } else {
+            leader_lines_set.set(Vec::new());
+        }
+
+        // Hack to remove leader-line arrows;
+        leptos::request_animation_frame(move || {
+            leader_lines_vec
+                .into_iter()
+                .for_each(|leader_line| leader_line.remove());
+        });
+    };
+
     view! {
         <div class="flex flex-initial items-stretch">
-        { move || {
-            let info_graph = Rc::new(info_graph.get());
-            let root_nodes = info_graph.hierarchy().clone();
-            divs(info_graph, root_nodes)
-        } }
-        { move || {
-
-            #[cfg(not(target_arch = "wasm32"))]
-            {
-                let _info_graph = info_graph.get();
-                let _visible = visible.get();
-            }
-
-            #[cfg(target_arch = "wasm32")]
-            {
-                let leader_lines_vec = leader_lines.get();
-                let visible = visible.get();
-
-                if visible {
-                    let info_graph = info_graph.get();
-                    let edges = info_graph.edges();
-                    let tailwind_classes = info_graph.tailwind_classes();
-
-                    let leader_lines_new = edges
-                        .iter()
-                        .fold(
-                            Vec::with_capacity(edges.len()),
-                            |mut leader_lines_new, (edge_id, [src, dest])|
-                            {
-                                let classes = tailwind_classes
-                                    .edge_classes_or_default(edge_id.clone())
-                                    .to_string();
-
-                                let opts = LeaderLineOpts {
-                                    color: "#336699".to_string(),
-                                    dash: DashOpts {
-                                        animation: true,
-                                    },
-                                    size: 3,
-                                    startSocketGravity: 20,
-                                    endSocketGravity: 40,
-                                    endPlugSize: 1.2,
-                                    classes,
-                                };
-                                if let Ok(Some(leader_line)) = leader_line(
-                                    src,
-                                    dest,
-                                    &serde_wasm_bindgen::to_value(&opts).unwrap(),
-                                ) {
-                                    leader_lines_new.push(leader_line);
-                                }
-
-                                leader_lines_new
-                            });
-
-                    leader_lines_set.set(leader_lines_new.clone());
-
-                    // Hack to get leader-line render arrows after `div`s have been laid out.
-                    leptos::request_animation_frame(move || {
-                        leader_lines_new.iter().for_each(LeaderLine::position);
-                    });
-
-                } else {
-                    leader_lines_set.set(Vec::new());
-                }
-
-                // Hack to remove leader-line arrows;
-                leptos::request_animation_frame(move || {
-                    leader_lines_vec
-                        .into_iter()
-                        .for_each(|leader_line| leader_line.remove());
-                });
-
-            }
-        } }
+            { flex_diag_divs }
+            { leader_lines_redraw }
         </div>
     }
 }
