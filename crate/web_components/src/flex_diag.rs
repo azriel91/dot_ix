@@ -16,7 +16,9 @@ use dot_ix_model::{
     common::{NodeHierarchy, NodeId},
     info_graph::{IndexMap, InfoGraph, NodeInfo},
 };
-use leptos::{component, view, For, IntoView, ReadSignal, SignalGet};
+#[cfg(target_arch = "wasm32")]
+use leptos::SignalSet;
+use leptos::{component, view, For, IntoView, Signal, SignalGet};
 
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
@@ -111,9 +113,12 @@ const NODE_CHILDREN_VERT_WRAPPER_CLASSES: &str = "\
 
 /// Renders a diagram using `div`s.
 #[component]
-pub fn FlexDiag(info_graph: ReadSignal<InfoGraph>, visible: ReadSignal<bool>) -> impl IntoView {
+pub fn FlexDiag(
+    #[prop(into)] info_graph: Signal<InfoGraph>,
+    #[prop(default = Signal::from(|| true))] visible: Signal<bool>,
+) -> impl IntoView {
     #[cfg(target_arch = "wasm32")]
-    let (leader_lines, leader_lines_set) = create_signal(Vec::<LeaderLine>::new());
+    let (leader_lines, leader_lines_set) = leptos::create_signal(Vec::<LeaderLine>::new());
 
     let flex_diag_divs = move || {
         let info_graph = Rc::new(info_graph.get());
