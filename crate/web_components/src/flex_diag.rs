@@ -16,7 +16,7 @@ use dot_ix_model::{
     common::{NodeHierarchy, NodeId},
     info_graph::{IndexMap, InfoGraph, NodeInfo},
 };
-use leptos::*;
+use leptos::{component, view, For, IntoView, ReadSignal, SignalGet};
 
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
