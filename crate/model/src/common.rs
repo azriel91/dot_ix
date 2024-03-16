@@ -4,6 +4,7 @@ pub use self::{
     dot_src_and_styles::DotSrcAndStyles,
     edge::Edge,
     edge_id::{EdgeId, EdgeIdInvalidFmt},
+    edges::Edges,
     graphviz_dot_theme::GraphvizDotTheme,
     node_hierarchy::NodeHierarchy,
     node_id::{NodeId, NodeIdInvalidFmt},
@@ -18,6 +19,7 @@ mod any_id;
 mod dot_src_and_styles;
 mod edge;
 mod edge_id;
+mod edges;
 mod id_newtype;
 mod node_hierarchy;
 mod node_id;

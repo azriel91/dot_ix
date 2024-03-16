@@ -2,7 +2,7 @@ pub use indexmap::{IndexMap, IndexSet};
 
 use serde::{Deserialize, Serialize};
 
-use crate::common::{EdgeId, NodeHierarchy, NodeId, TagId, TailwindClasses};
+use crate::common::{Edges, NodeHierarchy, NodeId, TagId, TailwindClasses};
 
 pub use self::{
     graph_dir::GraphDir, info_graph_builder::InfoGraphBuilder, node_info::NodeInfo, tag::Tag,
@@ -21,7 +21,7 @@ pub struct InfoGraph {
     /// Nested nodes.
     pub(crate) hierarchy: NodeHierarchy,
     /// Logical / ordering dependencies.
-    pub(crate) edges: IndexMap<EdgeId, [NodeId; 2]>,
+    pub(crate) edges: Edges,
     /// List of nodes and basic node info.
     pub(crate) node_infos: IndexMap<NodeId, NodeInfo>,
     /// Tags associated with each node.
@@ -51,7 +51,7 @@ impl InfoGraph {
     }
 
     /// Returns the logical / ordering dependencies.
-    pub fn edges(&self) -> &IndexMap<EdgeId, [NodeId; 2]> {
+    pub fn edges(&self) -> &Edges {
         &self.edges
     }
 
