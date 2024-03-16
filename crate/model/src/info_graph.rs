@@ -1,8 +1,8 @@
-pub use indexmap::{IndexMap, IndexSet};
+pub use indexmap::IndexMap;
 
 use serde::{Deserialize, Serialize};
 
-use crate::common::{Edges, NodeHierarchy, NodeId, TagId, TailwindClasses};
+use crate::common::{Edges, NodeHierarchy, NodeTags, TagId, TailwindClasses};
 
 pub use self::{
     graph_dir::GraphDir, info_graph_builder::InfoGraphBuilder, node_info::NodeInfo,
@@ -27,7 +27,7 @@ pub struct InfoGraph {
     /// List of nodes and basic node info.
     pub(crate) node_infos: NodeInfos,
     /// Tags associated with each node.
-    pub(crate) node_tags: IndexMap<NodeId, IndexSet<TagId>>,
+    pub(crate) node_tags: NodeTags,
     /// Tags to associate with nodes.
     pub(crate) tags: IndexMap<TagId, Tag>,
     /// Tailwind classes to add to nodes with the given tag.
@@ -63,7 +63,7 @@ impl InfoGraph {
     }
 
     /// Returns the tags associated with each node.
-    pub fn node_tags(&self) -> &IndexMap<NodeId, IndexSet<TagId>> {
+    pub fn node_tags(&self) -> &NodeTags {
         &self.node_tags
     }
 

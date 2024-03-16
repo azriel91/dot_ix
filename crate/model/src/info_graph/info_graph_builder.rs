@@ -1,7 +1,7 @@
-use indexmap::{IndexMap, IndexSet};
+use indexmap::IndexMap;
 
 use crate::{
-    common::{Edges, NodeHierarchy, NodeId, TagId, TailwindClasses},
+    common::{Edges, NodeHierarchy, NodeTags, TagId, TailwindClasses},
     info_graph::{GraphDir, NodeInfos, Tag},
 };
 
@@ -19,7 +19,7 @@ pub struct InfoGraphBuilder {
     /// List of nodes and basic node info.
     node_infos: NodeInfos,
     /// Tags associated with each node.
-    node_tags: IndexMap<NodeId, IndexSet<TagId>>,
+    node_tags: NodeTags,
     /// Tags to associate with nodes.
     tags: IndexMap<TagId, Tag>,
     /// Tailwind classes to add to nodes with the given tag.
@@ -54,7 +54,7 @@ impl InfoGraphBuilder {
     }
 
     /// Sets the tags associated with each node.
-    pub fn with_node_tags(mut self, node_tags: IndexMap<NodeId, IndexSet<TagId>>) -> Self {
+    pub fn with_node_tags(mut self, node_tags: NodeTags) -> Self {
         self.node_tags = node_tags;
         self
     }
