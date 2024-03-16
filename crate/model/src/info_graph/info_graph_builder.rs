@@ -2,7 +2,7 @@ use indexmap::IndexMap;
 
 use crate::{
     common::{Edges, NodeHierarchy, NodeTags, TagId, TailwindClasses},
-    info_graph::{GraphDir, NodeInfos, Tag},
+    info_graph::{GraphDir, NodeDescs, NodeEmojis, NodeNames, Tag},
 };
 
 use crate::info_graph::InfoGraph;
@@ -16,8 +16,12 @@ pub struct InfoGraphBuilder {
     hierarchy: NodeHierarchy,
     /// Logical / ordering dependencies.
     edges: Edges,
-    /// List of nodes and basic node info.
-    node_infos: NodeInfos,
+    /// Each node's name.
+    node_names: NodeNames,
+    /// Each node's description.
+    node_descs: NodeDescs,
+    /// Each node's emoji.
+    node_emojis: NodeEmojis,
     /// Tags associated with each node.
     node_tags: NodeTags,
     /// Tags to associate with nodes.
@@ -47,9 +51,21 @@ impl InfoGraphBuilder {
         self
     }
 
-    /// Sets the list of nodes and basic node info.
-    pub fn with_node_infos(mut self, node_infos: NodeInfos) -> Self {
-        self.node_infos = node_infos;
+    /// Sets the map of node names.
+    pub fn with_node_names(mut self, node_names: NodeNames) -> Self {
+        self.node_names = node_names;
+        self
+    }
+
+    /// Sets the map of node descriptions.
+    pub fn with_node_descs(mut self, node_descs: NodeDescs) -> Self {
+        self.node_descs = node_descs;
+        self
+    }
+
+    /// Sets the map of node emojis.
+    pub fn with_node_emojis(mut self, node_emojis: NodeEmojis) -> Self {
+        self.node_emojis = node_emojis;
         self
     }
 
@@ -83,7 +99,9 @@ impl InfoGraphBuilder {
             direction,
             hierarchy,
             edges,
-            node_infos,
+            node_names,
+            node_descs,
+            node_emojis,
             node_tags,
             tags,
             tailwind_classes,
@@ -94,7 +112,9 @@ impl InfoGraphBuilder {
             direction,
             hierarchy,
             edges,
-            node_infos,
+            node_names,
+            node_descs,
+            node_emojis,
             node_tags,
             tags,
             tailwind_classes,

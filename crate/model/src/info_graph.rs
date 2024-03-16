@@ -2,17 +2,14 @@ pub use indexmap::IndexMap;
 
 use serde::{Deserialize, Serialize};
 
-use crate::common::{Edges, NodeHierarchy, NodeTags, TagId, TailwindClasses};
-
-pub use self::{
-    graph_dir::GraphDir, info_graph_builder::InfoGraphBuilder, node_info::NodeInfo,
-    node_infos::NodeInfos, tag::Tag,
+use crate::common::{
+    Edges, NodeDescs, NodeEmojis, NodeHierarchy, NodeNames, NodeTags, TagId, TailwindClasses,
 };
+
+pub use self::{graph_dir::GraphDir, info_graph_builder::InfoGraphBuilder, tag::Tag};
 
 mod graph_dir;
 mod info_graph_builder;
-mod node_info;
-mod node_infos;
 mod tag;
 
 #[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
@@ -24,8 +21,12 @@ pub struct InfoGraph {
     pub(crate) hierarchy: NodeHierarchy,
     /// Logical / ordering dependencies.
     pub(crate) edges: Edges,
-    /// List of nodes and basic node info.
-    pub(crate) node_infos: NodeInfos,
+    /// Each node's name.
+    pub(crate) node_names: NodeNames,
+    /// Each node's description.
+    pub(crate) node_descs: NodeDescs,
+    /// Each node's emoji.
+    pub(crate) node_emojis: NodeEmojis,
     /// Tags associated with each node.
     pub(crate) node_tags: NodeTags,
     /// Tags to associate with nodes.
@@ -57,9 +58,19 @@ impl InfoGraph {
         &self.edges
     }
 
-    /// Returns the list of nodes and basic node info.
-    pub fn node_infos(&self) -> &NodeInfos {
-        &self.node_infos
+    /// Returns the map of node names.
+    pub fn node_names(&self) -> &NodeNames {
+        &self.node_names
+    }
+
+    /// Returns the map of node descriptions.
+    pub fn node_descs(&self) -> &NodeDescs {
+        &self.node_descs
+    }
+
+    /// Returns the map of node emojis.
+    pub fn node_emojis(&self) -> &NodeEmojis {
+        &self.node_emojis
     }
 
     /// Returns the tags associated with each node.

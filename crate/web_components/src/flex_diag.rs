@@ -14,7 +14,7 @@ use std::rc::Rc;
 
 use dot_ix_model::{
     common::{NodeHierarchy, NodeId},
-    info_graph::{IndexMap, InfoGraph, NodeInfo},
+    info_graph::{IndexMap, InfoGraph},
 };
 #[cfg(target_arch = "wasm32")]
 use leptos::SignalSet;
@@ -199,11 +199,12 @@ fn divs(info_graph: Rc<InfoGraph>, hierarchy: NodeHierarchy) -> impl IntoView {
             each=move || hierarchy.clone().into_inner().into_iter()
             key=|(node_id, _node_hierarchy)| node_id.clone()
             children=move |(node_id, child_hierarchy)| {
-                let node_infos = info_graph.node_infos();
-                let node_info = node_infos.get(&node_id);
-                let emoji = node_info.and_then(NodeInfo::emoji).map(str::to_string).unwrap_or_default();
-                let name = node_info.map(NodeInfo::name).map(str::to_string).unwrap_or_else(|| node_id.to_string());
-                let desc = node_info.and_then(NodeInfo::desc).map(str::to_string).unwrap_or_default();
+                let node_names = info_graph.node_names();
+                let node_descs = info_graph.node_descs();
+                let node_emojis = info_graph.node_emojis();
+                let name = node_names.get(&node_id).cloned().unwrap_or_else(|| node_id.to_string());
+                let desc = node_descs.get(&node_id).cloned().unwrap_or_default();
+                let emoji = node_emojis.get(&node_id).cloned().unwrap_or_default();
 
                 let node_classes = info_graph.tailwind_classes()
                     .node_classes(node_id.clone())

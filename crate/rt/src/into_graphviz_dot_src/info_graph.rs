@@ -9,9 +9,9 @@ use dot_ix_model::{
         graphviz_dot_theme::GraphStyle, DotSrcAndStyles, EdgeId, GraphvizDotTheme, NodeHierarchy,
         NodeId, TagId, TailwindClasses, TailwindKey,
     },
-    info_graph::{GraphDir, InfoGraph, NodeInfo, Tag},
+    info_graph::{GraphDir, InfoGraph, Tag},
 };
-use indexmap::{IndexMap, IndexSet};
+use indexmap::IndexMap;
 use indoc::{formatdoc, writedoc};
 
 use crate::IntoGraphvizDotSrc;
@@ -100,17 +100,7 @@ impl IntoGraphvizDotSrc for &InfoGraph {
             // Reversing the order we feed nodes to Graphviz dot tends to produce a more natural
             // layout order.
             .rev()
-            .map(|(node_id, node_hierarchy)| {
-                node_cluster(
-                    theme,
-                    self.tailwind_classes(),
-                    self.direction(),
-                    self.node_infos(),
-                    self.node_tags(),
-                    node_id,
-                    node_hierarchy,
-                )
-            })
+            .map(|(node_id, node_hierarchy)| node_cluster(&self, theme, node_id, node_hierarchy))
             .collect::<Vec<String>>()
             .join("\n");
 
@@ -266,53 +256,45 @@ fn edge_attrs(theme: &GraphvizDotTheme, tailwind_classes: &TailwindClasses) -> S
 }
 
 fn node_cluster(
+    info_graph: &InfoGraph,
     theme: &GraphvizDotTheme,
-    tailwind_classes: &TailwindClasses,
-    graph_dir: GraphDir,
-    node_infos: &IndexMap<NodeId, NodeInfo>,
-    node_tags: &IndexMap<NodeId, IndexSet<TagId>>,
     node_id: &NodeId,
     node_hierarchy: &NodeHierarchy,
 ) -> String {
     let mut buffer = String::with_capacity(1024);
 
-    node_cluster_internal(
-        theme,
-        tailwind_classes,
-        graph_dir,
-        node_infos,
-        node_tags,
-        node_id,
-        node_hierarchy,
-        &mut buffer,
-    )
-    .expect("Failed to write node_cluster string.");
+    node_cluster_internal(info_graph, theme, node_id, node_hierarchy, &mut buffer)
+        .expect("Failed to write node_cluster string.");
 
     buffer
 }
 
-#[allow(clippy::too_many_arguments)] // Fix this when using buffer for everything.
 fn node_cluster_internal(
+    info_graph: &InfoGraph,
     theme: &GraphvizDotTheme,
-    tailwind_classes: &TailwindClasses,
-    graph_dir: GraphDir,
-    node_infos: &IndexMap<NodeId, NodeInfo>,
-    node_tags: &IndexMap<NodeId, IndexSet<TagId>>,
     node_id: &NodeId,
     node_hierarchy: &NodeHierarchy,
     buffer: &mut String,
 ) -> fmt::Result {
+    let node_names = info_graph.node_names();
+    let node_descs = info_graph.node_descs();
+    let node_emojis = info_graph.node_emojis();
+    let node_tags = info_graph.node_tags();
+    let graph_dir = info_graph.direction();
+    let tailwind_classes = info_graph.tailwind_classes();
+
     let node_point_size = theme.node_point_size();
-    let node_info = node_infos.get(node_id);
+    let node_name = node_names.get(node_id).map(String::as_str);
+    let node_desc = node_descs.get(node_id).map(String::as_str);
+    let node_emoji = node_emojis.get(node_id).map(String::as_str);
     // TODO: escape
-    let node_label = node_info.map(NodeInfo::name).unwrap_or(node_id);
+    let node_label = node_name.unwrap_or(node_id);
     // TODO: escape
-    let node_desc = node_info
-        .and_then(NodeInfo::desc)
+    let node_desc = node_desc
         .map(|desc| desc.replace('\n', "<br />"))
         .map(|desc| format!("<tr><td balign=\"left\">{desc}</td></tr>"));
 
-    let emoji = node_info.and_then(NodeInfo::emoji).map(|emoji| {
+    let emoji = node_emoji.map(|emoji| {
         let emoji_rowspan = if node_desc.is_some() {
             "rowspan=\"2\""
         } else {
@@ -473,11 +455,8 @@ fn node_cluster_internal(
             .iter()
             .try_for_each(|(child_node_id, child_node_hierarchy)| {
                 node_cluster_internal(
+                    info_graph,
                     theme,
-                    tailwind_classes,
-                    graph_dir,
-                    node_infos,
-                    node_tags,
                     child_node_id,
                     child_node_hierarchy,
                     buffer,

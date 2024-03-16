@@ -6,8 +6,11 @@ pub use self::{
     edge_id::{EdgeId, EdgeIdInvalidFmt},
     edges::Edges,
     graphviz_dot_theme::GraphvizDotTheme,
+    node_descs::NodeDescs,
+    node_emojis::NodeEmojis,
     node_hierarchy::NodeHierarchy,
     node_id::{NodeId, NodeIdInvalidFmt},
+    node_names::NodeNames,
     node_tags::NodeTags,
     tag_id::{TagId, TagIdInvalidFmt},
     tailwind_classes::TailwindClasses,
@@ -22,8 +25,11 @@ mod edge;
 mod edge_id;
 mod edges;
 mod id_newtype;
+mod node_descs;
+mod node_emojis;
 mod node_hierarchy;
 mod node_id;
+mod node_names;
 mod node_tags;
 mod tag_id;
 mod tailwind_classes;

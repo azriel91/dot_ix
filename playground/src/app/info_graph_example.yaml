@@ -15,18 +15,44 @@ hierarchy:
     s3_bucket:
       s3_object: {}
 
-node_infos:
-  localhost:        { emoji: 💻, name: "localhost",        desc: "Your computer" }
-  aws:              { emoji: ☁️, name: "aws",              desc: "Amazon Web Services" }
-  github:           { emoji: 🐙, name: "github",           desc: "Github" }
-  github_app_zip:   { emoji: 📁, name: "app.zip" }
-  app_download:     { emoji: 📥, name: "app_download",     desc: "app.zip" }
-  app_extract:      { emoji: 📂, name: "app_extract",      desc: "/opt/app" }
-  iam_policy:       { emoji: 📝, name: "iam_policy",       desc: "EC2: Allow S3 Read" }
-  iam_role:         { emoji: 🔰, name: "iam_role",         desc: "EC2 IAM policy attachment" }
-  instance_profile: { emoji: 🏷️, name: "instance_profile", desc: "EC2 instance role attachment" }
-  s3_bucket:        { emoji: 🪣, name: "s3_bucket",        desc: "demo-artifacts" }
-  s3_object:        { emoji: 📁, name: "s3_object",        desc: "app.zip" }
+node_names:
+  localhost:        "localhost"
+  aws:              "aws"
+  github:           "github"
+  github_app_zip:   "app.zip"
+  app_download:     "app_download"
+  app_extract:      "app_extract"
+  iam_policy:       "iam_policy"
+  iam_role:         "iam_role"
+  instance_profile: "instance_profile"
+  s3_bucket:        "s3_bucket"
+  s3_object:        "s3_object"
+
+node_descs:
+  localhost:        "Your computer"
+  aws:              "Amazon Web Services"
+  github:           "Github"
+  github_app_zip:   ~
+  app_download:     "app.zip"
+  app_extract:      "/opt/app"
+  iam_policy:       "EC2: Allow S3 Read"
+  iam_role:         "EC2 IAM policy attachment"
+  instance_profile: "EC2 instance role attachment"
+  s3_bucket:        "demo-artifacts"
+  s3_object:        "app.zip"
+
+node_emojis:
+  localhost:        💻
+  aws:              ☁️
+  github:           🐙
+  github_app_zip:   📁
+  app_download:     📥
+  app_extract:      📂
+  iam_policy:       📝
+  iam_role:         🔰
+  instance_profile: 🏷️
+  s3_bucket:        🪣
+  s3_object:        📁
 
 edges:
   app_download__app_extract: [app_download, app_extract]
