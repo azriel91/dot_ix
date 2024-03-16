@@ -36,6 +36,7 @@ server_side_graphviz = ["dot_ix_web_components?/server_side_graphviz"]
 members = [
     "crate/*",
     "playground",
+    "workspace_tests",
 ]
 
 [workspace.package]
@@ -51,6 +52,7 @@ license = "MIT OR Apache-2.0"
 
 [workspace.dependencies]
 # dot_ix crates
+dot_ix = { version = "0.4.1", path = "." }
 dot_ix_model = { version = "0.4.1", path = "crate/model" }
 dot_ix_rt = { version = "0.4.1", path = "crate/rt" }
 dot_ix_static_check_macros = { version = "0.4.1", path = "crate/static_check_macros" }
