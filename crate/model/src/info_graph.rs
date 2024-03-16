@@ -5,12 +5,14 @@ use serde::{Deserialize, Serialize};
 use crate::common::{Edges, NodeHierarchy, NodeId, TagId, TailwindClasses};
 
 pub use self::{
-    graph_dir::GraphDir, info_graph_builder::InfoGraphBuilder, node_info::NodeInfo, tag::Tag,
+    graph_dir::GraphDir, info_graph_builder::InfoGraphBuilder, node_info::NodeInfo,
+    node_infos::NodeInfos, tag::Tag,
 };
 
 mod graph_dir;
 mod info_graph_builder;
 mod node_info;
+mod node_infos;
 mod tag;
 
 #[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
@@ -23,7 +25,7 @@ pub struct InfoGraph {
     /// Logical / ordering dependencies.
     pub(crate) edges: Edges,
     /// List of nodes and basic node info.
-    pub(crate) node_infos: IndexMap<NodeId, NodeInfo>,
+    pub(crate) node_infos: NodeInfos,
     /// Tags associated with each node.
     pub(crate) node_tags: IndexMap<NodeId, IndexSet<TagId>>,
     /// Tags to associate with nodes.
@@ -56,7 +58,7 @@ impl InfoGraph {
     }
 
     /// Returns the list of nodes and basic node info.
-    pub fn node_infos(&self) -> &IndexMap<NodeId, NodeInfo> {
+    pub fn node_infos(&self) -> &NodeInfos {
         &self.node_infos
     }
 
