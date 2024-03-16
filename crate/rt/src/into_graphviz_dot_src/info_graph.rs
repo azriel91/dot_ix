@@ -100,7 +100,7 @@ impl IntoGraphvizDotSrc for &InfoGraph {
             // Reversing the order we feed nodes to Graphviz dot tends to produce a more natural
             // layout order.
             .rev()
-            .map(|(node_id, node_hierarchy)| node_cluster(&self, theme, node_id, node_hierarchy))
+            .map(|(node_id, node_hierarchy)| node_cluster(self, theme, node_id, node_hierarchy))
             .collect::<Vec<String>>()
             .join("\n");
 
