@@ -6,6 +6,10 @@ use serde::{Deserialize, Serialize};
 ///
 /// # Notes
 ///
+/// * `Extra` are classes that are copied as-is onto the relevant SVG/HTML
+///   elements.
+/// * `ShapeColor` controls the border and fill colours for nodes, and the line
+///   and arrow head colours for edges.
 /// * `Stroke*` keys control the border colour for nodes, and the line colour
 ///   for edges.
 /// * `Fill*` keys control the background colour for nodes, and the arrow head
@@ -113,7 +117,7 @@ use serde::{Deserialize, Serialize};
 /// <span class="colorblk" style="background-color: #9a3412;"></span>
 /// <span class="colorblk" style="background-color: #7c2d12;"></span>
 /// <span class="colorblk" style="background-color: #431407;"></span>
-/// * <span class="color-label">`amber`:</span>
+/// * <span class="color-label">`slate`:</span>
 /// <span class="colorblk" style="background-color: #fffbeb;"></span>
 /// <span class="colorblk" style="background-color: #fef3c7;"></span>
 /// <span class="colorblk" style="background-color: #fde68a;"></span>
@@ -308,60 +312,44 @@ use serde::{Deserialize, Serialize};
 /// [Colours]: https://tailwindcss.com/docs/customizing-colors
 /// [Tailwind CSS]: https://tailwindcss.com/
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Deserialize, Serialize)]
+#[serde(rename = "snake_case")]
 pub enum ThemeAttr {
-    /// Base [colour] for shape colourable attributes, e.g. stroke/border, fill.
-    ///
-    /// [colour]: https://tailwindcss.com/docs/customizing-colors
-    ShapeColor,
-    ///
-    /// [colour]: https://tailwindcss.com/docs/customizing-colors
-    StrokeColor,
-    /// Base [colour] when a node/edge is not focused / hovered over, e.g.
-    /// `"amber-600"`.
-    ///
-    /// [colour]: https://tailwindcss.com/docs/customizing-colors
-    StrokeColorNormal,
-    /// Base [colour] when a node/edge is focused, e.g. `"amber-500"`.
-    ///
-    /// [colour]: https://tailwindcss.com/docs/customizing-colors
-    StrokeColorFocus,
-    /// Base [colour] when a node/edge has the cursor hovering over it, e.g.
-    /// `"amber-400"`.
-    ///
-    /// [colour]: https://tailwindcss.com/docs/customizing-colors
-    StrokeColorHover,
-    /// Base [colour] when a node/edge is being clicked / pressed, e.g.
-    /// `"amber-300"`.
-    ///
-    /// [colour]: https://tailwindcss.com/docs/customizing-colors
-    StrokeColorActive,
-    /// Width of the border for nodes, or line for edges.
-    StrokeWidth,
-    /// Border style of the node -- dotted, dashed, solid.
-    StrokeStyle,
-    ///
-    /// [colour]: https://tailwindcss.com/docs/customizing-colors
+    /// Extra classes to attach as is.
+    Extra,
+    /// Base colour for node/edge background/arrow head, e.g. `"slate"`.
     FillColor,
-    /// Base [colour] for the background when a node/edge is not focused /
-    /// hovered over, e.g. `"amber-300"`.
+    /// Base colour for the background when a node/edge is not focused /
+    /// hovered over, e.g. `"slate-300"`.
     ///
-    /// [colour]: https://tailwindcss.com/docs/customizing-colors
-    FillColorNormal,
-    /// Base [colour] for the background when a node/edge is focused, e.g.
-    /// `"amber-200"`.
+    /// This overrides both `FillColor` and `FillShadeNormal`.
+    FillColorShadeNormal,
+    /// Base colour for the background when a node/edge is focused, e.g.
+    /// `"slate-200"`.
     ///
-    /// [colour]: https://tailwindcss.com/docs/customizing-colors
-    FillColorFocus,
-    /// Base [colour] for the background when a node/edge has the cursor
-    /// hovering over it, e.g. `"amber-100"`.
+    /// This overrides both `FillColor` and `FillShadeNormal`.
+    FillColorShadeFocus,
+    /// Base colour for the background when a node/edge has the cursor
+    /// hovering over it, e.g. `"slate-100"`.
     ///
-    /// [colour]: https://tailwindcss.com/docs/customizing-colors
-    FillColorHover,
-    /// Base [colour] for the background when a node/edge is being clicked /
-    /// pressed, e.g. `"amber-200"`.
+    /// This overrides both `FillColor` and `FillShadeNormal`.
+    FillColorShadeHover,
+    /// Base colour for the background when a node/edge is being clicked /
+    /// pressed, e.g. `"slate-200"`.
     ///
-    /// [colour]: https://tailwindcss.com/docs/customizing-colors
-    FillColorActive,
+    /// This overrides both `FillColor` and `FillShadeNormal`.
+    FillColorShadeActive,
+    /// Base colour for the background when a node/edge is not focused /
+    /// hovered over, e.g. `"300"` for nodes, "800" for edges.
+    FillShadeNormal,
+    /// Base colour for the background when a node/edge is focused, e.g.
+    /// `"200"` for nodes, "700" for edges.
+    FillShadeFocus,
+    /// Base colour for the background when a node/edge has the cursor
+    /// hovering over it, e.g. `"100"` for nodes, "600" for edges.
+    FillShadeHover,
+    /// Base colour for the background when a node/edge is being clicked /
+    /// pressed, e.g. `"200"` for nodes, "500" for edges.
+    FillShadeActive,
     /// All padding within a node, e.g. `"1.5"` in `"p-1.5"`.
     ///
     /// This key has no effect on edges.
@@ -386,4 +374,43 @@ pub enum ThemeAttr {
     ///
     /// This key has no effect on edges.
     MarginY,
+    /// Base colour for shape colourable attributes, e.g. stroke/border, fill.
+    ShapeColor,
+    /// Base colour for node/edge borders/lines, e.g. `"slate"`.
+    StrokeColor,
+    /// Base colour when a node/edge is not focused / hovered over, e.g.
+    /// `"slate-600"`.
+    ///
+    /// This overrides both `StrokeColor` and `StrokeShadeNormal`.
+    StrokeColorShadeNormal,
+    /// Base colour when a node/edge is focused, e.g. `"slate-500"`.
+    ///
+    /// This overrides both `StrokeColor` and `StrokeShadeFocus`.
+    StrokeColorShadeFocus,
+    /// Base colour when a node/edge has the cursor hovering over it, e.g.
+    /// `"slate-400"`.
+    ///
+    /// This overrides both `StrokeColor` and `StrokeShadeHover`.
+    StrokeColorShadeHover,
+    /// Base colour when a node/edge is being clicked / pressed, e.g.
+    /// `"slate-300"`.
+    ///
+    /// This overrides both `StrokeColor` and `StrokeShadeActive`.
+    StrokeColorShadeActive,
+    /// Base colour when a node/edge is not focused / hovered over, e.g.
+    /// `"600"` for nodes, "950" for edges.
+    StrokeShadeNormal,
+    /// Base colour when a node/edge is not focused / hovered over, e.g.
+    /// `"500"` for nodes, "800" for edges.
+    StrokeShadeFocus,
+    /// Base colour when a node/edge is not focused / hovered over, e.g.
+    /// `"400"` for nodes, "700" for edges.
+    StrokeShadeHover,
+    /// Base colour when a node/edge is not focused / hovered over, e.g.
+    /// `"300"` for nodes, "600" for edges.
+    StrokeShadeActive,
+    /// Width of the border for nodes, or line for edges.
+    StrokeWidth,
+    /// Border style of the node -- dotted, dashed, solid.
+    StrokeStyle,
 }

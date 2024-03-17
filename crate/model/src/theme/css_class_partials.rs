@@ -9,16 +9,16 @@ use crate::theme::ThemeAttr;
 /// String>` newtype.
 ///
 /// These are *partial* CSS utility class names as an entry may be
-/// `StrokeColorNormal: "amber-600"`, whereas the final CSS class name
-/// may be `"[&>path]:stroke-amber-600"`.
+/// `StrokeColorNormal: "slate-600"`, whereas the final CSS class name
+/// may be `"[&>path]:stroke-slate-600"`.
 ///
 /// Also, one CSS class partial may used to compute multiple CSS classes, such
-/// as `StrokeColor: "amber"` mapping to:
+/// as `StrokeColor: "slate"` mapping to:
 ///
-/// * `"[&>path]:stroke-amber-600"`
-/// * `"[&>path]:focus:stroke-amber-500"`
-/// * `"[&>path]:hover:stroke-amber-400"`
-/// * `"[&>path]:focus:hover:stroke-amber-400"`
+/// * `"[&>path]:stroke-slate-600"`
+/// * `"[&>path]:focus:stroke-slate-500"`
+/// * `"[&>path]:hover:stroke-slate-400"`
+/// * `"[&>path]:focus:hover:stroke-slate-400"`
 #[derive(Clone, Debug, Default, PartialEq, Eq, Deserialize, Serialize)]
 pub struct CssClassPartials(IndexMap<ThemeAttr, String>);
 

@@ -45,8 +45,54 @@ pub struct Theme(IndexMap<AnyIdOrDefaults, CssClassPartials>);
 
 impl Theme {
     /// Returns a new `Theme`.
+    ///
+    /// See [`Theme::base`] for the base styles that `dot_ix` ships with.
     pub fn new() -> Self {
         Self::default()
+    }
+
+    /// Returns the base `Theme`.
+    ///
+    /// These are the values used by `dot_ix` for diagrams.
+    pub fn base() -> Self {
+        let mut theme = Self::default();
+
+        theme.insert(AnyIdOrDefaults::NodeDefaults, {
+            let mut node_defaults = CssClassPartials::new();
+            node_defaults.insert(ThemeAttr::Padding, "1.5".into());
+            node_defaults.insert(ThemeAttr::ShapeColor, "slate".into());
+
+            node_defaults.insert(ThemeAttr::FillShadeNormal, "300".into());
+            node_defaults.insert(ThemeAttr::FillShadeFocus, "200".into());
+            node_defaults.insert(ThemeAttr::FillShadeHover, "100".into());
+            node_defaults.insert(ThemeAttr::FillShadeActive, "200".into());
+
+            node_defaults.insert(ThemeAttr::StrokeShadeNormal, "600".into());
+            node_defaults.insert(ThemeAttr::StrokeShadeFocus, "500".into());
+            node_defaults.insert(ThemeAttr::StrokeShadeHover, "400".into());
+            node_defaults.insert(ThemeAttr::StrokeShadeActive, "300".into());
+
+            node_defaults
+        });
+
+        theme.insert(AnyIdOrDefaults::EdgeDefaults, {
+            let mut node_defaults = CssClassPartials::new();
+            node_defaults.insert(ThemeAttr::ShapeColor, "slate".into());
+
+            node_defaults.insert(ThemeAttr::FillShadeNormal, "800".into());
+            node_defaults.insert(ThemeAttr::FillShadeFocus, "700".into());
+            node_defaults.insert(ThemeAttr::FillShadeHover, "600".into());
+            node_defaults.insert(ThemeAttr::FillShadeActive, "500".into());
+
+            node_defaults.insert(ThemeAttr::StrokeShadeNormal, "950".into());
+            node_defaults.insert(ThemeAttr::StrokeShadeFocus, "800".into());
+            node_defaults.insert(ThemeAttr::StrokeShadeHover, "700".into());
+            node_defaults.insert(ThemeAttr::StrokeShadeActive, "600".into());
+
+            node_defaults
+        });
+
+        theme
     }
 
     /// Returns a new `Theme` with the given preallocated capacity.
