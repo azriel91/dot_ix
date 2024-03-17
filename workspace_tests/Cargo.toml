@@ -1,0 +1,21 @@
+[package]
+name = "workspace_tests"
+description = "Tests for the dot_ix library."
+documentation = "https://docs.rs/dot_ix/"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+repository.workspace = true
+homepage.workspace = true
+readme.workspace = true
+categories.workspace = true
+keywords.workspace = true
+license.workspace = true
+publish = false
+
+[lib]
+doctest = false
+test = true
+
+[dev-dependencies]
+dot_ix = { workspace = true, features = ["flex_diag"] }

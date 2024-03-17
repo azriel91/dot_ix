@@ -1,16 +1,15 @@
-pub use indexmap::{IndexMap, IndexSet};
+pub use indexmap::IndexMap;
 
 use serde::{Deserialize, Serialize};
 
-use crate::common::{EdgeId, NodeHierarchy, NodeId, TagId, TailwindClasses};
-
-pub use self::{
-    graph_dir::GraphDir, info_graph_builder::InfoGraphBuilder, node_info::NodeInfo, tag::Tag,
+use crate::common::{
+    Edges, NodeDescs, NodeEmojis, NodeHierarchy, NodeNames, NodeTags, TagId, TailwindClasses,
 };
+
+pub use self::{graph_dir::GraphDir, info_graph_builder::InfoGraphBuilder, tag::Tag};
 
 mod graph_dir;
 mod info_graph_builder;
-mod node_info;
 mod tag;
 
 #[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
@@ -21,11 +20,15 @@ pub struct InfoGraph {
     /// Nested nodes.
     pub(crate) hierarchy: NodeHierarchy,
     /// Logical / ordering dependencies.
-    pub(crate) edges: IndexMap<EdgeId, [NodeId; 2]>,
-    /// List of nodes and basic node info.
-    pub(crate) node_infos: IndexMap<NodeId, NodeInfo>,
+    pub(crate) edges: Edges,
+    /// Each node's name.
+    pub(crate) node_names: NodeNames,
+    /// Each node's description.
+    pub(crate) node_descs: NodeDescs,
+    /// Each node's emoji.
+    pub(crate) node_emojis: NodeEmojis,
     /// Tags associated with each node.
-    pub(crate) node_tags: IndexMap<NodeId, IndexSet<TagId>>,
+    pub(crate) node_tags: NodeTags,
     /// Tags to associate with nodes.
     pub(crate) tags: IndexMap<TagId, Tag>,
     /// Tailwind classes to add to nodes with the given tag.
@@ -51,17 +54,27 @@ impl InfoGraph {
     }
 
     /// Returns the logical / ordering dependencies.
-    pub fn edges(&self) -> &IndexMap<EdgeId, [NodeId; 2]> {
+    pub fn edges(&self) -> &Edges {
         &self.edges
     }
 
-    /// Returns the list of nodes and basic node info.
-    pub fn node_infos(&self) -> &IndexMap<NodeId, NodeInfo> {
-        &self.node_infos
+    /// Returns the map of node names.
+    pub fn node_names(&self) -> &NodeNames {
+        &self.node_names
+    }
+
+    /// Returns the map of node descriptions.
+    pub fn node_descs(&self) -> &NodeDescs {
+        &self.node_descs
+    }
+
+    /// Returns the map of node emojis.
+    pub fn node_emojis(&self) -> &NodeEmojis {
+        &self.node_emojis
     }
 
     /// Returns the tags associated with each node.
-    pub fn node_tags(&self) -> &IndexMap<NodeId, IndexSet<TagId>> {
+    pub fn node_tags(&self) -> &NodeTags {
         &self.node_tags
     }
 

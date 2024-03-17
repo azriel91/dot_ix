@@ -1,8 +1,8 @@
-use indexmap::{IndexMap, IndexSet};
+use indexmap::IndexMap;
 
 use crate::{
-    common::{EdgeId, NodeHierarchy, NodeId, TagId, TailwindClasses},
-    info_graph::{GraphDir, NodeInfo, Tag},
+    common::{Edges, NodeHierarchy, NodeTags, TagId, TailwindClasses},
+    info_graph::{GraphDir, NodeDescs, NodeEmojis, NodeNames, Tag},
 };
 
 use crate::info_graph::InfoGraph;
@@ -15,11 +15,15 @@ pub struct InfoGraphBuilder {
     /// Nested nodes.
     hierarchy: NodeHierarchy,
     /// Logical / ordering dependencies.
-    edges: IndexMap<EdgeId, [NodeId; 2]>,
-    /// List of nodes and basic node info.
-    node_infos: IndexMap<NodeId, NodeInfo>,
+    edges: Edges,
+    /// Each node's name.
+    node_names: NodeNames,
+    /// Each node's description.
+    node_descs: NodeDescs,
+    /// Each node's emoji.
+    node_emojis: NodeEmojis,
     /// Tags associated with each node.
-    node_tags: IndexMap<NodeId, IndexSet<TagId>>,
+    node_tags: NodeTags,
     /// Tags to associate with nodes.
     tags: IndexMap<TagId, Tag>,
     /// Tailwind classes to add to nodes with the given tag.
@@ -42,19 +46,31 @@ impl InfoGraphBuilder {
     }
 
     /// Sets the logical / ordering dependencies.
-    pub fn with_edges(mut self, edges: IndexMap<EdgeId, [NodeId; 2]>) -> Self {
+    pub fn with_edges(mut self, edges: Edges) -> Self {
         self.edges = edges;
         self
     }
 
-    /// Sets the list of nodes and basic node info.
-    pub fn with_node_infos(mut self, node_infos: IndexMap<NodeId, NodeInfo>) -> Self {
-        self.node_infos = node_infos;
+    /// Sets the map of node names.
+    pub fn with_node_names(mut self, node_names: NodeNames) -> Self {
+        self.node_names = node_names;
+        self
+    }
+
+    /// Sets the map of node descriptions.
+    pub fn with_node_descs(mut self, node_descs: NodeDescs) -> Self {
+        self.node_descs = node_descs;
+        self
+    }
+
+    /// Sets the map of node emojis.
+    pub fn with_node_emojis(mut self, node_emojis: NodeEmojis) -> Self {
+        self.node_emojis = node_emojis;
         self
     }
 
     /// Sets the tags associated with each node.
-    pub fn with_node_tags(mut self, node_tags: IndexMap<NodeId, IndexSet<TagId>>) -> Self {
+    pub fn with_node_tags(mut self, node_tags: NodeTags) -> Self {
         self.node_tags = node_tags;
         self
     }
@@ -83,7 +99,9 @@ impl InfoGraphBuilder {
             direction,
             hierarchy,
             edges,
-            node_infos,
+            node_names,
+            node_descs,
+            node_emojis,
             node_tags,
             tags,
             tailwind_classes,
@@ -94,7 +112,9 @@ impl InfoGraphBuilder {
             direction,
             hierarchy,
             edges,
-            node_infos,
+            node_names,
+            node_descs,
+            node_emojis,
             node_tags,
             tags,
             tailwind_classes,
