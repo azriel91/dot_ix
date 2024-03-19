@@ -316,38 +316,41 @@ use serde::{Deserialize, Serialize};
 pub enum ThemeAttr {
     /// Extra classes to attach as is.
     Extra,
-    /// Base colour for node/edge background/arrow head, e.g. `"slate"`.
+    /// Colour for element background/arrow head for all states, e.g. `"slate"`.
+    ///
+    /// This will be used for all [`HighlightState`]s if not overridden by one
+    /// of the more specific variants.
+    ///
+    /// [`HighlightState`]: crate::theme::HighlightState
     FillColor,
-    /// Base colour for the background when a node/edge is not focused /
-    /// hovered over, e.g. `"slate-300"`.
+    /// Colour for the background when an element is not focused / hovered
+    /// over, e.g. `"slate"`.
+    FillColorNormal,
+    /// Colour for the background when an element is focused, e.g. `"slate"`.
+    FillColorFocus,
+    /// Colour for the background when an element has the cursor hovering over
+    /// it, e.g. `"slate"`.
+    FillColorHover,
+    /// Colour for the background when an element is being clicked / pressed,
+    /// e.g. `"slate"`.
+    FillColorActive,
+    /// Shade for element background/arrow head for all states, e.g. `"600"`.
     ///
-    /// This overrides both `FillColor` and `FillShadeNormal`.
-    FillColorShadeNormal,
-    /// Base colour for the background when a node/edge is focused, e.g.
-    /// `"slate-200"`.
+    /// This will be used for all [`HighlightState`]s if not overridden by one
+    /// of the more specific variants.
     ///
-    /// This overrides both `FillColor` and `FillShadeNormal`.
-    FillColorShadeFocus,
-    /// Base colour for the background when a node/edge has the cursor
-    /// hovering over it, e.g. `"slate-100"`.
-    ///
-    /// This overrides both `FillColor` and `FillShadeNormal`.
-    FillColorShadeHover,
-    /// Base colour for the background when a node/edge is being clicked /
-    /// pressed, e.g. `"slate-200"`.
-    ///
-    /// This overrides both `FillColor` and `FillShadeNormal`.
-    FillColorShadeActive,
-    /// Base colour for the background when a node/edge is not focused /
+    /// [`HighlightState`]: crate::theme::HighlightState
+    FillShade,
+    /// Shade for the background when an element is not focused /
     /// hovered over, e.g. `"300"` for nodes, "800" for edges.
     FillShadeNormal,
-    /// Base colour for the background when a node/edge is focused, e.g.
+    /// Shade for the background when an element is focused, e.g.
     /// `"200"` for nodes, "700" for edges.
     FillShadeFocus,
-    /// Base colour for the background when a node/edge has the cursor
+    /// Shade for the background when an element has the cursor
     /// hovering over it, e.g. `"100"` for nodes, "600" for edges.
     FillShadeHover,
-    /// Base colour for the background when a node/edge is being clicked /
+    /// Shade for the background when an element is being clicked /
     /// pressed, e.g. `"200"` for nodes, "500" for edges.
     FillShadeActive,
     /// All padding within a node, e.g. `"1.5"` in `"p-1.5"`.
@@ -376,37 +379,36 @@ pub enum ThemeAttr {
     MarginY,
     /// Base colour for shape colourable attributes, e.g. stroke/border, fill.
     ShapeColor,
-    /// Base colour for node/edge borders/lines, e.g. `"slate"`.
+    /// Line/border colour for elements for all states, e.g. `"slate"`.
     StrokeColor,
-    /// Base colour when a node/edge is not focused / hovered over, e.g.
-    /// `"slate-600"`.
+    /// Line/border colour when an element is not focused / hovered over, e.g.
+    /// `"slate"`.
+    StrokeColorNormal,
+    /// Line/border colour when an element is focused, e.g. `"slate"`.
+    StrokeColorFocus,
+    /// Line/border colour when an element has the cursor hovering over it, e.g.
+    /// `"slate"`.
+    StrokeColorHover,
+    /// Line/border colour when an element is being clicked / pressed, e.g.
+    /// `"slate"`.
+    StrokeColorActive,
+    /// Shade for lines and borders for all states, e.g. `"600"`.
     ///
-    /// This overrides both `StrokeColor` and `StrokeShadeNormal`.
-    StrokeColorShadeNormal,
-    /// Base colour when a node/edge is focused, e.g. `"slate-500"`.
+    /// This will be used for all [`HighlightState`]s if not overridden by one
+    /// of the more specific variants.
     ///
-    /// This overrides both `StrokeColor` and `StrokeShadeFocus`.
-    StrokeColorShadeFocus,
-    /// Base colour when a node/edge has the cursor hovering over it, e.g.
-    /// `"slate-400"`.
-    ///
-    /// This overrides both `StrokeColor` and `StrokeShadeHover`.
-    StrokeColorShadeHover,
-    /// Base colour when a node/edge is being clicked / pressed, e.g.
-    /// `"slate-300"`.
-    ///
-    /// This overrides both `StrokeColor` and `StrokeShadeActive`.
-    StrokeColorShadeActive,
-    /// Base colour when a node/edge is not focused / hovered over, e.g.
+    /// [`HighlightState`]: crate::theme::HighlightState
+    StrokeShade,
+    /// Line/border shade when an element is not focused / hovered over, e.g.
     /// `"600"` for nodes, "950" for edges.
     StrokeShadeNormal,
-    /// Base colour when a node/edge is not focused / hovered over, e.g.
+    /// Line/border shade when an element is focused, e.g.
     /// `"500"` for nodes, "800" for edges.
     StrokeShadeFocus,
-    /// Base colour when a node/edge is not focused / hovered over, e.g.
+    /// Line/border shade when an element has the cursor hovering over it, e.g.
     /// `"400"` for nodes, "700" for edges.
     StrokeShadeHover,
-    /// Base colour when a node/edge is not focused / hovered over, e.g.
+    /// Line/border shade when an element is being clicked / pressed, e.g.
     /// `"300"` for nodes, "600" for edges.
     StrokeShadeActive,
     /// Width of the border for nodes, or line for edges.

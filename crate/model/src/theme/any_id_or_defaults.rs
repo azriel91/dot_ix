@@ -16,6 +16,17 @@ pub enum AnyIdOrDefaults {
     AnyId(AnyId),
 }
 
+impl AnyIdOrDefaults {
+    /// Returns the underlying `AnyId` if this holds an ID.
+    pub fn any_id(&self) -> Option<&AnyId> {
+        if let Self::AnyId(any_id) = self {
+            Some(any_id)
+        } else {
+            None
+        }
+    }
+}
+
 impl Serialize for AnyIdOrDefaults {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
