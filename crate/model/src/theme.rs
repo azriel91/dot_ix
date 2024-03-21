@@ -3,7 +3,7 @@ use std::ops::{Deref, DerefMut};
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 
-use crate::common::NodeId;
+use crate::common::{AnyId, EdgeId, NodeId};
 
 pub use self::{
     any_id_or_defaults::AnyIdOrDefaults, css_class_partials::CssClassPartials,
@@ -123,19 +123,31 @@ impl Theme {
     where
         T: Themeable,
     {
-        let node_class_partials_defaults = self.get(&AnyIdOrDefaults::NodeDefaults);
+        self.node_el_css_classes(themeable)
+            .chain(self.edge_el_css_classes(themeable))
+            .collect()
+    }
 
-        themeable.node_ids().iter().map(|node_id| {
+    fn node_el_css_classes<'f, T>(
+        &'f self,
+        themeable: &'f T,
+    ) -> impl Iterator<Item = (AnyId, CssClasses)> + 'f
+    where
+        T: Themeable,
+    {
+        let node_class_partials_defaults = self.get(&AnyIdOrDefaults::NodeDefaults);
+        themeable.node_ids().iter().filter_map(move |node_id| {
             let node_class_partials_specified = self.node_class_partials_specified(node_id);
 
-            Self::node_classes(
+            let any_id = Some(AnyId::from(node_id.clone()));
+            let node_classes = Self::node_classes(
                 node_class_partials_defaults,
                 node_class_partials_specified,
                 themeable,
-            )
-        });
+            );
 
-        todo!()
+            any_id.zip(node_classes)
+        })
     }
 
     fn node_class_partials_specified(&self, node_id: &NodeId) -> Option<&CssClassPartials> {
@@ -156,147 +168,238 @@ impl Theme {
     where
         T: Themeable,
     {
-        match (defaults, specified) {
-            (None, None) => None,
-            (None, Some(node_class_partials)) | (Some(node_class_partials), None) => {
-                let mut css_classes_builder = CssClassesBuilder::new();
+        let mut css_classes_builder = CssClassesBuilder::new();
 
-                let themeable_node_stroke_classes =
-                    |themeable: &dyn Themeable,
-                     css_classes_builder: &mut CssClassesBuilder,
-                     params: ThemeableParams<'_>| {
-                        themeable.node_stroke_classes(css_classes_builder, params);
-                    };
+        let themeable_node_stroke_classes =
+            |themeable: &dyn Themeable,
+             css_classes_builder: &mut CssClassesBuilder,
+             params: ThemeableParams<'_>| {
+                themeable.node_stroke_classes(css_classes_builder, params);
+            };
 
-                let themeable_node_fill_classes =
-                    |themeable: &dyn Themeable,
-                     css_classes_builder: &mut CssClassesBuilder,
-                     params: ThemeableParams<'_>| {
-                        themeable.node_fill_classes(css_classes_builder, params);
-                    };
+        let themeable_node_fill_classes =
+            |themeable: &dyn Themeable,
+             css_classes_builder: &mut CssClassesBuilder,
+             params: ThemeableParams<'_>| {
+                themeable.node_fill_classes(css_classes_builder, params);
+            };
 
-                [
-                    ColorParamGroupings::new(
-                        HighlightState::Normal,
-                        ThemeAttr::StrokeColorNormal,
-                        ThemeAttr::StrokeColor,
-                        ThemeAttr::StrokeShadeNormal,
-                        ThemeAttr::StrokeShade,
-                        themeable_node_stroke_classes,
-                    ),
-                    ColorParamGroupings::new(
-                        HighlightState::Focus,
-                        ThemeAttr::StrokeColorFocus,
-                        ThemeAttr::StrokeColor,
-                        ThemeAttr::StrokeShadeFocus,
-                        ThemeAttr::StrokeShade,
-                        themeable_node_stroke_classes,
-                    ),
-                    ColorParamGroupings::new(
-                        HighlightState::Hover,
-                        ThemeAttr::StrokeColorHover,
-                        ThemeAttr::StrokeColor,
-                        ThemeAttr::StrokeShadeHover,
-                        ThemeAttr::StrokeShade,
-                        themeable_node_stroke_classes,
-                    ),
-                    ColorParamGroupings::new(
-                        HighlightState::Active,
-                        ThemeAttr::StrokeColorActive,
-                        ThemeAttr::StrokeColor,
-                        ThemeAttr::StrokeShadeActive,
-                        ThemeAttr::StrokeShade,
-                        themeable_node_stroke_classes,
-                    ),
-                    ColorParamGroupings::new(
-                        HighlightState::Normal,
-                        ThemeAttr::FillColorNormal,
-                        ThemeAttr::FillColor,
-                        ThemeAttr::FillShadeNormal,
-                        ThemeAttr::FillShade,
-                        themeable_node_fill_classes,
-                    ),
-                    ColorParamGroupings::new(
-                        HighlightState::Focus,
-                        ThemeAttr::FillColorFocus,
-                        ThemeAttr::FillColor,
-                        ThemeAttr::FillShadeFocus,
-                        ThemeAttr::FillShade,
-                        themeable_node_fill_classes,
-                    ),
-                    ColorParamGroupings::new(
-                        HighlightState::Hover,
-                        ThemeAttr::FillColorHover,
-                        ThemeAttr::FillColor,
-                        ThemeAttr::FillShadeHover,
-                        ThemeAttr::FillShade,
-                        themeable_node_fill_classes,
-                    ),
-                    ColorParamGroupings::new(
-                        HighlightState::Active,
-                        ThemeAttr::FillColorActive,
-                        ThemeAttr::FillColor,
-                        ThemeAttr::FillShadeActive,
-                        ThemeAttr::FillShade,
-                        themeable_node_fill_classes,
-                    ),
-                ]
-                .into_iter()
-                .for_each(|css_classes_param_groupings| {
-                    let ColorParamGroupings {
-                        highlight_state,
-                        color_key,
-                        color_fallback_key,
-                        shade_key,
-                        shade_fallback_key,
-                        fn_css_classes,
-                    } = css_classes_param_groupings;
+        Self::stroke_and_fill_classes(
+            themeable_node_stroke_classes,
+            themeable_node_fill_classes,
+            specified,
+            defaults,
+            themeable,
+            &mut css_classes_builder,
+        );
 
-                    let fill_color = node_class_partials
-                        .get(&color_key)
-                        .or_else(|| node_class_partials.get(&color_fallback_key));
-                    let fill_shade = node_class_partials
-                        .get(&shade_key)
-                        .or_else(|| node_class_partials.get(&shade_fallback_key));
+        [
+            SpacingParamGroupings::new(ThemeAttr::PaddingX, ThemeAttr::Padding),
+            SpacingParamGroupings::new(ThemeAttr::PaddingY, ThemeAttr::Padding),
+            SpacingParamGroupings::new(ThemeAttr::MarginX, ThemeAttr::Margin),
+            SpacingParamGroupings::new(ThemeAttr::MarginY, ThemeAttr::Margin),
+        ]
+        .into_iter()
+        .for_each(|css_classes_param_groupings| {
+            let SpacingParamGroupings {
+                spacing_key,
+                spacing_fallback_key,
+            } = css_classes_param_groupings;
 
-                    fill_color
-                        .zip(fill_shade)
-                        .map(|(color, shade)| ThemeableParams {
-                            highlight_state,
-                            color,
-                            shade,
-                        })
-                        .map(|params| fn_css_classes(themeable, &mut css_classes_builder, params));
-                });
+            let spacing = specified
+                .and_then(|partials| partials.get(&spacing_key))
+                .or_else(|| defaults.and_then(|partials| partials.get(&spacing_key)))
+                .or_else(|| specified.and_then(|partials| partials.get(&spacing_fallback_key)))
+                .or_else(|| defaults.and_then(|partials| partials.get(&spacing_fallback_key)));
 
-                [
-                    SpacingParamGroupings::new(ThemeAttr::PaddingX, ThemeAttr::Padding),
-                    SpacingParamGroupings::new(ThemeAttr::PaddingY, ThemeAttr::Padding),
-                    SpacingParamGroupings::new(ThemeAttr::MarginX, ThemeAttr::Margin),
-                    SpacingParamGroupings::new(ThemeAttr::MarginY, ThemeAttr::Margin),
-                ]
-                .into_iter()
-                .for_each(|css_classes_param_groupings| {
-                    let SpacingParamGroupings {
-                        spacing_key,
-                        spacing_fallback_key,
-                    } = css_classes_param_groupings;
+            spacing.map(|spacing| css_classes_builder.append(spacing));
+        });
 
-                    let spacing = node_class_partials
-                        .get(&spacing_key)
-                        .or_else(|| node_class_partials.get(&spacing_fallback_key));
+        specified
+            .and_then(|partials| partials.get(&ThemeAttr::Extra))
+            .map(|extra| css_classes_builder.append(extra));
 
-                    spacing.map(|spacing| css_classes_builder.append(spacing));
-                });
+        Some(css_classes_builder.build())
+    }
 
-                if let Some(extra) = node_class_partials.get(&ThemeAttr::Extra) {
-                    css_classes_builder.append(extra)
-                }
+    fn edge_el_css_classes<'f, T>(
+        &'f self,
+        themeable: &'f T,
+    ) -> impl Iterator<Item = (AnyId, CssClasses)> + 'f
+    where
+        T: Themeable,
+    {
+        let edge_class_partials_defaults = self.get(&AnyIdOrDefaults::EdgeDefaults);
 
-                Some(css_classes_builder.build())
-            }
-            (Some(_), Some(_)) => todo!(),
-        }
+        themeable.edge_ids().iter().filter_map(move |edge_id| {
+            let edge_class_partials_specified = self.edge_class_partials_specified(edge_id);
+
+            let any_id = Some(AnyId::from(edge_id.clone()));
+            let edge_classes = Self::edge_classes(
+                edge_class_partials_defaults,
+                edge_class_partials_specified,
+                themeable,
+            );
+
+            any_id.zip(edge_classes)
+        })
+    }
+
+    fn edge_class_partials_specified(&self, edge_id: &EdgeId) -> Option<&CssClassPartials> {
+        self.iter()
+            .find_map(|(any_id_or_defaults, css_class_partials)| {
+                any_id_or_defaults
+                    .any_id()
+                    .filter(|any_id| any_id.as_str() == edge_id.as_str())
+                    .map(|_| css_class_partials)
+            })
+    }
+
+    fn edge_classes<T>(
+        defaults: Option<&CssClassPartials>,
+        specified: Option<&CssClassPartials>,
+        themeable: &T,
+    ) -> Option<CssClasses>
+    where
+        T: Themeable,
+    {
+        let mut css_classes_builder = CssClassesBuilder::new();
+
+        let themeable_edge_stroke_classes =
+            |themeable: &dyn Themeable,
+             css_classes_builder: &mut CssClassesBuilder,
+             params: ThemeableParams<'_>| {
+                themeable.edge_stroke_classes(css_classes_builder, params);
+            };
+
+        let themeable_edge_fill_classes =
+            |themeable: &dyn Themeable,
+             css_classes_builder: &mut CssClassesBuilder,
+             params: ThemeableParams<'_>| {
+                themeable.edge_fill_classes(css_classes_builder, params);
+            };
+
+        Self::stroke_and_fill_classes(
+            themeable_edge_stroke_classes,
+            themeable_edge_fill_classes,
+            specified,
+            defaults,
+            themeable,
+            &mut css_classes_builder,
+        );
+
+        specified
+            .and_then(|partials| partials.get(&ThemeAttr::Extra))
+            .map(|extra| css_classes_builder.append(extra));
+
+        Some(css_classes_builder.build())
+    }
+
+    fn stroke_and_fill_classes(
+        fn_stroke_classes: fn(&dyn Themeable, &mut CssClassesBuilder, ThemeableParams<'_>),
+        fn_fill_classes: fn(&dyn Themeable, &mut CssClassesBuilder, ThemeableParams<'_>),
+        specified: Option<&CssClassPartials>,
+        defaults: Option<&CssClassPartials>,
+        themeable: &dyn Themeable,
+        css_classes_builder: &mut CssClassesBuilder,
+    ) {
+        [
+            ColorParamGroupings::new(
+                HighlightState::Normal,
+                ThemeAttr::StrokeColorNormal,
+                ThemeAttr::StrokeColor,
+                ThemeAttr::StrokeShadeNormal,
+                ThemeAttr::StrokeShade,
+                fn_stroke_classes,
+            ),
+            ColorParamGroupings::new(
+                HighlightState::Focus,
+                ThemeAttr::StrokeColorFocus,
+                ThemeAttr::StrokeColor,
+                ThemeAttr::StrokeShadeFocus,
+                ThemeAttr::StrokeShade,
+                fn_stroke_classes,
+            ),
+            ColorParamGroupings::new(
+                HighlightState::Hover,
+                ThemeAttr::StrokeColorHover,
+                ThemeAttr::StrokeColor,
+                ThemeAttr::StrokeShadeHover,
+                ThemeAttr::StrokeShade,
+                fn_stroke_classes,
+            ),
+            ColorParamGroupings::new(
+                HighlightState::Active,
+                ThemeAttr::StrokeColorActive,
+                ThemeAttr::StrokeColor,
+                ThemeAttr::StrokeShadeActive,
+                ThemeAttr::StrokeShade,
+                fn_stroke_classes,
+            ),
+            ColorParamGroupings::new(
+                HighlightState::Normal,
+                ThemeAttr::FillColorNormal,
+                ThemeAttr::FillColor,
+                ThemeAttr::FillShadeNormal,
+                ThemeAttr::FillShade,
+                fn_fill_classes,
+            ),
+            ColorParamGroupings::new(
+                HighlightState::Focus,
+                ThemeAttr::FillColorFocus,
+                ThemeAttr::FillColor,
+                ThemeAttr::FillShadeFocus,
+                ThemeAttr::FillShade,
+                fn_fill_classes,
+            ),
+            ColorParamGroupings::new(
+                HighlightState::Hover,
+                ThemeAttr::FillColorHover,
+                ThemeAttr::FillColor,
+                ThemeAttr::FillShadeHover,
+                ThemeAttr::FillShade,
+                fn_fill_classes,
+            ),
+            ColorParamGroupings::new(
+                HighlightState::Active,
+                ThemeAttr::FillColorActive,
+                ThemeAttr::FillColor,
+                ThemeAttr::FillShadeActive,
+                ThemeAttr::FillShade,
+                fn_fill_classes,
+            ),
+        ]
+        .into_iter()
+        .for_each(|css_classes_param_groupings| {
+            let ColorParamGroupings {
+                highlight_state,
+                color_key,
+                color_fallback_key,
+                shade_key,
+                shade_fallback_key,
+                fn_css_classes,
+            } = css_classes_param_groupings;
+
+            let fill_color = specified
+                .and_then(|partials| partials.get(&color_key))
+                .or_else(|| defaults.and_then(|partials| partials.get(&color_key)))
+                .or_else(|| specified.and_then(|partials| partials.get(&color_fallback_key)))
+                .or_else(|| defaults.and_then(|partials| partials.get(&color_fallback_key)));
+            let fill_shade = specified
+                .and_then(|partials| partials.get(&shade_key))
+                .or_else(|| defaults.and_then(|partials| partials.get(&shade_key)))
+                .or_else(|| specified.and_then(|partials| partials.get(&shade_fallback_key)))
+                .or_else(|| defaults.and_then(|partials| partials.get(&shade_fallback_key)));
+
+            fill_color
+                .zip(fill_shade)
+                .map(|(color, shade)| ThemeableParams {
+                    highlight_state,
+                    color,
+                    shade,
+                })
+                .map(|params| fn_css_classes(themeable, css_classes_builder, params));
+        });
     }
 }
 
