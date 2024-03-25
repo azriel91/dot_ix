@@ -306,66 +306,82 @@ impl Theme {
         [
             ColorParamGroupings::new(
                 HighlightState::Normal,
-                ThemeAttr::StrokeColorNormal,
-                ThemeAttr::StrokeColor,
-                ThemeAttr::StrokeShadeNormal,
-                ThemeAttr::StrokeShade,
+                [
+                    ThemeAttr::StrokeColorNormal,
+                    ThemeAttr::StrokeColor,
+                    ThemeAttr::ShapeColor,
+                ],
+                [ThemeAttr::StrokeShadeNormal, ThemeAttr::StrokeShade],
                 fn_stroke_classes,
             ),
             ColorParamGroupings::new(
                 HighlightState::Focus,
-                ThemeAttr::StrokeColorFocus,
-                ThemeAttr::StrokeColor,
-                ThemeAttr::StrokeShadeFocus,
-                ThemeAttr::StrokeShade,
+                [
+                    ThemeAttr::StrokeColorFocus,
+                    ThemeAttr::StrokeColor,
+                    ThemeAttr::ShapeColor,
+                ],
+                [ThemeAttr::StrokeShadeFocus, ThemeAttr::StrokeShade],
                 fn_stroke_classes,
             ),
             ColorParamGroupings::new(
                 HighlightState::Hover,
-                ThemeAttr::StrokeColorHover,
-                ThemeAttr::StrokeColor,
-                ThemeAttr::StrokeShadeHover,
-                ThemeAttr::StrokeShade,
+                [
+                    ThemeAttr::StrokeColorHover,
+                    ThemeAttr::StrokeColor,
+                    ThemeAttr::ShapeColor,
+                ],
+                [ThemeAttr::StrokeShadeHover, ThemeAttr::StrokeShade],
                 fn_stroke_classes,
             ),
             ColorParamGroupings::new(
                 HighlightState::Active,
-                ThemeAttr::StrokeColorActive,
-                ThemeAttr::StrokeColor,
-                ThemeAttr::StrokeShadeActive,
-                ThemeAttr::StrokeShade,
+                [
+                    ThemeAttr::StrokeColorActive,
+                    ThemeAttr::StrokeColor,
+                    ThemeAttr::ShapeColor,
+                ],
+                [ThemeAttr::StrokeShadeActive, ThemeAttr::StrokeShade],
                 fn_stroke_classes,
             ),
             ColorParamGroupings::new(
                 HighlightState::Normal,
-                ThemeAttr::FillColorNormal,
-                ThemeAttr::FillColor,
-                ThemeAttr::FillShadeNormal,
-                ThemeAttr::FillShade,
+                [
+                    ThemeAttr::FillColorNormal,
+                    ThemeAttr::FillColor,
+                    ThemeAttr::ShapeColor,
+                ],
+                [ThemeAttr::FillShadeNormal, ThemeAttr::FillShade],
                 fn_fill_classes,
             ),
             ColorParamGroupings::new(
                 HighlightState::Focus,
-                ThemeAttr::FillColorFocus,
-                ThemeAttr::FillColor,
-                ThemeAttr::FillShadeFocus,
-                ThemeAttr::FillShade,
+                [
+                    ThemeAttr::FillColorFocus,
+                    ThemeAttr::FillColor,
+                    ThemeAttr::ShapeColor,
+                ],
+                [ThemeAttr::FillShadeFocus, ThemeAttr::FillShade],
                 fn_fill_classes,
             ),
             ColorParamGroupings::new(
                 HighlightState::Hover,
-                ThemeAttr::FillColorHover,
-                ThemeAttr::FillColor,
-                ThemeAttr::FillShadeHover,
-                ThemeAttr::FillShade,
+                [
+                    ThemeAttr::FillColorHover,
+                    ThemeAttr::FillColor,
+                    ThemeAttr::ShapeColor,
+                ],
+                [ThemeAttr::FillShadeHover, ThemeAttr::FillShade],
                 fn_fill_classes,
             ),
             ColorParamGroupings::new(
                 HighlightState::Active,
-                ThemeAttr::FillColorActive,
-                ThemeAttr::FillColor,
-                ThemeAttr::FillShadeActive,
-                ThemeAttr::FillShade,
+                [
+                    ThemeAttr::FillColorActive,
+                    ThemeAttr::FillColor,
+                    ThemeAttr::ShapeColor,
+                ],
+                [ThemeAttr::FillShadeActive, ThemeAttr::FillShade],
                 fn_fill_classes,
             ),
         ]
@@ -373,26 +389,30 @@ impl Theme {
         .for_each(|css_classes_param_groupings| {
             let ColorParamGroupings {
                 highlight_state,
-                color_key,
-                color_fallback_key,
-                shade_key,
-                shade_fallback_key,
+                color_keys,
+                shade_keys,
                 fn_css_classes,
             } = css_classes_param_groupings;
 
-            let fill_color = specified
-                .and_then(|partials| partials.get(&color_key))
-                .or_else(|| defaults.and_then(|partials| partials.get(&color_key)))
-                .or_else(|| specified.and_then(|partials| partials.get(&color_fallback_key)))
-                .or_else(|| defaults.and_then(|partials| partials.get(&color_fallback_key)));
-            let fill_shade = specified
-                .and_then(|partials| partials.get(&shade_key))
-                .or_else(|| defaults.and_then(|partials| partials.get(&shade_key)))
-                .or_else(|| specified.and_then(|partials| partials.get(&shade_fallback_key)))
-                .or_else(|| defaults.and_then(|partials| partials.get(&shade_fallback_key)));
+            let color = color_keys
+                .iter()
+                .filter_map(|color_key| {
+                    specified
+                        .and_then(|partials| partials.get(color_key))
+                        .or_else(|| defaults.and_then(|partials| partials.get(color_key)))
+                })
+                .next();
+            let shade = shade_keys
+                .iter()
+                .filter_map(|shade_key| {
+                    specified
+                        .and_then(|partials| partials.get(shade_key))
+                        .or_else(|| defaults.and_then(|partials| partials.get(shade_key)))
+                })
+                .next();
 
-            fill_color
-                .zip(fill_shade)
+            color
+                .zip(shade)
                 .map(|(color, shade)| ThemeableParams {
                     highlight_state,
                     color,
@@ -406,28 +426,25 @@ impl Theme {
 /// Groupings of parameters to generate CSS classes for colour shades.
 struct ColorParamGroupings {
     highlight_state: HighlightState,
-    color_key: ThemeAttr,
-    color_fallback_key: ThemeAttr,
-    shade_key: ThemeAttr,
-    shade_fallback_key: ThemeAttr,
+    /// List of keys to fallback on.
+    ///
+    /// State specific color, state agnostic color, shape color.
+    color_keys: [ThemeAttr; 3],
+    shade_keys: [ThemeAttr; 2],
     fn_css_classes: fn(&dyn Themeable, &mut CssClassesBuilder, ThemeableParams<'_>),
 }
 
 impl ColorParamGroupings {
     fn new(
         highlight_state: HighlightState,
-        color_key: ThemeAttr,
-        color_fallback_key: ThemeAttr,
-        shade_key: ThemeAttr,
-        shade_fallback_key: ThemeAttr,
+        color_keys: [ThemeAttr; 3],
+        shade_keys: [ThemeAttr; 2],
         fn_css_classes: fn(&dyn Themeable, &mut CssClassesBuilder, ThemeableParams<'_>),
     ) -> Self {
         Self {
             highlight_state,
-            color_key,
-            color_fallback_key,
-            shade_key,
-            shade_fallback_key,
+            color_keys,
+            shade_keys,
             fn_css_classes,
         }
     }

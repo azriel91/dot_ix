@@ -92,22 +92,8 @@ use crate::IntoGraphvizDotSrc;
 impl IntoGraphvizDotSrc for &InfoGraph {
     fn into(self, theme: &GraphvizDotTheme) -> DotSrcAndStyles {
         let graph_attrs = graph_attrs(theme, self.direction());
-        let info_graph_dot = InfoGraphDot(&self);
-        let el_css_classes = info_graph_dot.0.theme().el_css_classes(&info_graph_dot);
         let node_attrs = node_attrs(theme);
         let edge_attrs = edge_attrs(theme);
-
-        let node_clusters = self
-            .hierarchy()
-            .iter()
-            // Reversing the order we feed nodes to Graphviz dot tends to produce a more natural
-            // layout order.
-            .rev()
-            .map(|(node_id, node_hierarchy)| {
-                node_cluster(self, &el_css_classes, theme, node_id, node_hierarchy)
-            })
-            .collect::<Vec<String>>()
-            .join("\n");
 
         // Build a map from `NodeId` to their `NodeHierarchy`, so that we don't have to
         // search for it every time we want to create an edge.
@@ -126,6 +112,24 @@ impl IntoGraphvizDotSrc for &InfoGraph {
 
             node_id_to_hierarchy
         };
+
+        let info_graph_dot = InfoGraphDot {
+            node_ids: node_id_to_hierarchy.keys().copied().collect::<Vec<_>>(),
+            edge_ids: self.edges().keys().collect::<Vec<_>>(),
+        };
+        let el_css_classes = self.theme().el_css_classes(&info_graph_dot);
+
+        let node_clusters = self
+            .hierarchy()
+            .iter()
+            // Reversing the order we feed nodes to Graphviz dot tends to produce a more natural
+            // layout order.
+            .rev()
+            .map(|(node_id, node_hierarchy)| {
+                node_cluster(self, &el_css_classes, theme, node_id, node_hierarchy)
+            })
+            .collect::<Vec<String>>()
+            .join("\n");
 
         let edges = self
             .edges()
@@ -625,15 +629,18 @@ fn tag_legend(
     Ok(())
 }
 
-#[derive(Clone, Copy)]
-struct InfoGraphDot<'graph>(&'graph InfoGraph);
+#[derive(Clone)]
+struct InfoGraphDot<'graph> {
+    node_ids: Vec<&'graph NodeId>,
+    edge_ids: Vec<&'graph EdgeId>,
+}
 
 impl<'graph> Themeable for InfoGraphDot<'graph> {
     fn node_ids(&self) -> impl Iterator<Item = &NodeId>
     where
         Self: Sized,
     {
-        self.0.hierarchy().keys()
+        self.node_ids.iter().copied()
     }
 
     fn node_stroke_classes(&self, builder: &mut CssClassesBuilder, params: ThemeableParams<'_>) {
@@ -648,7 +655,7 @@ impl<'graph> Themeable for InfoGraphDot<'graph> {
     where
         Self: Sized,
     {
-        self.0.edges().keys()
+        self.edge_ids.iter().copied()
     }
 
     fn edge_stroke_classes(&self, builder: &mut CssClassesBuilder, params: ThemeableParams<'_>) {
