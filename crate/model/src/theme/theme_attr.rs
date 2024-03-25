@@ -312,7 +312,7 @@ use serde::{Deserialize, Serialize};
 /// [Colours]: https://tailwindcss.com/docs/customizing-colors
 /// [Tailwind CSS]: https://tailwindcss.com/
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Deserialize, Serialize)]
-#[serde(rename = "snake_case")]
+#[serde(rename_all = "snake_case")]
 pub enum ThemeAttr {
     /// Extra classes to attach as is.
     Extra,

@@ -1,13 +1,15 @@
 use crate::{
     common::{EdgeId, NodeId},
-    theme::{CssClasses, CssClassesBuilder, ThemeableParams},
+    theme::{CssClassesBuilder, ThemeableParams},
 };
 
 /// Types that can be rendered into a CSS compatible format, e.g. SVG or HTML
 /// elements.
 pub trait Themeable {
     /// Returns the IDs of all nodes of this themeable type.
-    fn node_ids(&self) -> &[NodeId];
+    fn node_ids(&self) -> impl Iterator<Item = &NodeId>
+    where
+        Self: Sized;
 
     /// Returns the CSS classes that sets the line / border colour.
     ///
@@ -20,11 +22,7 @@ pub trait Themeable {
     ///
     /// * `builder`: The builder to append CSS classes.
     /// * `params`: Parameters for the CSS utility class.
-    fn node_stroke_classes<'f>(
-        &self,
-        builder: &mut CssClassesBuilder,
-        params: ThemeableParams<'f>,
-    ) -> CssClasses;
+    fn node_stroke_classes<'f>(&self, builder: &mut CssClassesBuilder, params: ThemeableParams<'f>);
 
     /// Returns the CSS classes that sets the background colour.
     ///
@@ -37,14 +35,12 @@ pub trait Themeable {
     ///
     /// * `builder`: The builder to append CSS classes.
     /// * `params`: Parameters for the CSS utility class.
-    fn node_fill_classes<'f>(
-        &self,
-        builder: &mut CssClassesBuilder,
-        params: ThemeableParams<'f>,
-    ) -> CssClasses;
+    fn node_fill_classes<'f>(&self, builder: &mut CssClassesBuilder, params: ThemeableParams<'f>);
 
     /// Returns the IDs of all edges of this themeable type.
-    fn edge_ids(&self) -> &[EdgeId];
+    fn edge_ids(&self) -> impl Iterator<Item = &EdgeId>
+    where
+        Self: Sized;
 
     /// Returns the CSS classes that sets the stroke colour.
     ///
@@ -57,11 +53,7 @@ pub trait Themeable {
     ///
     /// * `builder`: The builder to append CSS classes.
     /// * `params`: Parameters for the CSS utility class.
-    fn edge_stroke_classes<'f>(
-        &self,
-        builder: &mut CssClassesBuilder,
-        params: ThemeableParams<'f>,
-    ) -> CssClasses;
+    fn edge_stroke_classes<'f>(&self, builder: &mut CssClassesBuilder, params: ThemeableParams<'f>);
 
     /// Returns the CSS classes that sets the background colour.
     ///
@@ -74,9 +66,5 @@ pub trait Themeable {
     ///
     /// * `builder`: The builder to append CSS classes.
     /// * `params`: Parameters for the CSS utility class.
-    fn edge_fill_classes<'f>(
-        &self,
-        builder: &mut CssClassesBuilder,
-        params: ThemeableParams<'f>,
-    ) -> CssClasses;
+    fn edge_fill_classes<'f>(&self, builder: &mut CssClassesBuilder, params: ThemeableParams<'f>);
 }

@@ -136,7 +136,7 @@ impl Theme {
         T: Themeable,
     {
         let node_class_partials_defaults = self.get(&AnyIdOrDefaults::NodeDefaults);
-        themeable.node_ids().iter().filter_map(move |node_id| {
+        themeable.node_ids().filter_map(move |node_id| {
             let node_class_partials_specified = self.node_class_partials_specified(node_id);
 
             let any_id = Some(AnyId::from(node_id.clone()));
@@ -231,7 +231,7 @@ impl Theme {
     {
         let edge_class_partials_defaults = self.get(&AnyIdOrDefaults::EdgeDefaults);
 
-        themeable.edge_ids().iter().filter_map(move |edge_id| {
+        themeable.edge_ids().filter_map(move |edge_id| {
             let edge_class_partials_specified = self.edge_class_partials_specified(edge_id);
 
             let any_id = Some(AnyId::from(edge_id.clone()));

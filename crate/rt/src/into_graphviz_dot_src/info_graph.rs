@@ -6,10 +6,11 @@ use std::{
 
 use dot_ix_model::{
     common::{
-        graphviz_dot_theme::GraphStyle, DotSrcAndStyles, EdgeId, GraphvizDotTheme, NodeHierarchy,
-        NodeId, TagId, TailwindClasses, TailwindKey,
+        graphviz_dot_theme::GraphStyle, AnyId, DotSrcAndStyles, EdgeId, GraphvizDotTheme,
+        NodeHierarchy, NodeId, TagId, TailwindClasses, TailwindKey,
     },
     info_graph::{GraphDir, InfoGraph, Tag},
+    theme::{CssClassesBuilder, ElCssClasses, HighlightState, Themeable, ThemeableParams},
 };
 use indexmap::IndexMap;
 use indoc::{formatdoc, writedoc};
@@ -91,8 +92,10 @@ use crate::IntoGraphvizDotSrc;
 impl IntoGraphvizDotSrc for &InfoGraph {
     fn into(self, theme: &GraphvizDotTheme) -> DotSrcAndStyles {
         let graph_attrs = graph_attrs(theme, self.direction());
-        let node_attrs = node_attrs(theme, self.tailwind_classes());
-        let edge_attrs = edge_attrs(theme, self.tailwind_classes());
+        let info_graph_dot = InfoGraphDot(&self);
+        let el_css_classes = info_graph_dot.0.theme().el_css_classes(&info_graph_dot);
+        let node_attrs = node_attrs(theme);
+        let edge_attrs = edge_attrs(theme);
 
         let node_clusters = self
             .hierarchy()
@@ -100,7 +103,9 @@ impl IntoGraphvizDotSrc for &InfoGraph {
             // Reversing the order we feed nodes to Graphviz dot tends to produce a more natural
             // layout order.
             .rev()
-            .map(|(node_id, node_hierarchy)| node_cluster(self, theme, node_id, node_hierarchy))
+            .map(|(node_id, node_hierarchy)| {
+                node_cluster(self, &el_css_classes, theme, node_id, node_hierarchy)
+            })
             .collect::<Vec<String>>()
             .join("\n");
 
@@ -203,7 +208,7 @@ fn graph_attrs(theme: &GraphvizDotTheme, graph_dir: GraphDir) -> String {
     )
 }
 
-fn node_attrs(theme: &GraphvizDotTheme, tailwind_classes: &TailwindClasses) -> String {
+fn node_attrs(theme: &GraphvizDotTheme) -> String {
     let node_style_and_shape = match theme.graph_style {
         GraphStyle::Boxes => {
             "shape     = \"rect\"
@@ -220,7 +225,6 @@ fn node_attrs(theme: &GraphvizDotTheme, tailwind_classes: &TailwindClasses) -> S
     let node_height = theme.node_height();
     let node_margin_x = theme.node_margin_x();
     let node_margin_y = theme.node_margin_y();
-    let node_tailwind_classes = tailwind_classes.node_defaults();
 
     formatdoc!(
         r#"
@@ -232,16 +236,14 @@ fn node_attrs(theme: &GraphvizDotTheme, tailwind_classes: &TailwindClasses) -> S
             width     = {node_width}
             height    = {node_height}
             margin    = "{node_margin_x:.3},{node_margin_y:.3}"
-            class     = "{node_tailwind_classes}"
         ]
         "#
     )
 }
 
-fn edge_attrs(theme: &GraphvizDotTheme, tailwind_classes: &TailwindClasses) -> String {
+fn edge_attrs(theme: &GraphvizDotTheme) -> String {
     let edge_color = theme.edge_color();
     let plain_text_color = theme.plain_text_color();
-    let edge_tailwind_classes = tailwind_classes.edge_defaults();
 
     formatdoc!(
         r#"
@@ -249,7 +251,6 @@ fn edge_attrs(theme: &GraphvizDotTheme, tailwind_classes: &TailwindClasses) -> S
             arrowsize = 0.7
             color     = "{edge_color}"
             fontcolor = "{plain_text_color}"
-            class     = "{edge_tailwind_classes}"
         ]
         "#
     )
@@ -257,20 +258,29 @@ fn edge_attrs(theme: &GraphvizDotTheme, tailwind_classes: &TailwindClasses) -> S
 
 fn node_cluster(
     info_graph: &InfoGraph,
+    el_css_classes: &ElCssClasses,
     theme: &GraphvizDotTheme,
     node_id: &NodeId,
     node_hierarchy: &NodeHierarchy,
 ) -> String {
     let mut buffer = String::with_capacity(1024);
 
-    node_cluster_internal(info_graph, theme, node_id, node_hierarchy, &mut buffer)
-        .expect("Failed to write node_cluster string.");
+    node_cluster_internal(
+        info_graph,
+        el_css_classes,
+        theme,
+        node_id,
+        node_hierarchy,
+        &mut buffer,
+    )
+    .expect("Failed to write node_cluster string.");
 
     buffer
 }
 
 fn node_cluster_internal(
     info_graph: &InfoGraph,
+    el_css_classes: &ElCssClasses,
     theme: &GraphvizDotTheme,
     node_id: &NodeId,
     node_hierarchy: &NodeHierarchy,
@@ -281,7 +291,10 @@ fn node_cluster_internal(
     let node_emojis = info_graph.node_emojis();
     let node_tags = info_graph.node_tags();
     let graph_dir = info_graph.direction();
-    let tailwind_classes = info_graph.tailwind_classes();
+    let node_tailwind_classes = el_css_classes
+        .get(&AnyId::from(node_id.clone()))
+        .map(AsRef::<str>::as_ref)
+        .unwrap_or_default();
 
     let node_point_size = theme.node_point_size();
     let node_name = node_names.get(node_id).map(String::as_str);
@@ -349,7 +362,6 @@ fn node_cluster_internal(
     });
     let node_desc = node_desc.as_deref().unwrap_or("");
     let emoji = emoji.as_deref().unwrap_or("");
-    let node_tailwind_classes = tailwind_classes.node_classes_or_default(node_id.clone());
 
     let node_tag_classes = node_tags
         .get(node_id)
@@ -456,6 +468,7 @@ fn node_cluster_internal(
             .try_for_each(|(child_node_id, child_node_hierarchy)| {
                 node_cluster_internal(
                     info_graph,
+                    el_css_classes,
                     theme,
                     child_node_id,
                     child_node_hierarchy,
@@ -610,4 +623,77 @@ fn tag_legend(
     writeln!(buffer, "}}")?;
 
     Ok(())
+}
+
+#[derive(Clone, Copy)]
+struct InfoGraphDot<'graph>(&'graph InfoGraph);
+
+impl<'graph> Themeable for InfoGraphDot<'graph> {
+    fn node_ids(&self) -> impl Iterator<Item = &NodeId>
+    where
+        Self: Sized,
+    {
+        self.0.hierarchy().keys()
+    }
+
+    fn node_stroke_classes(&self, builder: &mut CssClassesBuilder, params: ThemeableParams<'_>) {
+        path_classes(builder, params, "stroke");
+    }
+
+    fn node_fill_classes(&self, builder: &mut CssClassesBuilder, params: ThemeableParams<'_>) {
+        path_classes(builder, params, "fill");
+    }
+
+    fn edge_ids(&self) -> impl Iterator<Item = &EdgeId>
+    where
+        Self: Sized,
+    {
+        self.0.edges().keys()
+    }
+
+    fn edge_stroke_classes(&self, builder: &mut CssClassesBuilder, params: ThemeableParams<'_>) {
+        path_classes(builder, params, "stroke");
+    }
+
+    fn edge_fill_classes(&self, builder: &mut CssClassesBuilder, params: ThemeableParams<'_>) {
+        let ThemeableParams {
+            highlight_state,
+            color,
+            shade,
+        } = params;
+
+        let highlight_prefix = highlight_prefix(highlight_state);
+        builder
+            .append(&format!("[&>path]:{highlight_prefix}fill-{color}-{shade}"))
+            .append(&format!(
+                "[&>polygon]:{highlight_prefix}fill-{color}-{shade}"
+            ));
+    }
+}
+
+fn path_classes(
+    builder: &mut CssClassesBuilder,
+    params: ThemeableParams<'_>,
+    stroke_or_fill: &str,
+) {
+    let ThemeableParams {
+        highlight_state,
+        color,
+        shade,
+    } = params;
+
+    let highlight_prefix = highlight_prefix(highlight_state);
+    builder.append(&format!(
+        "[&>path]:{highlight_prefix}{stroke_or_fill}-{color}-{shade}"
+    ));
+}
+
+fn highlight_prefix(highlight_state: HighlightState) -> &'static str {
+    let highlight_prefix = match highlight_state {
+        HighlightState::Normal => "",
+        HighlightState::Focus => "focus:",
+        HighlightState::Hover => "hover:",
+        HighlightState::Active => "active:",
+    };
+    highlight_prefix
 }

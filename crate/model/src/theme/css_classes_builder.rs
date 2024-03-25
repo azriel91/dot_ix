@@ -13,9 +13,11 @@ impl CssClassesBuilder {
     }
 
     /// Appends a CSS class to the list of CSS classes.
-    pub fn append(&mut self, class: &str) {
+    pub fn append(&mut self, class: &str) -> &mut Self {
         self.css_classes.push_str(class.trim());
         self.css_classes.push(' ');
+
+        self
     }
 
     pub fn build(self) -> CssClasses {
