@@ -1,4 +1,7 @@
-use std::ops::{Deref, DerefMut};
+use std::{
+    borrow::Cow,
+    ops::{Deref, DerefMut},
+};
 
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
@@ -50,8 +53,22 @@ mod themeable_params;
 /// 1. Theme default.
 /// 2. Colour override.
 /// 3. Node/edge specific override.
-#[derive(Clone, Debug, Default, PartialEq, Eq, Deserialize, Serialize)]
-pub struct Theme(IndexMap<AnyIdOrDefaults, CssClassPartials>);
+#[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
+pub struct Theme {
+    /// Whether to merge with the base styles.
+    merge_with_base: bool,
+    /// CSS utility class partials for each element.
+    styles: IndexMap<AnyIdOrDefaults, CssClassPartials>,
+}
+
+impl Default for Theme {
+    fn default() -> Self {
+        Self {
+            merge_with_base: true,
+            styles: Default::default(),
+        }
+    }
+}
 
 impl Theme {
     /// Returns a new `Theme`.
@@ -107,12 +124,48 @@ impl Theme {
 
     /// Returns a new `Theme` with the given preallocated capacity.
     pub fn with_capacity(capacity: usize) -> Self {
-        Self(IndexMap::with_capacity(capacity))
+        Self {
+            merge_with_base: true,
+            styles: IndexMap::with_capacity(capacity),
+        }
     }
 
     /// Returns the underlying map.
     pub fn into_inner(self) -> IndexMap<AnyIdOrDefaults, CssClassPartials> {
-        self.0
+        self.styles
+    }
+
+    /// Returns whether to merge with the base styles.
+    pub fn merge_with_base(&self) -> bool {
+        self.merge_with_base
+    }
+
+    /// Returns whether to merge with the base styles.
+    pub fn merge_with_base_mut(&mut self) -> &mut bool {
+        &mut self.merge_with_base
+    }
+
+    /// Merges the given overlay theme over this theme.
+    ///
+    /// Keys in the overlay theme will override the keys from this theme.
+    pub fn merge_overlay(mut self, overlay: &Theme) -> Self {
+        overlay
+            .styles
+            .iter()
+            .for_each(|(any_id_or_defaults, css_class_partials)| {
+                if let Some(existing_partials) = self.styles.get_mut(any_id_or_defaults) {
+                    existing_partials.extend(
+                        css_class_partials
+                            .iter()
+                            .map(|(theme_attr, value)| (*theme_attr, value.clone())),
+                    );
+                } else {
+                    self.styles
+                        .insert(any_id_or_defaults.clone(), css_class_partials.clone());
+                }
+            });
+
+        self
     }
 
     /// Computes the CSS utility classes for each element.
@@ -123,8 +176,15 @@ impl Theme {
     where
         T: Themeable,
     {
-        self.node_el_css_classes(themeable)
-            .chain(self.edge_el_css_classes(themeable))
+        let theme = if self.merge_with_base {
+            Cow::Owned(Theme::base().merge_overlay(self))
+        } else {
+            Cow::Borrowed(self)
+        };
+
+        theme
+            .node_el_css_classes(themeable)
+            .chain(theme.edge_el_css_classes(themeable))
             .collect()
     }
 
@@ -469,18 +529,21 @@ impl Deref for Theme {
     type Target = IndexMap<AnyIdOrDefaults, CssClassPartials>;
 
     fn deref(&self) -> &Self::Target {
-        &self.0
+        &self.styles
     }
 }
 
 impl DerefMut for Theme {
     fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.0
+        &mut self.styles
     }
 }
 
 impl From<IndexMap<AnyIdOrDefaults, CssClassPartials>> for Theme {
-    fn from(inner: IndexMap<AnyIdOrDefaults, CssClassPartials>) -> Self {
-        Self(inner)
+    fn from(styles: IndexMap<AnyIdOrDefaults, CssClassPartials>) -> Self {
+        Self {
+            merge_with_base: true,
+            styles,
+        }
     }
 }
