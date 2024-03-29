@@ -13,9 +13,11 @@
 use std::rc::Rc;
 
 use dot_ix_model::{
-    common::{NodeHierarchy, NodeId},
+    common::{AnyId, NodeHierarchy, NodeId},
     info_graph::{IndexMap, InfoGraph},
+    theme::ElCssClasses,
 };
+use dot_ix_rt::InfoGraphHtml;
 use leptos::{component, view, For, IntoView, Signal, SignalGet};
 
 cfg_if::cfg_if! { if #[cfg(target_arch = "wasm32")] {
@@ -62,25 +64,6 @@ cfg_if::cfg_if! { if #[cfg(target_arch = "wasm32")] {
     }
 }}
 
-const NODE_CLASSES: &str = "\
-    node \
-    bg-slate-300 \
-    border-2 \
-    border-solid \
-    p-2 \
-    border-slate-600 \
-    rounded-lg \
-    focus:bg-lime-200 \
-    focus:outline-1 \
-    focus:outline-lime-600 \
-    focus:outline-dashed \
-    focus:rounded-lg \
-    hover:[&:not(:has(.node:hover))]:bg-slate-200 \
-    hover:[&:not(:has(.node:hover))]:border-slate-400 \
-    focus:hover:[&:not(:has(.node:hover))]:bg-lime-200 \
-    focus:hover:[&:not(:has(.node:hover))]:border-lime-400 \
-    cursor-pointer \
-";
 const NODE_LABEL_WRAPPER_CLASSES: &str = "\
     flex \
     flex-initial \
@@ -118,9 +101,22 @@ pub fn FlexDiag(
     let (leader_lines, leader_lines_set) = leptos::create_signal(Vec::<LeaderLine>::new());
 
     let flex_diag_divs = move || {
-        let info_graph = Rc::new(info_graph.get());
+        let info_graph = info_graph.get();
+
+        let node_id_to_hierarchy = info_graph.hierarchy_flat();
+        let info_graph_html = InfoGraphHtml {
+            node_ids: node_id_to_hierarchy.keys().copied().collect::<Vec<_>>(),
+            edge_ids: info_graph.edges().keys().collect::<Vec<_>>(),
+        };
+        let el_css_classes = info_graph.theme().el_css_classes(&info_graph_html);
         let root_nodes = info_graph.hierarchy().clone();
-        divs(info_graph, root_nodes)
+
+        let flex_divs_ctx = FlexDivsCtx {
+            info_graph,
+            el_css_classes,
+        };
+        let flex_divs_ctx = Rc::new(flex_divs_ctx);
+        divs(flex_divs_ctx, root_nodes)
     };
 
     #[cfg(not(target_arch = "wasm32"))]
@@ -190,12 +186,15 @@ pub fn FlexDiag(
     }
 }
 
-fn divs(info_graph: Rc<InfoGraph>, hierarchy: NodeHierarchy) -> impl IntoView {
+fn divs(flex_divs_ctx: Rc<FlexDivsCtx>, hierarchy: NodeHierarchy) -> impl IntoView {
     view! {
         <For
             each=move || hierarchy.clone().into_inner().into_iter()
             key=|(node_id, _node_hierarchy)| node_id.clone()
             children=move |(node_id, child_hierarchy)| {
+                let info_graph = &flex_divs_ctx.info_graph;
+                let el_css_classes = &flex_divs_ctx.el_css_classes;
+
                 let node_names = info_graph.node_names();
                 let node_descs = info_graph.node_descs();
                 let node_emojis = info_graph.node_emojis();
@@ -203,9 +202,10 @@ fn divs(info_graph: Rc<InfoGraph>, hierarchy: NodeHierarchy) -> impl IntoView {
                 let desc = node_descs.get(&node_id).cloned().unwrap_or_default();
                 let emoji = node_emojis.get(&node_id).cloned().unwrap_or_default();
 
-                let node_classes = info_graph.tailwind_classes()
-                    .node_classes(node_id.clone())
-                    .unwrap_or(NODE_CLASSES)
+                let node_classes = el_css_classes
+                    .get(&AnyId::from(node_id.clone()))
+                    .map(AsRef::<str>::as_ref)
+                    .unwrap_or_default()
                     .to_string();
 
                 // Partition children from this node's child hierarchy, based on their rank.
@@ -236,7 +236,7 @@ fn divs(info_graph: Rc<InfoGraph>, hierarchy: NodeHierarchy) -> impl IntoView {
                         groups
                     });
 
-                let info_graph = Rc::clone(&info_graph);
+                let flex_divs_ctx = Rc::clone(&flex_divs_ctx);
 
                 view! {
                     <div id={move || node_id.to_string()} tabindex="0" class=node_classes>
@@ -254,7 +254,7 @@ fn divs(info_graph: Rc<InfoGraph>, hierarchy: NodeHierarchy) -> impl IntoView {
                                 children=move |(_node_id, child_hierarchy_group)| {
                                     view! {
                                         <div class=NODE_CHILDREN_VERT_WRAPPER_CLASSES>
-                                            {divs(Rc::clone(&info_graph), child_hierarchy_group)}
+                                            {divs(Rc::clone(&flex_divs_ctx), child_hierarchy_group)}
                                         </div>
                                     }
                                 }
@@ -265,4 +265,10 @@ fn divs(info_graph: Rc<InfoGraph>, hierarchy: NodeHierarchy) -> impl IntoView {
             }
         />
     }
+}
+
+#[derive(Clone, Debug)]
+struct FlexDivsCtx {
+    info_graph: InfoGraph,
+    el_css_classes: ElCssClasses,
 }

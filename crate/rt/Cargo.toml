@@ -17,6 +17,11 @@ doctest = false
 test = false
 
 [dependencies]
+cfg-if = { workspace = true }
 dot_ix_model = { workspace = true }
 indexmap = { workspace = true, features = ["serde"] }
 indoc = { workspace = true }
+
+[features]
+default = []
+info_graph_html = []

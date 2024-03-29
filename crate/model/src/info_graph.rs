@@ -1,10 +1,13 @@
+use std::collections::{HashMap, VecDeque};
+
 pub use indexmap::IndexMap;
 
 use serde::{Deserialize, Serialize};
 
 use crate::{
     common::{
-        Edges, NodeDescs, NodeEmojis, NodeHierarchy, NodeNames, NodeTags, TagId, TailwindClasses,
+        Edges, NodeDescs, NodeEmojis, NodeHierarchy, NodeId, NodeNames, NodeTags, TagId,
+        TailwindClasses,
     },
     theme::Theme,
 };
@@ -56,6 +59,44 @@ impl InfoGraph {
     /// Returns the nested nodes.
     pub fn hierarchy(&self) -> &NodeHierarchy {
         &self.hierarchy
+    }
+
+    /// Returns a flatten map of the node hierarchy.
+    ///
+    /// For example, if the hierarchy is:
+    ///
+    /// ```yaml
+    /// a:
+    ///   b:
+    ///     c: {}
+    ///     d: {}
+    /// ```
+    ///
+    /// This returns:
+    ///
+    /// ```yaml
+    /// a:
+    ///   b: {}
+    /// b:
+    ///   c: {}
+    ///   d: {}
+    /// c: {}
+    /// d: {}
+    /// ```
+    pub fn hierarchy_flat(&self) -> HashMap<&NodeId, &NodeHierarchy> {
+        let mut node_id_to_hierarchy =
+            HashMap::<&NodeId, &NodeHierarchy>::with_capacity(self.edges().len());
+        let mut hierarchy_queue = VecDeque::new();
+        hierarchy_queue.push_back(self.hierarchy());
+
+        while let Some(hierarchy) = hierarchy_queue.pop_front() {
+            hierarchy.iter().for_each(|(node_id, node_hierarchy)| {
+                node_id_to_hierarchy.insert(node_id, node_hierarchy);
+                hierarchy_queue.push_back(node_hierarchy);
+            });
+        }
+
+        node_id_to_hierarchy
     }
 
     /// Returns the logical / ordering dependencies.
