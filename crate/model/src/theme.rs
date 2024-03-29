@@ -294,25 +294,26 @@ impl Theme {
         );
 
         [
-            SpacingParamGroupings::new(ThemeAttr::PaddingX, ThemeAttr::Padding),
-            SpacingParamGroupings::new(ThemeAttr::PaddingY, ThemeAttr::Padding),
-            SpacingParamGroupings::new(ThemeAttr::MarginX, ThemeAttr::Margin),
-            SpacingParamGroupings::new(ThemeAttr::MarginY, ThemeAttr::Margin),
+            SpacingParamGroupings::new("px", &[ThemeAttr::PaddingX, ThemeAttr::Padding]),
+            SpacingParamGroupings::new("py", &[ThemeAttr::PaddingY, ThemeAttr::Padding]),
+            SpacingParamGroupings::new("mx", &[ThemeAttr::MarginX, ThemeAttr::Margin]),
+            SpacingParamGroupings::new("my", &[ThemeAttr::MarginY, ThemeAttr::Margin]),
         ]
         .into_iter()
         .for_each(|css_classes_param_groupings| {
             let SpacingParamGroupings {
-                spacing_key,
-                spacing_fallback_key,
+                spacing_prefix,
+                spacing_keys,
             } = css_classes_param_groupings;
 
-            let spacing = specified
-                .and_then(|partials| partials.get(&spacing_key))
-                .or_else(|| defaults.and_then(|partials| partials.get(&spacing_key)))
-                .or_else(|| specified.and_then(|partials| partials.get(&spacing_fallback_key)))
-                .or_else(|| defaults.and_then(|partials| partials.get(&spacing_fallback_key)));
+            let spacing = spacing_keys.iter().find_map(|spacing_key| {
+                specified
+                    .and_then(|partials| partials.get(spacing_key))
+                    .or_else(|| defaults.and_then(|partials| partials.get(spacing_key)))
+            });
 
-            spacing.map(|spacing| css_classes_builder.append(spacing));
+            spacing
+                .map(|spacing| css_classes_builder.append(&format!("{spacing_prefix}-{spacing}")));
         });
 
         specified
@@ -464,30 +465,21 @@ impl Theme {
                 fn_css_classes,
             } = css_classes_param_groupings;
 
-            let color = color_keys
-                .iter()
-                .filter_map(|color_key| {
-                    specified
-                        .and_then(|partials| partials.get(color_key))
-                        .or_else(|| defaults.and_then(|partials| partials.get(color_key)))
-                })
-                .next();
-            let shade = shade_keys
-                .iter()
-                .filter_map(|shade_key| {
-                    specified
-                        .and_then(|partials| partials.get(shade_key))
-                        .or_else(|| defaults.and_then(|partials| partials.get(shade_key)))
-                })
-                .next();
-            let outline_style = stroke_style_keys
-                .iter()
-                .filter_map(|stroke_style_key| {
-                    specified
-                        .and_then(|partials| partials.get(stroke_style_key))
-                        .or_else(|| defaults.and_then(|partials| partials.get(stroke_style_key)))
-                })
-                .next();
+            let color = color_keys.iter().find_map(|color_key| {
+                specified
+                    .and_then(|partials| partials.get(color_key))
+                    .or_else(|| defaults.and_then(|partials| partials.get(color_key)))
+            });
+            let shade = shade_keys.iter().find_map(|shade_key| {
+                specified
+                    .and_then(|partials| partials.get(shade_key))
+                    .or_else(|| defaults.and_then(|partials| partials.get(shade_key)))
+            });
+            let outline_style = stroke_style_keys.iter().find_map(|stroke_style_key| {
+                specified
+                    .and_then(|partials| partials.get(stroke_style_key))
+                    .or_else(|| defaults.and_then(|partials| partials.get(stroke_style_key)))
+            });
 
             let outline_width = specified
                 .and_then(|partials| partials.get(&ThemeAttr::OutlineWidth))
@@ -583,30 +575,21 @@ impl Theme {
                 fn_css_classes,
             } = css_classes_param_groupings;
 
-            let color = color_keys
-                .iter()
-                .filter_map(|color_key| {
-                    specified
-                        .and_then(|partials| partials.get(color_key))
-                        .or_else(|| defaults.and_then(|partials| partials.get(color_key)))
-                })
-                .next();
-            let shade = shade_keys
-                .iter()
-                .filter_map(|shade_key| {
-                    specified
-                        .and_then(|partials| partials.get(shade_key))
-                        .or_else(|| defaults.and_then(|partials| partials.get(shade_key)))
-                })
-                .next();
-            let stroke_style = stroke_style_keys
-                .iter()
-                .filter_map(|stroke_style_key| {
-                    specified
-                        .and_then(|partials| partials.get(stroke_style_key))
-                        .or_else(|| defaults.and_then(|partials| partials.get(stroke_style_key)))
-                })
-                .next();
+            let color = color_keys.iter().find_map(|color_key| {
+                specified
+                    .and_then(|partials| partials.get(color_key))
+                    .or_else(|| defaults.and_then(|partials| partials.get(color_key)))
+            });
+            let shade = shade_keys.iter().find_map(|shade_key| {
+                specified
+                    .and_then(|partials| partials.get(shade_key))
+                    .or_else(|| defaults.and_then(|partials| partials.get(shade_key)))
+            });
+            let stroke_style = stroke_style_keys.iter().find_map(|stroke_style_key| {
+                specified
+                    .and_then(|partials| partials.get(stroke_style_key))
+                    .or_else(|| defaults.and_then(|partials| partials.get(stroke_style_key)))
+            });
 
             let stroke_width = specified
                 .and_then(|partials| partials.get(&ThemeAttr::StrokeWidth))
@@ -696,22 +679,16 @@ impl Theme {
                 fn_css_classes,
             } = css_classes_param_groupings;
 
-            let color = color_keys
-                .iter()
-                .filter_map(|color_key| {
-                    specified
-                        .and_then(|partials| partials.get(color_key))
-                        .or_else(|| defaults.and_then(|partials| partials.get(color_key)))
-                })
-                .next();
-            let shade = shade_keys
-                .iter()
-                .filter_map(|shade_key| {
-                    specified
-                        .and_then(|partials| partials.get(shade_key))
-                        .or_else(|| defaults.and_then(|partials| partials.get(shade_key)))
-                })
-                .next();
+            let color = color_keys.iter().find_map(|color_key| {
+                specified
+                    .and_then(|partials| partials.get(color_key))
+                    .or_else(|| defaults.and_then(|partials| partials.get(color_key)))
+            });
+            let shade = shade_keys.iter().find_map(|shade_key| {
+                specified
+                    .and_then(|partials| partials.get(shade_key))
+                    .or_else(|| defaults.and_then(|partials| partials.get(shade_key)))
+            });
 
             if let Some(params) = color.zip(shade).map(|(color, shade)| ColorParams {
                 highlight_state,
@@ -783,15 +760,15 @@ impl<Params> StrokeParamGroupings<Params> {
 
 /// Groupings of parameters to generate CSS classes for spacing.
 struct SpacingParamGroupings {
-    spacing_key: ThemeAttr,
-    spacing_fallback_key: ThemeAttr,
+    spacing_prefix: &'static str,
+    spacing_keys: &'static [ThemeAttr],
 }
 
 impl SpacingParamGroupings {
-    fn new(spacing_key: ThemeAttr, spacing_fallback_key: ThemeAttr) -> Self {
+    fn new(spacing_prefix: &'static str, spacing_keys: &'static [ThemeAttr]) -> Self {
         Self {
-            spacing_key,
-            spacing_fallback_key,
+            spacing_prefix,
+            spacing_keys,
         }
     }
 }
