@@ -16,54 +16,51 @@ use dot_ix_model::{
     common::{NodeHierarchy, NodeId},
     info_graph::{IndexMap, InfoGraph},
 };
-#[cfg(target_arch = "wasm32")]
-use leptos::SignalSet;
 use leptos::{component, view, For, IntoView, Signal, SignalGet};
 
-#[cfg(target_arch = "wasm32")]
-use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
+cfg_if::cfg_if! { if #[cfg(target_arch = "wasm32")] {
+    use leptos::SignalSet;
 
-#[cfg(target_arch = "wasm32")]
-#[wasm_bindgen]
-extern "C" {
-    #[derive(Clone)]
-    pub type LeaderLine;
+    use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 
-    #[wasm_bindgen(method)]
-    fn remove(this: &LeaderLine);
+    #[wasm_bindgen]
+    extern "C" {
+        #[derive(Clone)]
+        pub type LeaderLine;
 
-    #[wasm_bindgen(method)]
-    fn position(this: &LeaderLine);
-}
+        #[wasm_bindgen(method)]
+        fn remove(this: &LeaderLine);
 
-#[cfg(target_arch = "wasm32")]
-#[derive(Clone, Debug, PartialEq, Eq, serde::Deserialize, serde::Serialize)]
-pub struct DashOpts {
-    pub animation: bool,
-}
+        #[wasm_bindgen(method)]
+        fn position(this: &LeaderLine);
+    }
 
-#[cfg(target_arch = "wasm32")]
-#[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
-pub struct LeaderLineOpts {
-    pub color: String,
-    pub dash: DashOpts,
-    pub size: u32,
-    pub startSocketGravity: u32,
-    pub endSocketGravity: u32,
-    pub endPlugSize: f64,
-    pub classes: String,
-}
+    #[derive(Clone, Debug, PartialEq, Eq, serde::Deserialize, serde::Serialize)]
+    pub struct DashOpts {
+        pub animation: bool,
+    }
 
-#[cfg(target_arch = "wasm32")]
-#[wasm_bindgen(module = "/public/js/leader-line.min.js")]
-extern "C" {
-    #[wasm_bindgen(catch)]
-    fn leader_line(
-        src_id: &str,
-        dest_id: &str,
-        opts: &JsValue,
-    ) -> Result<Option<LeaderLine>, JsValue>;
-}
+    #[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
+    pub struct LeaderLineOpts {
+        pub color: String,
+        pub dash: DashOpts,
+        pub size: u32,
+        pub startSocketGravity: u32,
+        pub endSocketGravity: u32,
+        pub endPlugSize: f64,
+        pub classes: String,
+    }
+
+    #[wasm_bindgen(module = "/public/js/leader-line.min.js")]
+    extern "C" {
+        #[wasm_bindgen(catch)]
+        fn leader_line(
+            src_id: &str,
+            dest_id: &str,
+            opts: &JsValue,
+        ) -> Result<Option<LeaderLine>, JsValue>;
+    }
+}}
 
 const NODE_CLASSES: &str = "\
     node \
