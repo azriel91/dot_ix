@@ -94,12 +94,12 @@ impl Theme {
             node_defaults.insert(ThemeAttr::FillShadeNormal, "300".into());
             node_defaults.insert(ThemeAttr::FillShadeFocus, "200".into());
             node_defaults.insert(ThemeAttr::FillShadeHover, "100".into());
-            node_defaults.insert(ThemeAttr::FillShadeActive, "400".into());
+            node_defaults.insert(ThemeAttr::FillShadeActive, "200".into());
 
             node_defaults.insert(ThemeAttr::StrokeShadeNormal, "600".into());
             node_defaults.insert(ThemeAttr::StrokeShadeFocus, "500".into());
             node_defaults.insert(ThemeAttr::StrokeShadeHover, "400".into());
-            node_defaults.insert(ThemeAttr::StrokeShadeActive, "700".into());
+            node_defaults.insert(ThemeAttr::StrokeShadeActive, "500".into());
 
             node_defaults.insert(ThemeAttr::StrokeWidth, "1".into());
             node_defaults.insert(ThemeAttr::StrokeStyle, "solid".into());
@@ -120,12 +120,12 @@ impl Theme {
             edge_defaults.insert(ThemeAttr::FillShadeNormal, "800".into());
             edge_defaults.insert(ThemeAttr::FillShadeFocus, "700".into());
             edge_defaults.insert(ThemeAttr::FillShadeHover, "600".into());
-            edge_defaults.insert(ThemeAttr::FillShadeActive, "500".into());
+            edge_defaults.insert(ThemeAttr::FillShadeActive, "700".into());
 
             edge_defaults.insert(ThemeAttr::StrokeShadeNormal, "900".into());
             edge_defaults.insert(ThemeAttr::StrokeShadeFocus, "800".into());
             edge_defaults.insert(ThemeAttr::StrokeShadeHover, "700".into());
-            edge_defaults.insert(ThemeAttr::StrokeShadeActive, "950".into());
+            edge_defaults.insert(ThemeAttr::StrokeShadeActive, "800".into());
 
             edge_defaults.insert(ThemeAttr::StrokeWidth, "1".into());
             edge_defaults.insert(ThemeAttr::StrokeStyle, "solid".into());
@@ -493,21 +493,19 @@ impl Theme {
                 .and_then(|partials| partials.get(&ThemeAttr::OutlineWidth))
                 .or_else(|| defaults.and_then(|partials| partials.get(&ThemeAttr::OutlineWidth)));
 
-            if let Some(params) = color
-                .zip(shade)
-                .zip(outline_width)
-                .zip(outline_style)
-                .map(
-                    |(((color, shade), outline_width), outline_style)| StrokeParams {
-                        color_params: ColorParams {
-                            highlight_state,
-                            color,
-                            shade,
-                        },
-                        stroke_width: outline_width,
-                        stroke_style: outline_style,
+            if let Some(params) = color.zip(shade).zip(outline_width).zip(outline_style).map(
+                |(((color, shade), outline_width), outline_style)| StrokeParams {
+                    color_params: ColorParams {
+                        highlight_state,
+                        color,
+                        shade,
                     },
-                ) { fn_css_classes(themeable, css_classes_builder, params) }
+                    stroke_width: outline_width,
+                    stroke_style: outline_style,
+                },
+            ) {
+                fn_css_classes(themeable, css_classes_builder, params)
+            }
         });
     }
 
@@ -614,21 +612,19 @@ impl Theme {
                 .and_then(|partials| partials.get(&ThemeAttr::StrokeWidth))
                 .or_else(|| defaults.and_then(|partials| partials.get(&ThemeAttr::StrokeWidth)));
 
-            if let Some(params) = color
-                .zip(shade)
-                .zip(stroke_width)
-                .zip(stroke_style)
-                .map(
-                    |(((color, shade), stroke_width), stroke_style)| StrokeParams {
-                        color_params: ColorParams {
-                            highlight_state,
-                            color,
-                            shade,
-                        },
-                        stroke_width,
-                        stroke_style,
+            if let Some(params) = color.zip(shade).zip(stroke_width).zip(stroke_style).map(
+                |(((color, shade), stroke_width), stroke_style)| StrokeParams {
+                    color_params: ColorParams {
+                        highlight_state,
+                        color,
+                        shade,
                     },
-                ) { fn_css_classes(themeable, css_classes_builder, params) }
+                    stroke_width,
+                    stroke_style,
+                },
+            ) {
+                fn_css_classes(themeable, css_classes_builder, params)
+            }
         });
     }
 
@@ -717,13 +713,13 @@ impl Theme {
                 })
                 .next();
 
-            if let Some(params) = color
-                .zip(shade)
-                .map(|(color, shade)| ColorParams {
-                    highlight_state,
-                    color,
-                    shade,
-                }) { fn_css_classes(themeable, css_classes_builder, params) }
+            if let Some(params) = color.zip(shade).map(|(color, shade)| ColorParams {
+                highlight_state,
+                color,
+                shade,
+            }) {
+                fn_css_classes(themeable, css_classes_builder, params)
+            }
         });
     }
 }

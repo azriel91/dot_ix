@@ -351,7 +351,7 @@ pub enum ThemeAttr {
     /// hovering over it, e.g. `"100"` for nodes, "600" for edges.
     FillShadeHover,
     /// Shade for the background when an element is being clicked /
-    /// pressed, e.g. `"400"` for nodes, "500" for edges.
+    /// pressed, e.g. `"200"` for nodes, "700" for edges.
     FillShadeActive,
     /// All padding within a node, e.g. `"1.5"` in `"p-1.5"`.
     ///
@@ -460,7 +460,7 @@ pub enum ThemeAttr {
     /// `"400"` for nodes, "700" for edges.
     StrokeShadeHover,
     /// Line/border shade when an element is being clicked / pressed, e.g.
-    /// `"700"` for nodes, "950" for edges.
+    /// `"500"` for nodes, "800" for edges.
     StrokeShadeActive,
     /// Width of the border for nodes, or line for edges.
     StrokeWidth,

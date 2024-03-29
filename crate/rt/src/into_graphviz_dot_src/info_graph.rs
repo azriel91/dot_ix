@@ -833,6 +833,6 @@ fn highlight_prefix(highlight_state: HighlightState) -> &'static str {
         HighlightState::Focus => "focus:",
         HighlightState::FocusHover => "focus:hover:",
         HighlightState::Hover => "hover:",
-        HighlightState::Active => "active:",
+        HighlightState::Active => "focus:active:",
     }
 }
