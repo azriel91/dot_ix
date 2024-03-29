@@ -66,16 +66,19 @@ theme:
   merge_with_base: true
   styles:
     node_defaults:
-      shape_color: blue
-      stroke_shade: 600
-      fill_shade: 200
-      extra: >-
-        [&>path]:stroke-4
+      extra: 'cursor-pointer'
+      shape_color: slate
     edge_defaults:
-      shape_color: red
-      stroke_shade: 600
-      fill_shade: 400
-      # todo cursor-pointer, stroke-1/border-width
+      extra: hidden
+    app_download__s3_object:
+      shape_color: green
+      stroke_style: dashed  # shorthand for [&>path]:[stroke-dasharray:3]
+      stroke_width: '[2px]'
+      stroke_shade_normal: 600
+      fill_shade_normal: 600
+      extra: >-
+        [&>path]:animate-[stroke-dashoffset-move_4s_linear_infinite]
+        cursor-pointer
 
 tailwind_classes:
   edge_defaults: hidden

@@ -377,6 +377,57 @@ pub enum ThemeAttr {
     ///
     /// This key has no effect on edges.
     MarginY,
+    /// Outline colour for elements for all states, e.g. `"blue"`. Defaults to
+    /// `"blue"`.
+    OutlineColor,
+    /// Outline colour when an element is not focused / hovered over, e.g.
+    /// `"blue"`. Defaults to nothing.
+    OutlineColorNormal,
+    /// Outline colour when an element is focused, e.g. `"blue"`. Defaults to
+    /// nothing.
+    OutlineColorFocus,
+    /// Outline colour when an element has the cursor hovering over it, e.g.
+    /// `"blue"`. Defaults to nothing.
+    OutlineColorHover,
+    /// Outline colour when an element is being clicked / pressed, e.g.
+    /// `"blue"`. Defaults to nothing.
+    OutlineColorActive,
+    /// Shade for lines and borders for all states, e.g. `"600"`.
+    ///
+    /// This will be used for all [`HighlightState`]s if not overridden by one
+    /// of the more specific variants.
+    ///
+    /// [`HighlightState`]: crate::theme::HighlightState
+    OutlineShade,
+    /// Outline shade when an element is not focused / hovered over, e.g.
+    /// `"600"` for nodes, "900" for edges. Defaults to nothing.
+    OutlineShadeNormal,
+    /// Outline shade when an element is focused, e.g.
+    /// `"500"` for nodes, "800" for edges. Defaults to the aforementioned
+    /// values.
+    OutlineShadeFocus,
+    /// Outline shade when an element has the cursor hovering over it, e.g.
+    /// `"400"` for nodes, "700" for edges. Defaults to nothing.
+    OutlineShadeHover,
+    /// Outline shade when an element is being clicked / pressed, e.g.
+    /// `"700"` for nodes, "950" for edges. Defaults to nothing.
+    OutlineShadeActive,
+    /// Width of the border for nodes, or line for edges. Defaults to `"2"`.
+    OutlineWidth,
+    /// Outline style for all states, e.g. "none", "solid", "dashed", "dotted".
+    OutlineStyle,
+    /// Outline style when an element is not focused / hovered over, e.g.
+    /// "none", "solid", "dashed", "dotted".
+    OutlineStyleNormal,
+    /// Outline style when an element is focused, e.g. "none", "solid",
+    /// "dashed", "dotted".
+    OutlineStyleFocus,
+    /// Outline style when an element has the cursor hovering over it, e.g.
+    /// "none", "solid", "dashed", "dotted".
+    OutlineStyleHover,
+    /// Outline style when an element is being clicked / pressed, e.g. "none",
+    /// "solid", "dashed", "dotted".
+    OutlineStyleActive,
     /// Base colour for shape colourable attributes, e.g. stroke/border, fill.
     ShapeColor,
     /// Line/border colour for elements for all states, e.g. `"slate"`.
@@ -413,6 +464,19 @@ pub enum ThemeAttr {
     StrokeShadeActive,
     /// Width of the border for nodes, or line for edges.
     StrokeWidth,
-    /// Border style of the node -- dotted, dashed, solid.
+    /// Line/border style for all states, e.g. "none", "solid", "dashed",
+    /// "dotted".
     StrokeStyle,
+    /// Line/border style when an element is not focused / hovered over, e.g.
+    /// "none", "solid", "dashed", "dotted".
+    StrokeStyleNormal,
+    /// Line/border style when an element is focused, e.g. "none", "solid",
+    /// "dashed", "dotted".
+    StrokeStyleFocus,
+    /// Line/border style when an element has the cursor hovering over it, e.g.
+    /// "none", "solid", "dashed", "dotted".
+    StrokeStyleHover,
+    /// Line/border style when an element is being clicked / pressed, e.g.
+    /// "none", "solid", "dashed", "dotted".
+    StrokeStyleActive,
 }

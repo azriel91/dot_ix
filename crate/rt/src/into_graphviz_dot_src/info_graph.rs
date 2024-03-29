@@ -142,7 +142,7 @@ impl IntoGraphvizDotSrc for &InfoGraph {
                 let src_node_hierarchy = node_id_to_hierarchy.get(src_node_id).copied();
                 let target_node_hierarchy = node_id_to_hierarchy.get(target_node_id).copied();
                 edge(
-                    self.tailwind_classes(),
+                    &el_css_classes,
                     edge_id,
                     src_node_id,
                     src_node_hierarchy,
@@ -489,7 +489,7 @@ fn node_cluster_internal(
 }
 
 fn edge(
-    tailwind_classes: &TailwindClasses,
+    el_css_classes: &ElCssClasses,
     edge_id: &EdgeId,
     src_node_id: &NodeId,
     src_node_hierarchy: Option<&NodeHierarchy>,
@@ -536,17 +536,18 @@ fn edge(
         (target_node_id, Cow::Borrowed(""))
     };
 
-    let edge_tailwind_classes = tailwind_classes
-        .edge_classes(edge_id.clone())
-        .map(|edge_tailwind_classes| format!(", class = \"{edge_tailwind_classes}\""));
-    let edge_tailwind_classes = edge_tailwind_classes.as_deref().unwrap_or("");
+    let edge_css_classes = el_css_classes
+        .get(&AnyId::from(edge_id.clone()))
+        .map(AsRef::<str>::as_ref)
+        .map(|edge_css_classes| format!(", class = \"{edge_css_classes}\""));
+    let edge_css_classes = edge_css_classes.as_deref().unwrap_or_default();
 
     formatdoc!(
         r#"
         {edge_src_node_id} -> {edge_target_node_id} [
             id     = "{edge_id}",
             minlen = 3
-            {edge_tailwind_classes}
+            {edge_css_classes}
             {ltail}
             {lhead}
         ]"#
@@ -645,6 +646,27 @@ impl<'graph> Themeable for InfoGraphDot<'graph> {
         self.node_ids.iter().copied()
     }
 
+    fn node_outline_classes(
+        &self,
+        builder: &mut CssClassesBuilder,
+        stroke_params: StrokeParams<'_>,
+    ) {
+        let StrokeParams {
+            color_params,
+            stroke_width,
+            stroke_style,
+        } = stroke_params;
+
+        path_color_classes(builder, color_params, "outline");
+        outline_style_classes(
+            builder,
+            color_params.highlight_state,
+            stroke_width,
+            stroke_style,
+            "[&>path]:",
+        );
+    }
+
     fn node_stroke_classes(
         &self,
         builder: &mut CssClassesBuilder,
@@ -656,12 +678,17 @@ impl<'graph> Themeable for InfoGraphDot<'graph> {
             stroke_style,
         } = stroke_params;
 
-        path_classes(builder, color_params, "stroke");
-        border_style_classes(builder, stroke_width, stroke_style);
+        path_color_classes(builder, color_params, "stroke");
+        border_style_classes(
+            builder,
+            color_params.highlight_state,
+            stroke_width,
+            stroke_style,
+        );
     }
 
     fn node_fill_classes(&self, builder: &mut CssClassesBuilder, color_params: ColorParams<'_>) {
-        path_classes(builder, color_params, "fill");
+        path_color_classes(builder, color_params, "fill");
     }
 
     fn edge_ids(&self) -> impl Iterator<Item = &EdgeId>
@@ -669,6 +696,27 @@ impl<'graph> Themeable for InfoGraphDot<'graph> {
         Self: Sized,
     {
         self.edge_ids.iter().copied()
+    }
+
+    fn edge_outline_classes(
+        &self,
+        builder: &mut CssClassesBuilder,
+        stroke_params: StrokeParams<'_>,
+    ) {
+        let StrokeParams {
+            color_params,
+            stroke_width,
+            stroke_style,
+        } = stroke_params;
+
+        el_color_classes(builder, color_params, "outline", "");
+        outline_style_classes(
+            builder,
+            color_params.highlight_state,
+            stroke_width,
+            stroke_style,
+            "",
+        );
     }
 
     fn edge_stroke_classes(
@@ -682,50 +730,90 @@ impl<'graph> Themeable for InfoGraphDot<'graph> {
             stroke_style,
         } = stroke_params;
 
-        path_classes(builder, color_params, "stroke");
-        border_style_classes(builder, stroke_width, stroke_style);
+        path_color_classes(builder, color_params, "stroke");
+        polygon_color_classes(builder, color_params, "stroke");
+        border_style_classes(
+            builder,
+            color_params.highlight_state,
+            stroke_width,
+            stroke_style,
+        );
     }
 
     fn edge_fill_classes(&self, builder: &mut CssClassesBuilder, color_params: ColorParams<'_>) {
-        path_classes(builder, color_params, "stroke");
-        let ColorParams {
-            highlight_state,
-            color,
-            shade,
-        } = color_params;
-
-        let highlight_prefix = highlight_prefix(highlight_state);
-        builder.append(&format!(
-            "[&>polygon]:{highlight_prefix}fill-{color}-{shade}"
-        ));
+        // deliberately don't have `"fill"` for `path`, because that adds a thin line
+        // when the path is styled as dashed
+        polygon_color_classes(builder, color_params, "fill");
     }
 }
 
+fn outline_style_classes(
+    builder: &mut CssClassesBuilder,
+    highlight_state: HighlightState,
+    stroke_width: &str,
+    stroke_style: &str,
+    el_prefix: &str,
+) {
+    let highlight_prefix = highlight_prefix(highlight_state);
+
+    builder
+        .append(&format!(
+            "{el_prefix}{highlight_prefix}outline-{stroke_width}"
+        ))
+        .append(&format!(
+            "{el_prefix}{highlight_prefix}outline-{stroke_style}"
+        ));
+}
+
 /// Appends SVG stroke classes that emulate HTML border styles.
-fn border_style_classes(builder: &mut CssClassesBuilder, stroke_width: &str, stroke_style: &str) {
+fn border_style_classes(
+    builder: &mut CssClassesBuilder,
+    highlight_state: HighlightState,
+    stroke_width: &str,
+    stroke_style: &str,
+) {
+    let highlight_prefix = highlight_prefix(highlight_state);
+
     match stroke_style {
         "none" => {}
         "solid" => {
-            builder.append(&format!("[&>path]:stroke-{stroke_width}"));
+            builder.append(&format!("[&>path]:{highlight_prefix}stroke-{stroke_width}"));
         }
         "dashed" => {
             builder
-                .append(&format!("[&>path]:stroke-{stroke_width}"))
-                .append(&format!("[&>path]:[stroke-dasharray:3]"));
+                .append(&format!("[&>path]:{highlight_prefix}stroke-{stroke_width}"))
+                .append(&format!("[&>path]:{highlight_prefix}[stroke-dasharray:3]"));
         }
         "dotted" => {
             builder
-                .append(&format!("[&>path]:stroke-{stroke_width}"))
-                .append(&format!("[&>path]:[stroke-dasharray:1]"));
+                .append(&format!("[&>path]:{highlight_prefix}stroke-{stroke_width}"))
+                .append(&format!("[&>path]:{highlight_prefix}[stroke-dasharray:2]"));
         }
         _ => {}
     };
 }
 
-fn path_classes(
+fn path_color_classes(
     builder: &mut CssClassesBuilder,
     color_params: ColorParams<'_>,
     stroke_or_fill: &str,
+) {
+    el_color_classes(builder, color_params, stroke_or_fill, "[&>path]:")
+}
+
+fn polygon_color_classes(
+    builder: &mut CssClassesBuilder,
+    color_params: ColorParams<'_>,
+    stroke_or_fill: &str,
+) {
+    el_color_classes(builder, color_params, stroke_or_fill, "[&>polygon]:")
+}
+
+fn el_color_classes(
+    builder: &mut CssClassesBuilder,
+    color_params: ColorParams<'_>,
+    stroke_or_fill: &str,
+    el_prefix: &str,
 ) {
     let ColorParams {
         highlight_state,
@@ -735,17 +823,16 @@ fn path_classes(
 
     let highlight_prefix = highlight_prefix(highlight_state);
     builder.append(&format!(
-        "[&>path]:{highlight_prefix}{stroke_or_fill}-{color}-{shade}"
+        "{el_prefix}{highlight_prefix}{stroke_or_fill}-{color}-{shade}"
     ));
 }
 
 fn highlight_prefix(highlight_state: HighlightState) -> &'static str {
-    let highlight_prefix = match highlight_state {
+    match highlight_state {
         HighlightState::Normal => "",
         HighlightState::Focus => "focus:",
         HighlightState::FocusHover => "focus:hover:",
         HighlightState::Hover => "hover:",
         HighlightState::Active => "active:",
-    };
-    highlight_prefix
+    }
 }
