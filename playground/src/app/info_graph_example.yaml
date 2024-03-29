@@ -67,9 +67,10 @@ theme:
   styles:
     node_defaults:
       extra: 'cursor-pointer'
-      shape_color: slate
     edge_defaults:
       extra: hidden
+    github_app_zip__app_extract:
+      extra: 'cursor-pointer'
     app_download__s3_object:
       shape_color: blue
       stroke_style: dashed  # shorthand for [&>path]:[stroke-dasharray:3]
@@ -80,7 +81,6 @@ theme:
         [&>path]:animate-[stroke-dashoffset-move_4s_linear_infinite]
         cursor-pointer
     aws:
-      shape_color: amber
       fill_shade_normal: 100
       fill_shade_hover: 50
       fill_shade_focus: 100
@@ -90,7 +90,30 @@ theme:
       stroke_shade_active: 500
       stroke_style: dotted
       padding: 3
+      shape_color: amber
       outline_color: yellow
+    localhost:
+      fill_shade_normal: 100
+      fill_shade_hover: 50
+      fill_shade_focus: 100
+      fill_shade_active: 100
+      stroke_shade_normal: 400
+      stroke_shade_hover: 300
+      stroke_shade_active: 500
+      stroke_style: dotted
+      padding: 3
+      shape_color: blue
+    github:
+      fill_shade_normal: 100
+      fill_shade_hover: 50
+      fill_shade_focus: 100
+      fill_shade_active: 100
+      stroke_shade_normal: 400
+      stroke_shade_hover: 300
+      stroke_shade_active: 500
+      stroke_style: dotted
+      padding: 3
+      shape_color: gray
 
 tailwind_classes:
   edge_defaults: hidden
