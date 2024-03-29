@@ -275,7 +275,7 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
                 <div class="tab">
                     <div class="diagram basis-1/2 grow">
                         <DotSvg
-                            dot_src_and_styles=dot_src_and_styles
+                            dot_src_and_styles=dot_src_and_styles.into()
                         />
                     </div>
                 </div>
@@ -287,7 +287,7 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
                 <label for="tab_flex_diag">"Flex Diagram"</label>
                 <div class="tab">
                     <div class="diagram basis-1/2 grow">
-                        <FlexDiag info_graph=info_graph visible=flex_diag_visible />
+                        <FlexDiag info_graph=info_graph visible=flex_diag_visible.into() />
                     </div>
                 </div>
             </div>

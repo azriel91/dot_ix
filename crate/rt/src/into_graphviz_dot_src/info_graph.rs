@@ -1,20 +1,20 @@
 use std::{
     borrow::Cow,
-    collections::{HashMap, VecDeque},
     fmt::{self, Write},
 };
 
 use dot_ix_model::{
     common::{
-        graphviz_dot_theme::GraphStyle, DotSrcAndStyles, EdgeId, GraphvizDotTheme, NodeHierarchy,
-        NodeId, TagId, TailwindClasses, TailwindKey,
+        graphviz_dot_theme::GraphStyle, AnyId, DotSrcAndStyles, EdgeId, GraphvizDotTheme,
+        NodeHierarchy, NodeId, TagId,
     },
-    info_graph::{GraphDir, InfoGraph, NodeInfo, Tag},
+    info_graph::{GraphDir, InfoGraph, Tag},
+    theme::ElCssClasses,
 };
-use indexmap::{IndexMap, IndexSet};
+use indexmap::IndexMap;
 use indoc::{formatdoc, writedoc};
 
-use crate::IntoGraphvizDotSrc;
+use crate::{InfoGraphDot, IntoGraphvizDotSrc};
 
 /// Renders a GraphViz Dot diagram with interactive styling.
 ///
@@ -91,8 +91,18 @@ use crate::IntoGraphvizDotSrc;
 impl IntoGraphvizDotSrc for &InfoGraph {
     fn into(self, theme: &GraphvizDotTheme) -> DotSrcAndStyles {
         let graph_attrs = graph_attrs(theme, self.direction());
-        let node_attrs = node_attrs(theme, self.tailwind_classes());
-        let edge_attrs = edge_attrs(theme, self.tailwind_classes());
+        let node_attrs = node_attrs(theme);
+        let edge_attrs = edge_attrs(theme);
+
+        // Build a map from `NodeId` to their `NodeHierarchy`, so that we don't have to
+        // search for it every time we want to create an edge.
+        let node_id_to_hierarchy = self.hierarchy_flat();
+
+        let info_graph_dot = InfoGraphDot {
+            node_ids: node_id_to_hierarchy.keys().copied().collect::<Vec<_>>(),
+            edge_ids: self.edges().keys().collect::<Vec<_>>(),
+        };
+        let el_css_classes = self.theme().el_css_classes(&info_graph_dot);
 
         let node_clusters = self
             .hierarchy()
@@ -101,36 +111,10 @@ impl IntoGraphvizDotSrc for &InfoGraph {
             // layout order.
             .rev()
             .map(|(node_id, node_hierarchy)| {
-                node_cluster(
-                    theme,
-                    self.tailwind_classes(),
-                    self.direction(),
-                    self.node_infos(),
-                    self.node_tags(),
-                    node_id,
-                    node_hierarchy,
-                )
+                node_cluster(self, &el_css_classes, theme, node_id, node_hierarchy)
             })
             .collect::<Vec<String>>()
             .join("\n");
-
-        // Build a map from `NodeId` to their `NodeHierarchy`, so that we don't have to
-        // search for it every time we want to create an edge.
-        let node_id_to_hierarchy = {
-            let mut node_id_to_hierarchy =
-                HashMap::<&NodeId, &NodeHierarchy>::with_capacity(self.edges().len());
-            let mut hierarchy_queue = VecDeque::new();
-            hierarchy_queue.push_back(self.hierarchy());
-
-            while let Some(hierarchy) = hierarchy_queue.pop_front() {
-                hierarchy.iter().for_each(|(node_id, node_hierarchy)| {
-                    node_id_to_hierarchy.insert(node_id, node_hierarchy);
-                    hierarchy_queue.push_back(node_hierarchy);
-                });
-            }
-
-            node_id_to_hierarchy
-        };
 
         let edges = self
             .edges()
@@ -141,7 +125,7 @@ impl IntoGraphvizDotSrc for &InfoGraph {
                 let src_node_hierarchy = node_id_to_hierarchy.get(src_node_id).copied();
                 let target_node_hierarchy = node_id_to_hierarchy.get(target_node_id).copied();
                 edge(
-                    self.tailwind_classes(),
+                    &el_css_classes,
                     edge_id,
                     src_node_id,
                     src_node_hierarchy,
@@ -153,13 +137,8 @@ impl IntoGraphvizDotSrc for &InfoGraph {
             .join("\n");
 
         let mut tag_legend_buffer = String::with_capacity(512 * self.tags().len() + 512);
-        tag_legend(
-            &mut tag_legend_buffer,
-            theme,
-            self.tailwind_classes(),
-            self.tags(),
-        )
-        .expect("Failed to write `tag_legend` string.");
+        tag_legend(&mut tag_legend_buffer, theme, &el_css_classes, self.tags())
+            .expect("Failed to write `tag_legend` string.");
 
         let dot_src = formatdoc!(
             "digraph G {{
@@ -213,7 +192,7 @@ fn graph_attrs(theme: &GraphvizDotTheme, graph_dir: GraphDir) -> String {
     )
 }
 
-fn node_attrs(theme: &GraphvizDotTheme, tailwind_classes: &TailwindClasses) -> String {
+fn node_attrs(theme: &GraphvizDotTheme) -> String {
     let node_style_and_shape = match theme.graph_style {
         GraphStyle::Boxes => {
             "shape     = \"rect\"
@@ -230,7 +209,6 @@ fn node_attrs(theme: &GraphvizDotTheme, tailwind_classes: &TailwindClasses) -> S
     let node_height = theme.node_height();
     let node_margin_x = theme.node_margin_x();
     let node_margin_y = theme.node_margin_y();
-    let node_tailwind_classes = tailwind_classes.node_defaults();
 
     formatdoc!(
         r#"
@@ -242,16 +220,14 @@ fn node_attrs(theme: &GraphvizDotTheme, tailwind_classes: &TailwindClasses) -> S
             width     = {node_width}
             height    = {node_height}
             margin    = "{node_margin_x:.3},{node_margin_y:.3}"
-            class     = "{node_tailwind_classes}"
         ]
         "#
     )
 }
 
-fn edge_attrs(theme: &GraphvizDotTheme, tailwind_classes: &TailwindClasses) -> String {
+fn edge_attrs(theme: &GraphvizDotTheme) -> String {
     let edge_color = theme.edge_color();
     let plain_text_color = theme.plain_text_color();
-    let edge_tailwind_classes = tailwind_classes.edge_defaults();
 
     formatdoc!(
         r#"
@@ -259,29 +235,24 @@ fn edge_attrs(theme: &GraphvizDotTheme, tailwind_classes: &TailwindClasses) -> S
             arrowsize = 0.7
             color     = "{edge_color}"
             fontcolor = "{plain_text_color}"
-            class     = "{edge_tailwind_classes}"
         ]
         "#
     )
 }
 
 fn node_cluster(
+    info_graph: &InfoGraph,
+    el_css_classes: &ElCssClasses,
     theme: &GraphvizDotTheme,
-    tailwind_classes: &TailwindClasses,
-    graph_dir: GraphDir,
-    node_infos: &IndexMap<NodeId, NodeInfo>,
-    node_tags: &IndexMap<NodeId, IndexSet<TagId>>,
     node_id: &NodeId,
     node_hierarchy: &NodeHierarchy,
 ) -> String {
     let mut buffer = String::with_capacity(1024);
 
     node_cluster_internal(
+        info_graph,
+        el_css_classes,
         theme,
-        tailwind_classes,
-        graph_dir,
-        node_infos,
-        node_tags,
         node_id,
         node_hierarchy,
         &mut buffer,
@@ -291,28 +262,36 @@ fn node_cluster(
     buffer
 }
 
-#[allow(clippy::too_many_arguments)] // Fix this when using buffer for everything.
 fn node_cluster_internal(
+    info_graph: &InfoGraph,
+    el_css_classes: &ElCssClasses,
     theme: &GraphvizDotTheme,
-    tailwind_classes: &TailwindClasses,
-    graph_dir: GraphDir,
-    node_infos: &IndexMap<NodeId, NodeInfo>,
-    node_tags: &IndexMap<NodeId, IndexSet<TagId>>,
     node_id: &NodeId,
     node_hierarchy: &NodeHierarchy,
     buffer: &mut String,
 ) -> fmt::Result {
+    let node_names = info_graph.node_names();
+    let node_descs = info_graph.node_descs();
+    let node_emojis = info_graph.node_emojis();
+    let node_tags = info_graph.node_tags();
+    let graph_dir = info_graph.direction();
+    let node_tailwind_classes = el_css_classes
+        .get(&AnyId::from(node_id.clone()))
+        .map(AsRef::<str>::as_ref)
+        .unwrap_or_default();
+
     let node_point_size = theme.node_point_size();
-    let node_info = node_infos.get(node_id);
+    let node_name = node_names.get(node_id).map(String::as_str);
+    let node_desc = node_descs.get(node_id).map(String::as_str);
+    let node_emoji = node_emojis.get(node_id).map(String::as_str);
     // TODO: escape
-    let node_label = node_info.map(NodeInfo::name).unwrap_or(node_id);
+    let node_label = node_name.unwrap_or(node_id);
     // TODO: escape
-    let node_desc = node_info
-        .and_then(NodeInfo::desc)
+    let node_desc = node_desc
         .map(|desc| desc.replace('\n', "<br />"))
         .map(|desc| format!("<tr><td balign=\"left\">{desc}</td></tr>"));
 
-    let emoji = node_info.and_then(NodeInfo::emoji).map(|emoji| {
+    let emoji = node_emoji.map(|emoji| {
         let emoji_rowspan = if node_desc.is_some() {
             "rowspan=\"2\""
         } else {
@@ -367,7 +346,6 @@ fn node_cluster_internal(
     });
     let node_desc = node_desc.as_deref().unwrap_or("");
     let emoji = emoji.as_deref().unwrap_or("");
-    let node_tailwind_classes = tailwind_classes.node_classes_or_default(node_id.clone());
 
     let node_tag_classes = node_tags
         .get(node_id)
@@ -473,11 +451,9 @@ fn node_cluster_internal(
             .iter()
             .try_for_each(|(child_node_id, child_node_hierarchy)| {
                 node_cluster_internal(
+                    info_graph,
+                    el_css_classes,
                     theme,
-                    tailwind_classes,
-                    graph_dir,
-                    node_infos,
-                    node_tags,
                     child_node_id,
                     child_node_hierarchy,
                     buffer,
@@ -491,7 +467,7 @@ fn node_cluster_internal(
 }
 
 fn edge(
-    tailwind_classes: &TailwindClasses,
+    el_css_classes: &ElCssClasses,
     edge_id: &EdgeId,
     src_node_id: &NodeId,
     src_node_hierarchy: Option<&NodeHierarchy>,
@@ -538,17 +514,18 @@ fn edge(
         (target_node_id, Cow::Borrowed(""))
     };
 
-    let edge_tailwind_classes = tailwind_classes
-        .edge_classes(edge_id.clone())
-        .map(|edge_tailwind_classes| format!(", class = \"{edge_tailwind_classes}\""));
-    let edge_tailwind_classes = edge_tailwind_classes.as_deref().unwrap_or("");
+    let edge_css_classes = el_css_classes
+        .get(&AnyId::from(edge_id.clone()))
+        .map(AsRef::<str>::as_ref)
+        .map(|edge_css_classes| format!(", class = \"{edge_css_classes}\""));
+    let edge_css_classes = edge_css_classes.as_deref().unwrap_or_default();
 
     formatdoc!(
         r#"
         {edge_src_node_id} -> {edge_target_node_id} [
             id     = "{edge_id}",
             minlen = 3
-            {edge_tailwind_classes}
+            {edge_css_classes}
             {ltail}
             {lhead}
         ]"#
@@ -558,7 +535,7 @@ fn edge(
 fn tag_legend(
     buffer: &mut String,
     theme: &GraphvizDotTheme,
-    tailwind_classes: &TailwindClasses,
+    el_css_classes: &ElCssClasses,
     tags: &IndexMap<TagId, Tag>,
 ) -> fmt::Result {
     let node_point_size = theme.node_point_size();
@@ -583,9 +560,9 @@ fn tag_legend(
         // This is for tailwindcss to identify this peer by name.
         let tag_peer_class = format!("peer/{tag_id}");
 
-        let tag_classes = tailwind_classes
-            .get(&TailwindKey::AnyId(tag_id.clone().into()))
-            .map(String::as_str)
+        let tag_classes = el_css_classes
+            .get(&AnyId::from(tag_id.clone()))
+            .map(AsRef::<str>::as_ref)
             .unwrap_or(tag_classes);
 
         writedoc!(

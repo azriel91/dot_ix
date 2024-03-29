@@ -76,6 +76,11 @@ macro_rules! id_newtype {
             pub fn into_inner(self) -> Cow<'static, str> {
                 self.0
             }
+
+            /// Returns the `&str` held by this ID.
+            pub fn as_str(&self) -> &str {
+                &self.0
+            }
         }
 
         impl std::ops::Deref for $ty_name {

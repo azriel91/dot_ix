@@ -15,18 +15,44 @@ hierarchy:
     s3_bucket:
       s3_object: {}
 
-node_infos:
-  localhost:        { emoji: 💻, name: "localhost",        desc: "Your computer" }
-  aws:              { emoji: ☁️, name: "aws",              desc: "Amazon Web Services" }
-  github:           { emoji: 🐙, name: "github",           desc: "Github" }
-  github_app_zip:   { emoji: 📁, name: "app.zip" }
-  app_download:     { emoji: 📥, name: "app_download",     desc: "app.zip" }
-  app_extract:      { emoji: 📂, name: "app_extract",      desc: "/opt/app" }
-  iam_policy:       { emoji: 📝, name: "iam_policy",       desc: "EC2: Allow S3 Read" }
-  iam_role:         { emoji: 🔰, name: "iam_role",         desc: "EC2 IAM policy attachment" }
-  instance_profile: { emoji: 🏷️, name: "instance_profile", desc: "EC2 instance role attachment" }
-  s3_bucket:        { emoji: 🪣, name: "s3_bucket",        desc: "demo-artifacts" }
-  s3_object:        { emoji: 📁, name: "s3_object",        desc: "app.zip" }
+node_names:
+  localhost:        "localhost"
+  aws:              "aws"
+  github:           "github"
+  github_app_zip:   "app.zip"
+  app_download:     "app_download"
+  app_extract:      "app_extract"
+  iam_policy:       "iam_policy"
+  iam_role:         "iam_role"
+  instance_profile: "instance_profile"
+  s3_bucket:        "s3_bucket"
+  s3_object:        "s3_object"
+
+node_descs:
+  localhost:        "Your computer"
+  aws:              "Amazon Web Services"
+  github:           "Github"
+  github_app_zip:   ~
+  app_download:     "app.zip"
+  app_extract:      "/opt/app"
+  iam_policy:       "EC2: Allow S3 Read"
+  iam_role:         "EC2 IAM policy attachment"
+  instance_profile: "EC2 instance role attachment"
+  s3_bucket:        "demo-artifacts"
+  s3_object:        "app.zip"
+
+node_emojis:
+  localhost:        💻
+  aws:              ☁️
+  github:           🐙
+  github_app_zip:   📁
+  app_download:     📥
+  app_extract:      📂
+  iam_policy:       📝
+  iam_role:         🔰
+  instance_profile: 🏷️
+  s3_bucket:        🪣
+  s3_object:        📁
 
 edges:
   app_download__app_extract: [app_download, app_extract]
@@ -36,124 +62,59 @@ edges:
   iam_policy__s3_object: [iam_policy, s3_object]
   github_app_zip__app_extract: [github_app_zip, app_extract]
 
-tailwind_classes:
-  edge_defaults: hidden
-  app_download__s3_object: >-
-    [&>path]:stroke-2
-    [&>path]:stroke-indigo-600
-    [&>polygon]:stroke-indigo-600
-    [&>path]:[stroke-dasharray:3]
-    [&>path]:animate-[stroke-dashoffset-move_4s_linear_infinite]
-    [&>polygon]:hover:fill-indigo-400
-    [&>path]:hover:stroke-indigo-400
-    [&>polygon]:focus:fill-indigo-500
-    [&>path]:focus:outline-2
-    [&>path]:focus:outline-indigo-300
-    [&>path]:focus:outline-dashed
-    [&>path]:focus:rounded-xl
-    cursor-pointer
-
-  github_app_zip__app_extract: >-
-    [&>use]:hover:stroke-lime-400
-    [&>use]:focus:outline-2
-    [&>use]:focus:outline-indigo-300
-    [&>use]:focus:outline-dashed
-    [&>use]:focus:rounded-xl
-    cursor-pointer
-
-  iam_policy__s3_object: hidden
-  aws: >-
-    [&>path]:fill-amber-100
-    [&>path]:stroke-1
-    [&>path]:stroke-amber-400
-    [&>path]:[stroke-dasharray:2]
-    [&>path]:hover:fill-amber-50
-    [&>path]:hover:stroke-amber-500
-    [&>path]:focus:fill-yellow-200
-    [&>path]:focus:stroke-amber-500
-    [&>path]:focus:outline-2
-    [&>path]:focus:outline-yellow-300
-    [&>path]:focus:outline-dashed
-    [&>path]:focus:rounded-xl
-    p-3
-    rounded-lg
-    border-dotted
-    bg-amber-100
-    border-2
-    border-amber-400
-    hover:bg-amber-50
-    hover:border-amber-500
-    focus:bg-yellow-200
-    focus:border-amber-500
-    focus:outline-2
-    focus:outline-yellow-300
-    focus:outline-dashed
-    focus:rounded-lg
-    focus:hover:bg-amber-50
-    focus:hover:border-amber-500
-    cursor-pointer
-
-  localhost: >-
-    [&>path]:fill-blue-100
-    [&>path]:stroke-1
-    [&>path]:stroke-blue-400
-    [&>path]:[stroke-dasharray:2]
-    [&>path]:hover:fill-blue-50
-    [&>path]:hover:stroke-blue-500
-    [&>path]:focus:fill-sky-200
-    [&>path]:focus:stroke-blue-500
-    [&>path]:focus:outline-2
-    [&>path]:focus:outline-sky-300
-    [&>path]:focus:outline-dashed
-    [&>path]:focus:rounded-xl
-    p-3
-    rounded-lg
-    border-dotted
-    bg-blue-100
-    border-2
-    border-blue-400
-    hover:bg-blue-50
-    hover:border-blue-500
-    focus:bg-sky-200
-    focus:border-blue-500
-    focus:outline-2
-    focus:outline-sky-300
-    focus:outline-dashed
-    focus:rounded-lg
-    focus:hover:bg-blue-50
-    focus:hover:border-blue-500
-    cursor-pointer
-
-  github: >-
-    [&>path]:fill-slate-100
-    [&>path]:stroke-1
-    [&>path]:stroke-slate-400
-    [&>path]:[stroke-dasharray:2]
-    [&>path]:hover:fill-slate-50
-    [&>path]:hover:stroke-slate-500
-    [&>path]:focus:fill-gray-200
-    [&>path]:focus:stroke-slate-500
-    [&>path]:focus:outline-2
-    [&>path]:focus:outline-gray-300
-    [&>path]:focus:outline-dashed
-    [&>path]:focus:rounded-xl
-    p-3
-    rounded-lg
-    border-dotted
-    bg-slate-100
-    border-2
-    border-slate-400
-    hover:bg-slate-50
-    hover:border-slate-500
-    focus:bg-gray-200
-    focus:border-slate-500
-    focus:outline-2
-    focus:outline-gray-300
-    focus:outline-dashed
-    focus:rounded-lg
-    focus:hover:bg-slate-50
-    focus:hover:border-slate-500
-    cursor-pointer
+theme:
+  merge_with_base: true
+  styles:
+    node_defaults:
+      stroke_width: '1'
+      extra: 'cursor-pointer rounded-lg'
+    edge_defaults:
+      extra: hidden
+    github_app_zip__app_extract:
+      extra: 'cursor-pointer'
+    app_download__s3_object:
+      shape_color: blue
+      stroke_style: dashed  # shorthand for [&>path]:[stroke-dasharray:3]
+      stroke_width: '[2px]'
+      stroke_shade_normal: 600
+      fill_shade_normal: 500
+      extra: >-
+        [&>path]:animate-[stroke-dashoffset-move_4s_linear_infinite]
+        cursor-pointer
+    aws:
+      fill_shade_normal: 100
+      fill_shade_hover: 50
+      fill_shade_focus: 100
+      fill_shade_active: 100
+      stroke_shade_normal: 400
+      stroke_shade_hover: 300
+      stroke_shade_active: 500
+      stroke_style: dotted
+      padding: 3
+      shape_color: amber
+      outline_color: yellow
+    localhost:
+      fill_shade_normal: 100
+      fill_shade_hover: 50
+      fill_shade_focus: 100
+      fill_shade_active: 100
+      stroke_shade_normal: 400
+      stroke_shade_hover: 300
+      stroke_shade_active: 500
+      stroke_style: dotted
+      padding: 3
+      shape_color: blue
+    github:
+      fill_shade_normal: 100
+      fill_shade_hover: 50
+      fill_shade_focus: 100
+      fill_shade_active: 100
+      stroke_shade_normal: 400
+      stroke_shade_hover: 300
+      stroke_shade_active: 500
+      stroke_style: dotted
+      padding: 3
+      shape_color: gray
 
 css: >-
   @keyframes stroke-dashoffset-move {
