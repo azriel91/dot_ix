@@ -1,5 +1,10 @@
 # Changelog
 
+## unreleased
+
+* In `InfoGraph`, replace `TailwindClasses` with inline `theme`.
+
+
 ## 0.4.1 (2024-03-14)
 
 * Include `dot_ix::model::common::` module prefix for `node_id!` and `edge_id!` macros.
