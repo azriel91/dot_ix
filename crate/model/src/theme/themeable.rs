@@ -39,11 +39,7 @@ pub trait Themeable {
     ///
     /// * `builder`: The builder to append CSS classes.
     /// * `stroke_params`: Parameters for the CSS utility class.
-    fn node_stroke_classes(
-        &self,
-        builder: &mut CssClassesBuilder,
-        stroke_params: StrokeParams<'_>,
-    );
+    fn node_stroke_classes(&self, builder: &mut CssClassesBuilder, stroke_params: StrokeParams<'_>);
 
     /// Appends the CSS classes that sets the background colour and style.
     ///
@@ -91,11 +87,7 @@ pub trait Themeable {
     ///
     /// * `builder`: The builder to append CSS classes.
     /// * `stroke_params`: Parameters for the CSS utility class.
-    fn edge_stroke_classes(
-        &self,
-        builder: &mut CssClassesBuilder,
-        stroke_params: StrokeParams<'_>,
-    );
+    fn edge_stroke_classes(&self, builder: &mut CssClassesBuilder, stroke_params: StrokeParams<'_>);
 
     /// Appends the CSS classes that sets the background colour and style.
     ///
