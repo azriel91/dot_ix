@@ -1,7 +1,7 @@
 use indexmap::IndexMap;
 
 use crate::{
-    common::{Edges, NodeHierarchy, NodeTags, TagId, TailwindClasses},
+    common::{Edges, NodeHierarchy, NodeTags, TagId},
     info_graph::{GraphDir, NodeDescs, NodeEmojis, NodeNames, Tag},
     theme::Theme,
 };
@@ -27,8 +27,6 @@ pub struct InfoGraphBuilder {
     node_tags: NodeTags,
     /// Tags to associate with nodes.
     tags: IndexMap<TagId, Tag>,
-    /// Tailwind classes to add to nodes with the given tag.
-    tailwind_classes: TailwindClasses,
     /// Theme that controls the CSS classes to add to elements.
     theme: Theme,
     /// Additional CSS to add in the spreadsheet.
@@ -84,12 +82,6 @@ impl InfoGraphBuilder {
         self
     }
 
-    /// Sets the tailwind classes to add to nodes with the given tag.
-    pub fn with_tailwind_classes(mut self, tailwind_classes: TailwindClasses) -> Self {
-        self.tailwind_classes = tailwind_classes;
-        self
-    }
-
     /// Sets the theme that controls the CSS classes to add to elements.
     pub fn with_theme(mut self, theme: Theme) -> Self {
         self.theme = theme;
@@ -113,7 +105,6 @@ impl InfoGraphBuilder {
             node_emojis,
             node_tags,
             tags,
-            tailwind_classes,
             theme,
             css,
         } = self;
@@ -127,7 +118,6 @@ impl InfoGraphBuilder {
             node_emojis,
             node_tags,
             tags,
-            tailwind_classes,
             theme,
             css,
         }

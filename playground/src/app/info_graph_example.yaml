@@ -66,7 +66,8 @@ theme:
   merge_with_base: true
   styles:
     node_defaults:
-      extra: 'cursor-pointer'
+      stroke_width: '1'
+      extra: 'cursor-pointer rounded-lg'
     edge_defaults:
       extra: hidden
     github_app_zip__app_extract:
@@ -114,125 +115,6 @@ theme:
       stroke_style: dotted
       padding: 3
       shape_color: gray
-
-tailwind_classes:
-  edge_defaults: hidden
-  app_download__s3_object: >-
-    [&>path]:stroke-2
-    [&>path]:stroke-indigo-600
-    [&>polygon]:stroke-indigo-600
-    [&>path]:[stroke-dasharray:3]
-    [&>path]:animate-[stroke-dashoffset-move_4s_linear_infinite]
-    [&>polygon]:hover:fill-indigo-400
-    [&>path]:hover:stroke-indigo-400
-    [&>polygon]:focus:fill-indigo-500
-    [&>path]:focus:outline-2
-    [&>path]:focus:outline-indigo-300
-    [&>path]:focus:outline-dashed
-    [&>path]:focus:rounded-xl
-    cursor-pointer
-
-  github_app_zip__app_extract: >-
-    [&>use]:hover:stroke-lime-400
-    [&>use]:focus:outline-2
-    [&>use]:focus:outline-indigo-300
-    [&>use]:focus:outline-dashed
-    [&>use]:focus:rounded-xl
-    cursor-pointer
-
-  iam_policy__s3_object: hidden
-  aws: >-
-    [&>path]:fill-amber-100
-    [&>path]:stroke-1
-    [&>path]:stroke-amber-400
-    [&>path]:[stroke-dasharray:2]
-    [&>path]:hover:fill-amber-50
-    [&>path]:hover:stroke-amber-500
-    [&>path]:focus:fill-yellow-200
-    [&>path]:focus:stroke-amber-500
-    [&>path]:focus:outline-2
-    [&>path]:focus:outline-yellow-300
-    [&>path]:focus:outline-dashed
-    [&>path]:focus:rounded-xl
-    p-3
-    rounded-lg
-    border-dotted
-    bg-amber-100
-    border-2
-    border-amber-400
-    hover:bg-amber-50
-    hover:border-amber-500
-    focus:bg-yellow-200
-    focus:border-amber-500
-    focus:outline-2
-    focus:outline-yellow-300
-    focus:outline-dashed
-    focus:rounded-lg
-    focus:hover:bg-amber-50
-    focus:hover:border-amber-500
-    cursor-pointer
-
-  localhost: >-
-    [&>path]:fill-blue-100
-    [&>path]:stroke-1
-    [&>path]:stroke-blue-400
-    [&>path]:[stroke-dasharray:2]
-    [&>path]:hover:fill-blue-50
-    [&>path]:hover:stroke-blue-500
-    [&>path]:focus:fill-sky-200
-    [&>path]:focus:stroke-blue-500
-    [&>path]:focus:outline-2
-    [&>path]:focus:outline-sky-300
-    [&>path]:focus:outline-dashed
-    [&>path]:focus:rounded-xl
-    p-3
-    rounded-lg
-    border-dotted
-    bg-blue-100
-    border-2
-    border-blue-400
-    hover:bg-blue-50
-    hover:border-blue-500
-    focus:bg-sky-200
-    focus:border-blue-500
-    focus:outline-2
-    focus:outline-sky-300
-    focus:outline-dashed
-    focus:rounded-lg
-    focus:hover:bg-blue-50
-    focus:hover:border-blue-500
-    cursor-pointer
-
-  github: >-
-    [&>path]:fill-slate-100
-    [&>path]:stroke-1
-    [&>path]:stroke-slate-400
-    [&>path]:[stroke-dasharray:2]
-    [&>path]:hover:fill-slate-50
-    [&>path]:hover:stroke-slate-500
-    [&>path]:focus:fill-gray-200
-    [&>path]:focus:stroke-slate-500
-    [&>path]:focus:outline-2
-    [&>path]:focus:outline-gray-300
-    [&>path]:focus:outline-dashed
-    [&>path]:focus:rounded-xl
-    p-3
-    rounded-lg
-    border-dotted
-    bg-slate-100
-    border-2
-    border-slate-400
-    hover:bg-slate-50
-    hover:border-slate-500
-    focus:bg-gray-200
-    focus:border-slate-500
-    focus:outline-2
-    focus:outline-gray-300
-    focus:outline-dashed
-    focus:rounded-lg
-    focus:hover:bg-slate-50
-    focus:hover:border-slate-500
-    cursor-pointer
 
 css: >-
   @keyframes stroke-dashoffset-move {

@@ -6,7 +6,7 @@ use std::{
 use dot_ix_model::{
     common::{
         graphviz_dot_theme::GraphStyle, AnyId, DotSrcAndStyles, EdgeId, GraphvizDotTheme,
-        NodeHierarchy, NodeId, TagId, TailwindClasses, TailwindKey,
+        NodeHierarchy, NodeId, TagId,
     },
     info_graph::{GraphDir, InfoGraph, Tag},
     theme::ElCssClasses,
@@ -137,13 +137,8 @@ impl IntoGraphvizDotSrc for &InfoGraph {
             .join("\n");
 
         let mut tag_legend_buffer = String::with_capacity(512 * self.tags().len() + 512);
-        tag_legend(
-            &mut tag_legend_buffer,
-            theme,
-            self.tailwind_classes(),
-            self.tags(),
-        )
-        .expect("Failed to write `tag_legend` string.");
+        tag_legend(&mut tag_legend_buffer, theme, &el_css_classes, self.tags())
+            .expect("Failed to write `tag_legend` string.");
 
         let dot_src = formatdoc!(
             "digraph G {{
@@ -540,7 +535,7 @@ fn edge(
 fn tag_legend(
     buffer: &mut String,
     theme: &GraphvizDotTheme,
-    tailwind_classes: &TailwindClasses,
+    el_css_classes: &ElCssClasses,
     tags: &IndexMap<TagId, Tag>,
 ) -> fmt::Result {
     let node_point_size = theme.node_point_size();
@@ -565,9 +560,9 @@ fn tag_legend(
         // This is for tailwindcss to identify this peer by name.
         let tag_peer_class = format!("peer/{tag_id}");
 
-        let tag_classes = tailwind_classes
-            .get(&TailwindKey::AnyId(tag_id.clone().into()))
-            .map(String::as_str)
+        let tag_classes = el_css_classes
+            .get(&AnyId::from(tag_id.clone()))
+            .map(AsRef::<str>::as_ref)
             .unwrap_or(tag_classes);
 
         writedoc!(

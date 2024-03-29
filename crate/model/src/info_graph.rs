@@ -5,10 +5,7 @@ pub use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    common::{
-        Edges, NodeDescs, NodeEmojis, NodeHierarchy, NodeId, NodeNames, NodeTags, TagId,
-        TailwindClasses,
-    },
+    common::{Edges, NodeDescs, NodeEmojis, NodeHierarchy, NodeId, NodeNames, NodeTags, TagId},
     theme::Theme,
 };
 
@@ -37,8 +34,6 @@ pub struct InfoGraph {
     pub(crate) node_tags: NodeTags,
     /// Tags to associate with nodes.
     pub(crate) tags: IndexMap<TagId, Tag>,
-    /// Tailwind classes to add to nodes with the given tag.
-    pub(crate) tailwind_classes: TailwindClasses,
     /// Theme that controls the CSS classes to add to elements.
     pub(crate) theme: Theme,
     /// Additional CSS to add in the spreadsheet.
@@ -127,11 +122,6 @@ impl InfoGraph {
     /// Returns the tags to associate with nodes.
     pub fn tags(&self) -> &IndexMap<TagId, Tag> {
         &self.tags
-    }
-
-    /// Returns the tailwind classes to add to nodes with the given tag.
-    pub fn tailwind_classes(&self) -> &TailwindClasses {
-        &self.tailwind_classes
     }
 
     /// Returns the theme that controls the CSS classes to add to elements.

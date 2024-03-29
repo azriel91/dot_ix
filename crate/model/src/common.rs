@@ -13,8 +13,6 @@ pub use self::{
     node_names::NodeNames,
     node_tags::NodeTags,
     tag_id::{TagId, TagIdInvalidFmt},
-    tailwind_classes::TailwindClasses,
-    tailwind_key::TailwindKey,
 };
 
 pub mod graphviz_dot_theme;
@@ -32,5 +30,3 @@ mod node_id;
 mod node_names;
 mod node_tags;
 mod tag_id;
-mod tailwind_classes;
-mod tailwind_key;
