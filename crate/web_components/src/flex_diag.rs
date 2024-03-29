@@ -103,12 +103,7 @@ pub fn FlexDiag(
     let flex_diag_divs = move || {
         let info_graph = info_graph.get();
 
-        let node_id_to_hierarchy = info_graph.hierarchy_flat();
-        let info_graph_html = InfoGraphHtml {
-            node_ids: node_id_to_hierarchy.keys().copied().collect::<Vec<_>>(),
-            edge_ids: info_graph.edges().keys().collect::<Vec<_>>(),
-        };
-        let el_css_classes = info_graph.theme().el_css_classes(&info_graph_html);
+        let el_css_classes = el_css_classes(&info_graph);
         let root_nodes = info_graph.hierarchy().clone();
 
         let flex_divs_ctx = FlexDivsCtx {
@@ -132,13 +127,15 @@ pub fn FlexDiag(
         if visible {
             let info_graph = info_graph.get();
             let edges = info_graph.edges();
-            let tailwind_classes = info_graph.tailwind_classes();
+            let el_css_classes = el_css_classes(&info_graph);
 
             let leader_lines_new = edges.iter().fold(
                 Vec::with_capacity(edges.len()),
                 |mut leader_lines_new, (edge_id, [src, dest])| {
-                    let classes = tailwind_classes
-                        .edge_classes_or_default(edge_id.clone())
+                    let classes = el_css_classes
+                        .get(&AnyId::from(edge_id.clone()))
+                        .map(AsRef::<str>::as_ref)
+                        .unwrap_or_default()
                         .to_string();
 
                     let opts = LeaderLineOpts {
@@ -184,6 +181,15 @@ pub fn FlexDiag(
             { leader_lines_redraw }
         </div>
     }
+}
+
+fn el_css_classes(info_graph: &InfoGraph) -> ElCssClasses {
+    let node_id_to_hierarchy = info_graph.hierarchy_flat();
+    let info_graph_html = InfoGraphHtml {
+        node_ids: node_id_to_hierarchy.keys().copied().collect::<Vec<_>>(),
+        edge_ids: info_graph.edges().keys().collect::<Vec<_>>(),
+    };
+    info_graph.theme().el_css_classes(&info_graph_html)
 }
 
 fn divs(flex_divs_ctx: Rc<FlexDivsCtx>, hierarchy: NodeHierarchy) -> impl IntoView {
