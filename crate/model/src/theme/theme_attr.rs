@@ -351,7 +351,7 @@ pub enum ThemeAttr {
     /// hovering over it, e.g. `"100"` for nodes, "600" for edges.
     FillShadeHover,
     /// Shade for the background when an element is being clicked /
-    /// pressed, e.g. `"200"` for nodes, "500" for edges.
+    /// pressed, e.g. `"400"` for nodes, "500" for edges.
     FillShadeActive,
     /// All padding within a node, e.g. `"1.5"` in `"p-1.5"`.
     ///
@@ -400,7 +400,7 @@ pub enum ThemeAttr {
     /// [`HighlightState`]: crate::theme::HighlightState
     StrokeShade,
     /// Line/border shade when an element is not focused / hovered over, e.g.
-    /// `"600"` for nodes, "950" for edges.
+    /// `"600"` for nodes, "900" for edges.
     StrokeShadeNormal,
     /// Line/border shade when an element is focused, e.g.
     /// `"500"` for nodes, "800" for edges.
@@ -409,7 +409,7 @@ pub enum ThemeAttr {
     /// `"400"` for nodes, "700" for edges.
     StrokeShadeHover,
     /// Line/border shade when an element is being clicked / pressed, e.g.
-    /// `"300"` for nodes, "600" for edges.
+    /// `"700"` for nodes, "950" for edges.
     StrokeShadeActive,
     /// Width of the border for nodes, or line for edges.
     StrokeWidth,

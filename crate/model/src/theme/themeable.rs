@@ -1,6 +1,6 @@
 use crate::{
     common::{EdgeId, NodeId},
-    theme::{CssClassesBuilder, ThemeableParams},
+    theme::{ColorParams, CssClassesBuilder, StrokeParams},
 };
 
 /// Types that can be rendered into a CSS compatible format, e.g. SVG or HTML
@@ -11,7 +11,7 @@ pub trait Themeable {
     where
         Self: Sized;
 
-    /// Returns the CSS classes that sets the line / border colour.
+    /// Appends the CSS classes that sets the line / border colour and style.
     ///
     /// For example, if the `color_shade` is `"slate-600"`, and the
     /// element that should actually be styled is a `<path>` element within
@@ -21,10 +21,14 @@ pub trait Themeable {
     /// # Parameters
     ///
     /// * `builder`: The builder to append CSS classes.
-    /// * `params`: Parameters for the CSS utility class.
-    fn node_stroke_classes<'f>(&self, builder: &mut CssClassesBuilder, params: ThemeableParams<'f>);
+    /// * `stroke_params`: Parameters for the CSS utility class.
+    fn node_stroke_classes<'f>(
+        &self,
+        builder: &mut CssClassesBuilder,
+        stroke_params: StrokeParams<'f>,
+    );
 
-    /// Returns the CSS classes that sets the background colour.
+    /// Appends the CSS classes that sets the background colour and style.
     ///
     /// For example, if the `color_shade` is `"slate-600"`, and the element
     /// that should actually be styled is a `<path>` element within the
@@ -34,15 +38,15 @@ pub trait Themeable {
     /// # Parameters
     ///
     /// * `builder`: The builder to append CSS classes.
-    /// * `params`: Parameters for the CSS utility class.
-    fn node_fill_classes<'f>(&self, builder: &mut CssClassesBuilder, params: ThemeableParams<'f>);
+    /// * `color_params`: Parameters for the CSS utility class.
+    fn node_fill_classes<'f>(&self, builder: &mut CssClassesBuilder, color_params: ColorParams<'f>);
 
     /// Returns the IDs of all edges of this themeable type.
     fn edge_ids(&self) -> impl Iterator<Item = &EdgeId>
     where
         Self: Sized;
 
-    /// Returns the CSS classes that sets the stroke colour.
+    /// Appends the CSS classes that sets the stroke colour and style.
     ///
     /// For example, if the `color_shade` is `"slate-600"`, and the
     /// element that should actually be styled is a `<path>` element within
@@ -52,10 +56,14 @@ pub trait Themeable {
     /// # Parameters
     ///
     /// * `builder`: The builder to append CSS classes.
-    /// * `params`: Parameters for the CSS utility class.
-    fn edge_stroke_classes<'f>(&self, builder: &mut CssClassesBuilder, params: ThemeableParams<'f>);
+    /// * `stroke_params`: Parameters for the CSS utility class.
+    fn edge_stroke_classes<'f>(
+        &self,
+        builder: &mut CssClassesBuilder,
+        stroke_params: StrokeParams<'f>,
+    );
 
-    /// Returns the CSS classes that sets the background colour.
+    /// Appends the CSS classes that sets the background colour and style.
     ///
     /// For example, if the `color_shade` is `"slate-600"`, and the element
     /// that should actually be styled is a `<path>` element within the
@@ -65,6 +73,6 @@ pub trait Themeable {
     /// # Parameters
     ///
     /// * `builder`: The builder to append CSS classes.
-    /// * `params`: Parameters for the CSS utility class.
-    fn edge_fill_classes<'f>(&self, builder: &mut CssClassesBuilder, params: ThemeableParams<'f>);
+    /// * `color_params`: Parameters for the CSS utility class.
+    fn edge_fill_classes<'f>(&self, builder: &mut CssClassesBuilder, color_params: ColorParams<'f>);
 }

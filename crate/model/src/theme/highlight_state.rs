@@ -8,7 +8,9 @@ pub enum HighlightState {
     Normal,
     /// The element is focused, and the cursor is not positioned over it.
     Focus,
-    /// The cursor is positioned over the element.
+    /// The element is focused, and the cursor is positioned over it.
+    FocusHover,
+    /// The element is not focused, and the cursor is positioned over it.
     Hover,
     /// The element is clicked / pressed.
     Active,

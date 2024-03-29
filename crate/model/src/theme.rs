@@ -9,21 +9,23 @@ use serde::{Deserialize, Serialize};
 use crate::common::{AnyId, EdgeId, NodeId};
 
 pub use self::{
-    any_id_or_defaults::AnyIdOrDefaults, css_class_partials::CssClassPartials,
-    css_classes::CssClasses, css_classes_builder::CssClassesBuilder, el_css_classes::ElCssClasses,
-    highlight_state::HighlightState, theme_attr::ThemeAttr, themeable::Themeable,
-    themeable_params::ThemeableParams,
+    any_id_or_defaults::AnyIdOrDefaults, color_params::ColorParams,
+    css_class_partials::CssClassPartials, css_classes::CssClasses,
+    css_classes_builder::CssClassesBuilder, el_css_classes::ElCssClasses,
+    highlight_state::HighlightState, stroke_params::StrokeParams, theme_attr::ThemeAttr,
+    themeable::Themeable,
 };
 
 mod any_id_or_defaults;
+mod color_params;
 mod css_class_partials;
 mod css_classes;
 mod css_classes_builder;
 mod el_css_classes;
 mod highlight_state;
+mod stroke_params;
 mod theme_attr;
 mod themeable;
-mod themeable_params;
 
 /// Theme to style the generated diagram. Map of [`AnyIdOrDefaults`] to
 /// [`CssClassPartials`].
@@ -92,31 +94,37 @@ impl Theme {
             node_defaults.insert(ThemeAttr::FillShadeNormal, "300".into());
             node_defaults.insert(ThemeAttr::FillShadeFocus, "200".into());
             node_defaults.insert(ThemeAttr::FillShadeHover, "100".into());
-            node_defaults.insert(ThemeAttr::FillShadeActive, "200".into());
+            node_defaults.insert(ThemeAttr::FillShadeActive, "400".into());
 
             node_defaults.insert(ThemeAttr::StrokeShadeNormal, "600".into());
             node_defaults.insert(ThemeAttr::StrokeShadeFocus, "500".into());
             node_defaults.insert(ThemeAttr::StrokeShadeHover, "400".into());
-            node_defaults.insert(ThemeAttr::StrokeShadeActive, "300".into());
+            node_defaults.insert(ThemeAttr::StrokeShadeActive, "700".into());
+
+            node_defaults.insert(ThemeAttr::StrokeWidth, "1".into());
+            node_defaults.insert(ThemeAttr::StrokeStyle, "solid".into());
 
             node_defaults
         });
 
         theme.insert(AnyIdOrDefaults::EdgeDefaults, {
-            let mut node_defaults = CssClassPartials::new();
-            node_defaults.insert(ThemeAttr::ShapeColor, "slate".into());
+            let mut edge_defaults = CssClassPartials::new();
+            edge_defaults.insert(ThemeAttr::ShapeColor, "slate".into());
 
-            node_defaults.insert(ThemeAttr::FillShadeNormal, "800".into());
-            node_defaults.insert(ThemeAttr::FillShadeFocus, "700".into());
-            node_defaults.insert(ThemeAttr::FillShadeHover, "600".into());
-            node_defaults.insert(ThemeAttr::FillShadeActive, "500".into());
+            edge_defaults.insert(ThemeAttr::FillShadeNormal, "800".into());
+            edge_defaults.insert(ThemeAttr::FillShadeFocus, "700".into());
+            edge_defaults.insert(ThemeAttr::FillShadeHover, "600".into());
+            edge_defaults.insert(ThemeAttr::FillShadeActive, "500".into());
 
-            node_defaults.insert(ThemeAttr::StrokeShadeNormal, "950".into());
-            node_defaults.insert(ThemeAttr::StrokeShadeFocus, "800".into());
-            node_defaults.insert(ThemeAttr::StrokeShadeHover, "700".into());
-            node_defaults.insert(ThemeAttr::StrokeShadeActive, "600".into());
+            edge_defaults.insert(ThemeAttr::StrokeShadeNormal, "900".into());
+            edge_defaults.insert(ThemeAttr::StrokeShadeFocus, "800".into());
+            edge_defaults.insert(ThemeAttr::StrokeShadeHover, "700".into());
+            edge_defaults.insert(ThemeAttr::StrokeShadeActive, "950".into());
 
-            node_defaults
+            edge_defaults.insert(ThemeAttr::StrokeWidth, "1".into());
+            edge_defaults.insert(ThemeAttr::StrokeStyle, "solid".into());
+
+            edge_defaults
         });
 
         theme
@@ -233,19 +241,25 @@ impl Theme {
         let themeable_node_stroke_classes =
             |themeable: &dyn Themeable,
              css_classes_builder: &mut CssClassesBuilder,
-             params: ThemeableParams<'_>| {
+             params: StrokeParams<'_>| {
                 themeable.node_stroke_classes(css_classes_builder, params);
             };
 
         let themeable_node_fill_classes =
             |themeable: &dyn Themeable,
              css_classes_builder: &mut CssClassesBuilder,
-             params: ThemeableParams<'_>| {
+             params: ColorParams<'_>| {
                 themeable.node_fill_classes(css_classes_builder, params);
             };
 
-        Self::stroke_and_fill_classes(
+        Self::stroke_classes(
             themeable_node_stroke_classes,
+            specified,
+            defaults,
+            themeable,
+            &mut css_classes_builder,
+        );
+        Self::fill_classes(
             themeable_node_fill_classes,
             specified,
             defaults,
@@ -328,19 +342,25 @@ impl Theme {
         let themeable_edge_stroke_classes =
             |themeable: &dyn Themeable,
              css_classes_builder: &mut CssClassesBuilder,
-             params: ThemeableParams<'_>| {
+             params: StrokeParams<'_>| {
                 themeable.edge_stroke_classes(css_classes_builder, params);
             };
 
         let themeable_edge_fill_classes =
             |themeable: &dyn Themeable,
              css_classes_builder: &mut CssClassesBuilder,
-             params: ThemeableParams<'_>| {
+             params: ColorParams<'_>| {
                 themeable.edge_fill_classes(css_classes_builder, params);
             };
 
-        Self::stroke_and_fill_classes(
+        Self::stroke_classes(
             themeable_edge_stroke_classes,
+            specified,
+            defaults,
+            themeable,
+            &mut css_classes_builder,
+        );
+        Self::fill_classes(
             themeable_edge_fill_classes,
             specified,
             defaults,
@@ -355,9 +375,8 @@ impl Theme {
         Some(css_classes_builder.build())
     }
 
-    fn stroke_and_fill_classes(
-        fn_stroke_classes: fn(&dyn Themeable, &mut CssClassesBuilder, ThemeableParams<'_>),
-        fn_fill_classes: fn(&dyn Themeable, &mut CssClassesBuilder, ThemeableParams<'_>),
+    fn stroke_classes(
+        fn_stroke_classes: fn(&dyn Themeable, &mut CssClassesBuilder, StrokeParams<'_>),
         specified: Option<&CssClassPartials>,
         defaults: Option<&CssClassPartials>,
         themeable: &dyn Themeable,
@@ -385,6 +404,16 @@ impl Theme {
                 fn_stroke_classes,
             ),
             ColorParamGroupings::new(
+                HighlightState::FocusHover,
+                [
+                    ThemeAttr::StrokeColorHover,
+                    ThemeAttr::StrokeColor,
+                    ThemeAttr::ShapeColor,
+                ],
+                [ThemeAttr::StrokeShadeHover, ThemeAttr::StrokeShade],
+                fn_stroke_classes,
+            ),
+            ColorParamGroupings::new(
                 HighlightState::Hover,
                 [
                     ThemeAttr::StrokeColorHover,
@@ -404,6 +433,68 @@ impl Theme {
                 [ThemeAttr::StrokeShadeActive, ThemeAttr::StrokeShade],
                 fn_stroke_classes,
             ),
+        ]
+        .into_iter()
+        .for_each(|css_classes_param_groupings| {
+            let ColorParamGroupings {
+                highlight_state,
+                color_keys,
+                shade_keys,
+                fn_css_classes,
+            } = css_classes_param_groupings;
+
+            let color = color_keys
+                .iter()
+                .filter_map(|color_key| {
+                    specified
+                        .and_then(|partials| partials.get(color_key))
+                        .or_else(|| defaults.and_then(|partials| partials.get(color_key)))
+                })
+                .next();
+            let shade = shade_keys
+                .iter()
+                .filter_map(|shade_key| {
+                    specified
+                        .and_then(|partials| partials.get(shade_key))
+                        .or_else(|| defaults.and_then(|partials| partials.get(shade_key)))
+                })
+                .next();
+
+            let stroke_width = specified
+                .and_then(|partials| partials.get(&ThemeAttr::StrokeWidth))
+                .or_else(|| defaults.and_then(|partials| partials.get(&ThemeAttr::StrokeWidth)));
+
+            let stroke_style = specified
+                .and_then(|partials| partials.get(&ThemeAttr::StrokeStyle))
+                .or_else(|| defaults.and_then(|partials| partials.get(&ThemeAttr::StrokeStyle)));
+
+            color
+                .zip(shade)
+                .zip(stroke_width)
+                .zip(stroke_style)
+                .map(
+                    |(((color, shade), stroke_width), stroke_style)| StrokeParams {
+                        color_params: ColorParams {
+                            highlight_state,
+                            color,
+                            shade,
+                        },
+                        stroke_width,
+                        stroke_style,
+                    },
+                )
+                .map(|params| fn_css_classes(themeable, css_classes_builder, params));
+        });
+    }
+
+    fn fill_classes(
+        fn_fill_classes: fn(&dyn Themeable, &mut CssClassesBuilder, ColorParams<'_>),
+        specified: Option<&CssClassPartials>,
+        defaults: Option<&CssClassPartials>,
+        themeable: &dyn Themeable,
+        css_classes_builder: &mut CssClassesBuilder,
+    ) {
+        [
             ColorParamGroupings::new(
                 HighlightState::Normal,
                 [
@@ -422,6 +513,16 @@ impl Theme {
                     ThemeAttr::ShapeColor,
                 ],
                 [ThemeAttr::FillShadeFocus, ThemeAttr::FillShade],
+                fn_fill_classes,
+            ),
+            ColorParamGroupings::new(
+                HighlightState::FocusHover,
+                [
+                    ThemeAttr::FillColorHover,
+                    ThemeAttr::FillColor,
+                    ThemeAttr::ShapeColor,
+                ],
+                [ThemeAttr::FillShadeHover, ThemeAttr::FillShade],
                 fn_fill_classes,
             ),
             ColorParamGroupings::new(
@@ -473,7 +574,7 @@ impl Theme {
 
             color
                 .zip(shade)
-                .map(|(color, shade)| ThemeableParams {
+                .map(|(color, shade)| ColorParams {
                     highlight_state,
                     color,
                     shade,
@@ -484,22 +585,22 @@ impl Theme {
 }
 
 /// Groupings of parameters to generate CSS classes for colour shades.
-struct ColorParamGroupings {
+struct ColorParamGroupings<Params> {
     highlight_state: HighlightState,
     /// List of keys to fallback on.
     ///
     /// State specific color, state agnostic color, shape color.
     color_keys: [ThemeAttr; 3],
     shade_keys: [ThemeAttr; 2],
-    fn_css_classes: fn(&dyn Themeable, &mut CssClassesBuilder, ThemeableParams<'_>),
+    fn_css_classes: fn(&dyn Themeable, &mut CssClassesBuilder, Params),
 }
 
-impl ColorParamGroupings {
+impl<Params> ColorParamGroupings<Params> {
     fn new(
         highlight_state: HighlightState,
         color_keys: [ThemeAttr; 3],
         shade_keys: [ThemeAttr; 2],
-        fn_css_classes: fn(&dyn Themeable, &mut CssClassesBuilder, ThemeableParams<'_>),
+        fn_css_classes: fn(&dyn Themeable, &mut CssClassesBuilder, Params),
     ) -> Self {
         Self {
             highlight_state,

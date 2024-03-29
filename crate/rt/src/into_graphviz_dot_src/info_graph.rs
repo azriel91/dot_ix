@@ -10,7 +10,9 @@ use dot_ix_model::{
         NodeHierarchy, NodeId, TagId, TailwindClasses, TailwindKey,
     },
     info_graph::{GraphDir, InfoGraph, Tag},
-    theme::{CssClassesBuilder, ElCssClasses, HighlightState, Themeable, ThemeableParams},
+    theme::{
+        ColorParams, CssClassesBuilder, ElCssClasses, HighlightState, StrokeParams, Themeable,
+    },
 };
 use indexmap::IndexMap;
 use indoc::{formatdoc, writedoc};
@@ -643,12 +645,23 @@ impl<'graph> Themeable for InfoGraphDot<'graph> {
         self.node_ids.iter().copied()
     }
 
-    fn node_stroke_classes(&self, builder: &mut CssClassesBuilder, params: ThemeableParams<'_>) {
-        path_classes(builder, params, "stroke");
+    fn node_stroke_classes(
+        &self,
+        builder: &mut CssClassesBuilder,
+        stroke_params: StrokeParams<'_>,
+    ) {
+        let StrokeParams {
+            color_params,
+            stroke_width,
+            stroke_style,
+        } = stroke_params;
+
+        path_classes(builder, color_params, "stroke");
+        border_style_classes(builder, stroke_width, stroke_style);
     }
 
-    fn node_fill_classes(&self, builder: &mut CssClassesBuilder, params: ThemeableParams<'_>) {
-        path_classes(builder, params, "fill");
+    fn node_fill_classes(&self, builder: &mut CssClassesBuilder, color_params: ColorParams<'_>) {
+        path_classes(builder, color_params, "fill");
     }
 
     fn edge_ids(&self) -> impl Iterator<Item = &EdgeId>
@@ -658,36 +671,67 @@ impl<'graph> Themeable for InfoGraphDot<'graph> {
         self.edge_ids.iter().copied()
     }
 
-    fn edge_stroke_classes(&self, builder: &mut CssClassesBuilder, params: ThemeableParams<'_>) {
-        path_classes(builder, params, "stroke");
+    fn edge_stroke_classes(
+        &self,
+        builder: &mut CssClassesBuilder,
+        stroke_params: StrokeParams<'_>,
+    ) {
+        let StrokeParams {
+            color_params,
+            stroke_width,
+            stroke_style,
+        } = stroke_params;
+
+        path_classes(builder, color_params, "stroke");
+        border_style_classes(builder, stroke_width, stroke_style);
     }
 
-    fn edge_fill_classes(&self, builder: &mut CssClassesBuilder, params: ThemeableParams<'_>) {
-        let ThemeableParams {
+    fn edge_fill_classes(&self, builder: &mut CssClassesBuilder, color_params: ColorParams<'_>) {
+        path_classes(builder, color_params, "stroke");
+        let ColorParams {
             highlight_state,
             color,
             shade,
-        } = params;
+        } = color_params;
 
         let highlight_prefix = highlight_prefix(highlight_state);
-        builder
-            .append(&format!("[&>path]:{highlight_prefix}fill-{color}-{shade}"))
-            .append(&format!(
-                "[&>polygon]:{highlight_prefix}fill-{color}-{shade}"
-            ));
+        builder.append(&format!(
+            "[&>polygon]:{highlight_prefix}fill-{color}-{shade}"
+        ));
     }
+}
+
+/// Appends SVG stroke classes that emulate HTML border styles.
+fn border_style_classes(builder: &mut CssClassesBuilder, stroke_width: &str, stroke_style: &str) {
+    match stroke_style {
+        "none" => {}
+        "solid" => {
+            builder.append(&format!("[&>path]:stroke-{stroke_width}"));
+        }
+        "dashed" => {
+            builder
+                .append(&format!("[&>path]:stroke-{stroke_width}"))
+                .append(&format!("[&>path]:[stroke-dasharray:3]"));
+        }
+        "dotted" => {
+            builder
+                .append(&format!("[&>path]:stroke-{stroke_width}"))
+                .append(&format!("[&>path]:[stroke-dasharray:1]"));
+        }
+        _ => {}
+    };
 }
 
 fn path_classes(
     builder: &mut CssClassesBuilder,
-    params: ThemeableParams<'_>,
+    color_params: ColorParams<'_>,
     stroke_or_fill: &str,
 ) {
-    let ThemeableParams {
+    let ColorParams {
         highlight_state,
         color,
         shade,
-    } = params;
+    } = color_params;
 
     let highlight_prefix = highlight_prefix(highlight_state);
     builder.append(&format!(
@@ -699,6 +743,7 @@ fn highlight_prefix(highlight_state: HighlightState) -> &'static str {
     let highlight_prefix = match highlight_state {
         HighlightState::Normal => "",
         HighlightState::Focus => "focus:",
+        HighlightState::FocusHover => "focus:hover:",
         HighlightState::Hover => "hover:",
         HighlightState::Active => "active:",
     };
