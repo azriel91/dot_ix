@@ -27,8 +27,7 @@ mod stroke_params;
 mod theme_attr;
 mod themeable;
 
-/// Theme to style the generated diagram. Map of [`AnyIdOrDefaults`] to
-/// [`CssClassPartials`].
+/// Theme to style the generated diagram.
 ///
 /// This is a way to simplify what Tailwind CSS classes are provided, as the
 /// same styling may need different prefixes depending on the structure of the
@@ -56,6 +55,7 @@ mod themeable;
 /// 2. Colour override.
 /// 3. Node/edge specific override.
 #[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
+#[serde(default)]
 pub struct Theme {
     /// Whether to merge with the base styles.
     merge_with_base: bool,
@@ -306,11 +306,7 @@ impl Theme {
                 spacing_keys,
             } = css_classes_param_groupings;
 
-            let spacing = spacing_keys.iter().find_map(|spacing_key| {
-                specified
-                    .and_then(|partials| partials.get(spacing_key))
-                    .or_else(|| defaults.and_then(|partials| partials.get(spacing_key)))
-            });
+            let spacing = attr_value_find(spacing_keys, specified, defaults);
 
             spacing
                 .map(|spacing| css_classes_builder.append(&format!("{spacing_prefix}-{spacing}")));
@@ -465,21 +461,9 @@ impl Theme {
                 fn_css_classes,
             } = css_classes_param_groupings;
 
-            let color = color_keys.iter().find_map(|color_key| {
-                specified
-                    .and_then(|partials| partials.get(color_key))
-                    .or_else(|| defaults.and_then(|partials| partials.get(color_key)))
-            });
-            let shade = shade_keys.iter().find_map(|shade_key| {
-                specified
-                    .and_then(|partials| partials.get(shade_key))
-                    .or_else(|| defaults.and_then(|partials| partials.get(shade_key)))
-            });
-            let outline_style = stroke_style_keys.iter().find_map(|stroke_style_key| {
-                specified
-                    .and_then(|partials| partials.get(stroke_style_key))
-                    .or_else(|| defaults.and_then(|partials| partials.get(stroke_style_key)))
-            });
+            let color = attr_value_find(color_keys, specified, defaults);
+            let shade = attr_value_find(shade_keys, specified, defaults);
+            let outline_style = attr_value_find(stroke_style_keys, specified, defaults);
 
             let outline_width = specified
                 .and_then(|partials| partials.get(&ThemeAttr::OutlineWidth))
@@ -575,21 +559,9 @@ impl Theme {
                 fn_css_classes,
             } = css_classes_param_groupings;
 
-            let color = color_keys.iter().find_map(|color_key| {
-                specified
-                    .and_then(|partials| partials.get(color_key))
-                    .or_else(|| defaults.and_then(|partials| partials.get(color_key)))
-            });
-            let shade = shade_keys.iter().find_map(|shade_key| {
-                specified
-                    .and_then(|partials| partials.get(shade_key))
-                    .or_else(|| defaults.and_then(|partials| partials.get(shade_key)))
-            });
-            let stroke_style = stroke_style_keys.iter().find_map(|stroke_style_key| {
-                specified
-                    .and_then(|partials| partials.get(stroke_style_key))
-                    .or_else(|| defaults.and_then(|partials| partials.get(stroke_style_key)))
-            });
+            let color = attr_value_find(color_keys, specified, defaults);
+            let shade = attr_value_find(shade_keys, specified, defaults);
+            let stroke_style = attr_value_find(stroke_style_keys, specified, defaults);
 
             let stroke_width = specified
                 .and_then(|partials| partials.get(&ThemeAttr::StrokeWidth))
@@ -679,16 +651,8 @@ impl Theme {
                 fn_css_classes,
             } = css_classes_param_groupings;
 
-            let color = color_keys.iter().find_map(|color_key| {
-                specified
-                    .and_then(|partials| partials.get(color_key))
-                    .or_else(|| defaults.and_then(|partials| partials.get(color_key)))
-            });
-            let shade = shade_keys.iter().find_map(|shade_key| {
-                specified
-                    .and_then(|partials| partials.get(shade_key))
-                    .or_else(|| defaults.and_then(|partials| partials.get(shade_key)))
-            });
+            let color = attr_value_find(color_keys, specified, defaults);
+            let shade = attr_value_find(shade_keys, specified, defaults);
 
             if let Some(params) = color.zip(shade).map(|(color, shade)| ColorParams {
                 highlight_state,
@@ -699,6 +663,33 @@ impl Theme {
             }
         });
     }
+}
+
+/// Finds an attributes with multiple levels of fallbacks.
+///
+/// The current algorithm:
+///
+/// 1. Most specific key from the element's class partials.
+/// 2. Most specific key from the element (node / edge) defaults.
+/// 3. Less specific key from the element's class partials.
+/// 4. Less specific key from the element defaults.
+///
+/// However, this is surprising when the base theme provides a specific default,
+/// and the user's less specific default is not used because the base theme's
+/// more specific default is used.
+fn attr_value_find<'attr>(
+    attr_keys: &'attr [ThemeAttr],
+    el_class_partials: Option<&'attr CssClassPartials>,
+    defaults: Option<&'attr CssClassPartials>,
+) -> Option<&'attr str> {
+    attr_keys
+        .iter()
+        .find_map(|attr_key| {
+            el_class_partials
+                .and_then(|partials| partials.get(attr_key))
+                .or_else(|| defaults.and_then(|partials| partials.get(attr_key)))
+        })
+        .map(String::as_str)
 }
 
 /// Groupings of parameters to generate CSS classes for colour shades.

@@ -159,7 +159,11 @@ async fn dot_svg_styles(dot_src: &str) -> Result<String, ServerFnError<NoCustomE
 /// Renders a graphviz graph as an SVG.
 #[cfg(feature = "server_side_graphviz")]
 #[component]
-pub fn DotSvg(dot_src_and_styles: Signal<Option<DotSrcAndStyles>>) -> impl IntoView {
+pub fn DotSvg(
+    dot_src_and_styles: Signal<Option<DotSrcAndStyles>>,
+    #[prop(default = Signal::from(|| false))] diagram_only: Signal<bool>,
+) -> impl IntoView {
+    let _diagram_only = diagram_only;
     let dot_svg_and_error_resource = leptos::create_resource(
         move || dot_src_and_styles.get(),
         |dot_src_and_styles| async move {
@@ -244,7 +248,10 @@ pub fn DotSvg(dot_src_and_styles: Signal<Option<DotSrcAndStyles>>) -> impl IntoV
 /// ```
 #[cfg(not(feature = "server_side_graphviz"))]
 #[component]
-pub fn DotSvg(dot_src_and_styles: Signal<Option<DotSrcAndStyles>>) -> impl IntoView {
+pub fn DotSvg(
+    dot_src_and_styles: Signal<Option<DotSrcAndStyles>>,
+    #[prop(default = Signal::from(|| false))] diagram_only: Signal<bool>,
+) -> impl IntoView {
     // DOM elements for the graph and error
     let svg_div_ref = leptos::create_node_ref::<Div>();
 
@@ -364,14 +371,31 @@ pub fn DotSvg(dot_src_and_styles: Signal<Option<DotSrcAndStyles>>) -> impl IntoV
                 ></input>
                 <input
                     type="button"
-                    title="Open playground"
-                    onclick=r#"
-                        window.open(
-                            window.location.toString()
-                                .replace("diagram_only=true", "diagram_only=false"),
-                            "_blank"
-                        );
-                    "#
+                    title={move || if diagram_only.get() { "Open playground" } else { "Diagram only" }}
+                    onclick={move || {
+                        if diagram_only.get() {
+                            r#"
+                                window.open(
+                                    window.location.toString()
+                                        .replace("diagram_only=true", "diagram_only=false"),
+                                    "_blank"
+                                );
+                            "#
+                        } else {
+                            r#"
+                                var windowLocation = window.location.toString();
+                                var windowLocationNext;
+                                if (windowLocation.includes("diagram_only=false")) {
+                                    windowLocationNext = windowLocation
+                                        .replace("diagram_only=false", "diagram_only=true");
+                                } else {
+                                    windowLocationNext = windowLocation
+                                        .concat("&diagram_only=true");
+                                }
+                                window.open(windowLocationNext, "_blank");
+                            "#
+                        }
+                    }}
                     class=format!("
                         {button_tw_classes}
                         top-2
@@ -385,7 +409,7 @@ pub fn DotSvg(dot_src_and_styles: Signal<Option<DotSrcAndStyles>>) -> impl IntoV
             <div
                 id="svg_div"
                 node_ref=svg_div_ref
-                class="overflow-auto"
+                class="mt-6 overflow-auto"
             />
 
             // Errors

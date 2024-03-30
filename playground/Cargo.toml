@@ -20,7 +20,7 @@ axum = { workspace = true, optional = true }
 console_error_panic_hook = { workspace = true }
 console_log = { workspace = true }
 cfg-if = { workspace = true }
-dot_ix = { version = "0.4.1", path = "..", features = ["flex_diag"] }
+dot_ix = { version = "0.5.0", path = "..", features = ["flex_diag"] }
 leptos = { workspace = true }
 leptos_axum = { workspace = true, optional = true }
 leptos_meta = { workspace = true }

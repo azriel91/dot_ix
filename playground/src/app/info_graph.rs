@@ -1,7 +1,10 @@
 use std::time::Duration;
 
 use dot_ix::{
-    model::common::{DotSrcAndStyles, GraphvizDotTheme},
+    model::{
+        common::{DotSrcAndStyles, GraphvizDotTheme},
+        info_graph::InfoGraph,
+    },
     rt::IntoGraphvizDotSrc,
     web_components::{DotSvg, FlexDiag},
 };
@@ -106,11 +109,11 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
             "flex items-start flex-wrap"
         }
     };
-    let textbox_display_classes = move || {
+    let textbox_div_display_classes = move || {
         if diagram_only.get() {
             "hidden"
         } else {
-            "tabs basis-1/2 grow"
+            "tabs basis-full grow md:basis-1/2"
         }
     };
 
@@ -128,12 +131,27 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
     #[cfg(target_arch = "wasm32")]
     info_graph_src_init(set_info_graph_src);
 
-    let (info_graph, set_info_graph) =
-        create_signal(dot_ix::model::info_graph::InfoGraph::default());
+    let (info_graph, set_info_graph) = create_signal(InfoGraph::default());
 
     create_effect(move |_| {
-        let info_graph_result =
-            serde_yaml::from_str::<dot_ix::model::info_graph::InfoGraph>(&info_graph_src.get());
+        let info_graph_src = info_graph_src.get();
+
+        let merge_key_exists = info_graph_src.lines().any(|line| {
+            // skip whitespace, but ignore comments
+            line.trim_start().starts_with("<<:")
+        });
+        let info_graph_result = if merge_key_exists {
+            let info_graph_value = serde_yaml::from_str::<serde_yaml::Value>(&info_graph_src);
+            info_graph_value
+                .and_then(|mut value| {
+                    value.apply_merge()?;
+                    Ok(value)
+                })
+                .and_then(serde_yaml::from_value::<InfoGraph>)
+        } else {
+            // Better diagnostics, numbers don't have to be quoted to be strings.
+            serde_yaml::from_str::<InfoGraph>(&info_graph_src)
+        };
         let info_graph_result = &info_graph_result;
 
         match info_graph_result {
@@ -150,7 +168,7 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
                 {
                     use lz_str::compress_to_encoded_uri_component;
 
-                    let src_compressed = compress_to_encoded_uri_component(&info_graph_src.get());
+                    let src_compressed = compress_to_encoded_uri_component(&info_graph_src);
                     if let Some(window) = web_sys::window() {
                         let url = {
                             let u = web_sys::Url::new(&String::from(window.location().to_string()))
@@ -179,7 +197,7 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
 
     view! {
         <div class={ layout_classes }>
-            <div class={ textbox_display_classes }>
+            <div class={ textbox_div_display_classes }>
 
                 <input type="radio" name="src_tabs" id="tab_info_graph_yml" checked="checked" />
                 <label for="tab_info_graph_yml">"info_graph.yml"</label>
@@ -199,7 +217,7 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
                             rounded
                             text-xs
                         "
-                        on:input=leptos_dom::helpers::debounce(Duration::from_millis(400), move |ev| {
+                        on:input=leptos_dom::helpers::debounce(Duration::from_millis(200), move |ev| {
                             let info_graph_src = event_target_value(&ev);
                             set_info_graph_src.set(info_graph_src);
                         })
@@ -267,27 +285,57 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
                         } />
                 </div>
             </div>
-            <div class="tabs basis-1/2 grow">
-                <input type="radio" name="diagram_tabs" id="tab_dot_svg"
+            <div
+                class={move || {
+                    if diagram_only.get() {
+                        // Take up the full screen.
+                        "tabs basis-full grow"
+                    } else {
+                        // Take up the full screen if the screen size is small,
+                        // otherwise take up the right half of the screen,
+                        "tabs basis-full grow md:basis-1/2"
+                    }
+                }}
+            >
+                <input
+                    type="radio"
+                    name="diagram_tabs"
+                    id="tab_dot_svg"
+                    on:change=flex_diag_visible_update
                     checked="checked"
-                    on:change=flex_diag_visible_update />
-                <label for="tab_dot_svg">"Dot SVG"</label>
+                />
+                <label
+                    for="tab_dot_svg"
+                    // TODO: class: hidden is overridden by main.scss
+                    style={move || if diagram_only.get() { "display: none;" } else { "" }}
+                >"Dot SVG"</label>
                 <div class="tab">
-                    <div class="diagram basis-1/2 grow">
+                    <div class="diagram">
                         <DotSvg
                             dot_src_and_styles=dot_src_and_styles.into()
+                            diagram_only=diagram_only.into()
                         />
                     </div>
                 </div>
 
-                <input type="radio" name="diagram_tabs" id="tab_flex_diag"
+                <input
+                    type="radio"
+                    name="diagram_tabs"
+                    id="tab_flex_diag"
                     node_ref=flex_diag_radio
                     on:change=flex_diag_visible_update
                 />
-                <label for="tab_flex_diag">"Flex Diagram"</label>
+                <label
+                    for="tab_flex_diag"
+                    // TODO: class: hidden is overridden by main.scss
+                    style={move || if diagram_only.get() { "display: none;" } else { "" }}
+                >"Flex Diagram"</label>
                 <div class="tab">
-                    <div class="diagram basis-1/2 grow">
-                        <FlexDiag info_graph=info_graph visible=flex_diag_visible.into() />
+                    <div class="diagram">
+                        <FlexDiag
+                            info_graph=info_graph
+                            visible=flex_diag_visible.into()
+                        />
                     </div>
                 </div>
             </div>

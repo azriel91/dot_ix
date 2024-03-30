@@ -66,8 +66,7 @@ body {
 }
 
 .diagram {
-    justify-content: center;
-    align-content: center;
     display: flex;
-    height:100%;
+    justify-content: flex-start;
+    align-content: center;
 }

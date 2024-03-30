@@ -19,14 +19,14 @@ https://user-images.githubusercontent.com/2993230/253878816-0729970f-651f-45ef-a
 Add the following to `Cargo.toml`
 
 ```toml
-dot_ix = "0.4.1"
+dot_ix = "0.5.0"
 
 # Enables the `FlexDiag` web component.
-dot_ix = { version = "0.4.1", features = ["flex_diag"] }
+dot_ix = { version = "0.5.0", features = ["flex_diag"] }
 
 # Enables server side dot generation.
 # Requires graphviz `dot` to be installed server side.
-dot_ix = { version = "0.4.1", features = ["server_side_graphviz"] }
+dot_ix = { version = "0.5.0", features = ["server_side_graphviz"] }
 ```
 
 
@@ -65,7 +65,7 @@ For server side rendering, the `"server_side_graphviz"` feature needs to be pass
 * [ ] Change `rt/into_graphviz_dot_src/info_graph.rs` to write to a buffer, instead of individual strings.
 * [ ] Take each node with a "type".
 * [x] Take in tailwindcss classes to attach to node types.
-* [ ] Take in theme / merge with default theme.
+* [x] Take in theme / merge with default theme.
 * [x] Split `dot_ix` library from the web app, so it can be embedded in other apps.
 * [x] GitHub Actions / automated testing / releasing / publishing.
 * [x] Playground: Render pre-written graphs
@@ -73,4 +73,4 @@ For server side rendering, the `"server_side_graphviz"` feature needs to be pass
     - [ ] Link to gist
 
 [demo_1]: https://azriel.im/dot_ix/
-[demo_2]: https://azriel.im/dot_ix/?src=BYSwpgTghhDGwE8BcAoABGqS0G8C%2B6aARtvobKQRgCaUpjUDmYAzqhlCWgNpQA0xALqEiFHkQGxhGWLR6wB1YQDsA9tTAB9EMoBmqtoSy40yqAFsw2AIJoqxUqYtW0AITvlHZy9gDCHmi9nbAARDwAXKBAAGwB3HWpNWGioFhZWdkxsAD4AWkIMbgAybIAHKHDgQSRdGOjcxggwMGVcgGYABg6CnhLyyuqWcIhVAGswXIBGHuKyiqqkIZHxhqaW3IA2Lpm%2B%2BergVQA3SBq61ebWgCZtjELdgaQD44hF4bGJxovNm9vZ-oX9LAAK5sVRA8LRHQTaa3XpzB6AkFIMEQqG5SGWb7dWF-PY1VTA0HgyHKCbUVLABg7eEAglIkZA5Qaai5AAe0R6wIgLFUEFypVUOnCkBEOXyOPuALORGiQImnWxv0lgzeK0u1P%2B1W4S3euXJLGAMGgyAALNIlTStTqVvqDrpdOlwkhJua7pakFBlCBzBUJixSjoNXjeSBGDpctw2pcAKSaXKXDbR11wzWvZYTGVyrFBh5PE61aL1TMTa6Kt2pvMva0Z2UTLZllN4xFE1GkqY52mE5HEtEYus-ctNuktklkilUiXu5tIBlMhhsjmwrk8vkCoUijhcPIdlXp9uT1PV87resa1TRBCMVTKaoF%2BqfE8DlPny-X3e6mEWgUXq83tO6h9WlPA8hy7FFR33L9QKRcDe29fsG1xBFh27VsxwNCcoOQrtZ2ZBdOSBbleX5QVlGFCAUCAA
+[demo_2]: http://127.0.0.1:7890/?src=BYSwpgTghhDGwE8BcAoABGqS0G8C%2B6aARtvobKQRgCaUopjUDmYAzqhlCWgNpQA0xALqEiFXkUGwRGWLV6xB1ESgB2Ae2pgA%2BqqgBbNh0zYAgqOwAhctgDCheQBF6AF2BhDxwxBbaA7iBu2kRQrGDYLhAArmCErC4IADZGhBgaWtpaAGZQUYku7KkYaGAAHpFYaLBREKzqEAC0AA7qIKoukGgQ6lGqWtQNiUxFGPowTG3apdgALEWMvtm5%2BYXFxWUV2NW19c2t7ZBFlThorMBQTTqw6on12EwQYGCqaFTFJCOn55fa17cQ2CIiRin3i3QA1joAtQ3NgAEygyLqSHaeJJcJoaihdzUT4baDYAB8DU%2BGB4ADJCU0oG4hEgoKoQGMOg0eGDkWAGlizuoslkwi4Gvp1AA3HQAZlY2kSbTAMG0bSybUCYBka2K2zqjRabQ6EFJXR6fUYg2Gay4xjWZwuVxudzQDyeqkREJ01oyGggY0S2AAbAAGf2fJWJRKo84e%2Bre7AAVkD9FgrHYaGJhAAApCEFloIZWKckZCudjefywILhWLcEV-QBSYondmF7nAEsC7D%2BgDcryKAEZA3WGwXOc3W2XZgAOLtvAhAA
