@@ -385,7 +385,7 @@ pub fn DotSvg(dot_src_and_styles: Signal<Option<DotSrcAndStyles>>) -> impl IntoV
             <div
                 id="svg_div"
                 node_ref=svg_div_ref
-                class="overflow-auto"
+                class="mt-6 overflow-auto"
             />
 
             // Errors
