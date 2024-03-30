@@ -191,6 +191,12 @@ fn HomePage() -> impl IntoView {
                     <ol class="list-disc mx-4">
                     <li>"The Flex Diagram is still experimental, and the arrows don't \
                         receive styling."</li>
+                    <li>"Docs for theme keys can be found at: "<a
+                        class="text-sky-600 hover:text-sky-400 active:text-sky-300"
+                        href="https://docs.rs/dot_ix_model/latest/dot_ix_model/theme/enum.ThemeAttr.html"
+                    >
+                        "docs.rs/dot_ix_model/theme/enum.ThemeAttr.html"
+                    </a></li>
                     <li>"If you'd like to contribute to the development of this library, \
                         I'd be super delighted, since I'm not a web-dev™️ 🙃."</li>
                     </ol>
