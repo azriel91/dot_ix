@@ -3,6 +3,7 @@
 ## unreleased
 
 * In `InfoGraph`, replace `TailwindClasses` with inline `theme`.
+* Support YAML merge keys in playground.
 
 
 ## 0.4.1 (2024-03-14)

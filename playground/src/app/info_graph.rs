@@ -134,13 +134,24 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
     let (info_graph, set_info_graph) = create_signal(InfoGraph::default());
 
     create_effect(move |_| {
-        let info_graph_value = serde_yaml::from_str::<serde_yaml::Value>(&info_graph_src.get());
-        let info_graph_result = info_graph_value
-            .and_then(|mut value| {
-                value.apply_merge()?;
-                Ok(value)
-            })
-            .and_then(serde_yaml::from_value::<InfoGraph>);
+        let info_graph_src = info_graph_src.get();
+
+        let merge_key_exists = info_graph_src.lines().any(|line| {
+            // skip whitespace, but ignore comments
+            line.trim_start().starts_with("<<:")
+        });
+        let info_graph_result = if merge_key_exists {
+            let info_graph_value = serde_yaml::from_str::<serde_yaml::Value>(&info_graph_src);
+            info_graph_value
+                .and_then(|mut value| {
+                    value.apply_merge()?;
+                    Ok(value)
+                })
+                .and_then(serde_yaml::from_value::<InfoGraph>)
+        } else {
+            // Better diagnostics, numbers don't have to be quoted to be strings.
+            serde_yaml::from_str::<InfoGraph>(&info_graph_src)
+        };
         let info_graph_result = &info_graph_result;
 
         match info_graph_result {
@@ -157,7 +168,7 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
                 {
                     use lz_str::compress_to_encoded_uri_component;
 
-                    let src_compressed = compress_to_encoded_uri_component(&info_graph_src.get());
+                    let src_compressed = compress_to_encoded_uri_component(&info_graph_src);
                     if let Some(window) = web_sys::window() {
                         let url = {
                             let u = web_sys::Url::new(&String::from(window.location().to_string()))
