@@ -285,27 +285,57 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
                         } />
                 </div>
             </div>
-            <div class="tabs basis-full grow md:basis-1/2">
-                <input type="radio" name="diagram_tabs" id="tab_dot_svg"
+            <div
+                class={move || {
+                    if diagram_only.get() {
+                        // Take up the full screen.
+                        "tabs basis-full grow"
+                    } else {
+                        // Take up the full screen if the screen size is small,
+                        // otherwise take up the right half of the screen,
+                        "tabs basis-full grow md:basis-1/2"
+                    }
+                }}
+            >
+                <input
+                    type="radio"
+                    name="diagram_tabs"
+                    id="tab_dot_svg"
+                    on:change=flex_diag_visible_update
                     checked="checked"
-                    on:change=flex_diag_visible_update />
-                <label for="tab_dot_svg">"Dot SVG"</label>
+                />
+                <label
+                    for="tab_dot_svg"
+                    // TODO: class: hidden is overridden by main.scss
+                    style={move || if diagram_only.get() { "display: none;" } else { "" }}
+                >"Dot SVG"</label>
                 <div class="tab">
-                    <div class="diagram basis-1/2 grow">
+                    <div class="diagram">
                         <DotSvg
                             dot_src_and_styles=dot_src_and_styles.into()
+                            diagram_only=diagram_only.into()
                         />
                     </div>
                 </div>
 
-                <input type="radio" name="diagram_tabs" id="tab_flex_diag"
+                <input
+                    type="radio"
+                    name="diagram_tabs"
+                    id="tab_flex_diag"
                     node_ref=flex_diag_radio
                     on:change=flex_diag_visible_update
                 />
-                <label for="tab_flex_diag">"Flex Diagram"</label>
+                <label
+                    for="tab_flex_diag"
+                    // TODO: class: hidden is overridden by main.scss
+                    style={move || if diagram_only.get() { "display: none;" } else { "" }}
+                >"Flex Diagram"</label>
                 <div class="tab">
-                    <div class="diagram basis-1/2 grow">
-                        <FlexDiag info_graph=info_graph visible=flex_diag_visible.into() />
+                    <div class="diagram">
+                        <FlexDiag
+                            info_graph=info_graph
+                            visible=flex_diag_visible.into()
+                        />
                     </div>
                 </div>
             </div>
