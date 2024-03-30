@@ -1,7 +1,10 @@
 use std::time::Duration;
 
 use dot_ix::{
-    model::common::{DotSrcAndStyles, GraphvizDotTheme},
+    model::{
+        common::{DotSrcAndStyles, GraphvizDotTheme},
+        info_graph::InfoGraph,
+    },
     rt::IntoGraphvizDotSrc,
     web_components::{DotSvg, FlexDiag},
 };
@@ -128,12 +131,16 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
     #[cfg(target_arch = "wasm32")]
     info_graph_src_init(set_info_graph_src);
 
-    let (info_graph, set_info_graph) =
-        create_signal(dot_ix::model::info_graph::InfoGraph::default());
+    let (info_graph, set_info_graph) = create_signal(InfoGraph::default());
 
     create_effect(move |_| {
-        let info_graph_result =
-            serde_yaml::from_str::<dot_ix::model::info_graph::InfoGraph>(&info_graph_src.get());
+        let info_graph_value = serde_yaml::from_str::<serde_yaml::Value>(&info_graph_src.get());
+        let info_graph_result = info_graph_value
+            .and_then(|mut value| {
+                value.apply_merge()?;
+                Ok(value)
+            })
+            .and_then(serde_yaml::from_value::<InfoGraph>);
         let info_graph_result = &info_graph_result;
 
         match info_graph_result {

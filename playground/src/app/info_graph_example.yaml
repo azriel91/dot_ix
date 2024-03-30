@@ -81,7 +81,7 @@ theme:
       extra: >-
         [&>path]:animate-[stroke-dashoffset-move_4s_linear_infinite]
         cursor-pointer
-    aws:
+    light: &light
       fill_shade_normal: 100
       fill_shade_hover: 50
       fill_shade_focus: 100
@@ -91,29 +91,15 @@ theme:
       stroke_shade_active: 500
       stroke_style: dotted
       padding: 3
+    aws:
+      <<: *light
       shape_color: amber
       outline_color: yellow
     localhost:
-      fill_shade_normal: 100
-      fill_shade_hover: 50
-      fill_shade_focus: 100
-      fill_shade_active: 100
-      stroke_shade_normal: 400
-      stroke_shade_hover: 300
-      stroke_shade_active: 500
-      stroke_style: dotted
-      padding: 3
+      <<: *light
       shape_color: blue
     github:
-      fill_shade_normal: 100
-      fill_shade_hover: 50
-      fill_shade_focus: 100
-      fill_shade_active: 100
-      stroke_shade_normal: 400
-      stroke_shade_hover: 300
-      stroke_shade_active: 500
-      stroke_style: dotted
-      padding: 3
+      <<: *light
       shape_color: gray
 
 css: >-
