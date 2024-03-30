@@ -27,8 +27,7 @@ mod stroke_params;
 mod theme_attr;
 mod themeable;
 
-/// Theme to style the generated diagram. Map of [`AnyIdOrDefaults`] to
-/// [`CssClassPartials`].
+/// Theme to style the generated diagram.
 ///
 /// This is a way to simplify what Tailwind CSS classes are provided, as the
 /// same styling may need different prefixes depending on the structure of the
@@ -56,6 +55,7 @@ mod themeable;
 /// 2. Colour override.
 /// 3. Node/edge specific override.
 #[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
+#[serde(default)]
 pub struct Theme {
     /// Whether to merge with the base styles.
     merge_with_base: bool,
