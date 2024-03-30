@@ -109,11 +109,11 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
             "flex items-start flex-wrap"
         }
     };
-    let textbox_display_classes = move || {
+    let textbox_div_display_classes = move || {
         if diagram_only.get() {
             "hidden"
         } else {
-            "tabs basis-1/2 grow"
+            "tabs basis-full grow md:basis-1/2"
         }
     };
 
@@ -197,7 +197,7 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
 
     view! {
         <div class={ layout_classes }>
-            <div class={ textbox_display_classes }>
+            <div class={ textbox_div_display_classes }>
 
                 <input type="radio" name="src_tabs" id="tab_info_graph_yml" checked="checked" />
                 <label for="tab_info_graph_yml">"info_graph.yml"</label>
@@ -217,7 +217,7 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
                             rounded
                             text-xs
                         "
-                        on:input=leptos_dom::helpers::debounce(Duration::from_millis(400), move |ev| {
+                        on:input=leptos_dom::helpers::debounce(Duration::from_millis(200), move |ev| {
                             let info_graph_src = event_target_value(&ev);
                             set_info_graph_src.set(info_graph_src);
                         })
@@ -285,7 +285,7 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
                         } />
                 </div>
             </div>
-            <div class="tabs basis-1/2 grow">
+            <div class="tabs basis-full grow md:basis-1/2">
                 <input type="radio" name="diagram_tabs" id="tab_dot_svg"
                     checked="checked"
                     on:change=flex_diag_visible_update />
