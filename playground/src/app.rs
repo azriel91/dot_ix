@@ -177,7 +177,7 @@ fn HomePage() -> impl IntoView {
                     </a>
                 </p>
                 <p>
-                    "This is a "<i>"very early"</i>" frontend prototype for the "
+                    "This is an "<i>"early"</i>" frontend prototype for the "
                     <a
                         class="text-sky-600 hover:text-sky-400 active:text-sky-300"
                         href="https://peace.mk"
@@ -187,13 +187,12 @@ fn HomePage() -> impl IntoView {
                     " automation framework"
                 </p>
                 <p>
-                    <b>"Known Issues:"</b>
+                    <b>"Notes:"</b>
                     <ol class="list-disc mx-4">
-                    <li>"Nodes with multiple tags only apply either the stroke, or fill, or neither."<br />
-                        "e.g. click on Tag 1 and Tag 2, and observe node C's fill / stroke."<br />
-                        "This may be related to multiple CSS attribute rules across multiple classes and precedence."<br />
-                        "But I don't know 🥲. Please help solve it if you can."<br />
-                    </li>
+                    <li>"The Flex Diagram is still experimental, and the arrows don't \
+                        receive styling."</li>
+                    <li>"If you'd like to contribute to the development of this library, \
+                        I'd be super delighted, since I'm not a web-dev™️ 🙃."</li>
                     </ol>
                 </p>
             </div>
