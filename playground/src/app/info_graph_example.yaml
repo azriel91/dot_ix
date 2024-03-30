@@ -32,7 +32,7 @@ node_descs:
   localhost:        "Your computer"
   aws:              "Amazon Web Services"
   github:           "Github"
-  github_app_zip:   ~
+  # github_app_zip:   '~'
   app_download:     "app.zip"
   app_extract:      "/opt/app"
   iam_policy:       "EC2: Allow S3 Read"
@@ -76,21 +76,21 @@ theme:
       shape_color: blue
       stroke_style: dashed  # shorthand for [&>path]:[stroke-dasharray:3]
       stroke_width: '[2px]'
-      stroke_shade_normal: 600
-      fill_shade_normal: 500
+      stroke_shade_normal: '600'
+      fill_shade_normal: '500'
       extra: >-
         [&>path]:animate-[stroke-dashoffset-move_4s_linear_infinite]
         cursor-pointer
     light: &light
-      fill_shade_normal: 100
-      fill_shade_hover: 50
-      fill_shade_focus: 100
-      fill_shade_active: 100
-      stroke_shade_normal: 400
-      stroke_shade_hover: 300
-      stroke_shade_active: 500
+      fill_shade_normal: '100'
+      fill_shade_hover: '50'
+      fill_shade_focus: '100'
+      fill_shade_active: '100'
+      stroke_shade_normal: '400'
+      stroke_shade_hover: '300'
+      stroke_shade_active: '500'
       stroke_style: dotted
-      padding: 3
+      padding: '3'
     aws:
       <<: *light
       shape_color: amber
