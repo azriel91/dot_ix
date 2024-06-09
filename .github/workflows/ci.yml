@@ -195,7 +195,8 @@ jobs:
 
       - name: cargo-leptos install
         if: steps.cargo-leptos-cache.outputs.cache-hit != 'true'
-        run: cargo install cargo-leptos
+        # --locked: fix is in-progress at https://github.com/leptos-rs/cargo-leptos/pull/274
+        run: cargo install cargo-leptos --locked
 
       - name: 'Build playground'
         working-directory: ./playground
