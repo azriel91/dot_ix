@@ -142,7 +142,7 @@ fn stroke_style_classes(
 
 /// Increments 1 to the stroke width if parseable.
 ///
-/// This exists becauase SVG and HTML's rendering of stroke-1 vs border-1
+/// This exists because SVG and HTML's rendering of stroke-1 vs border-1
 /// differ:
 ///
 /// * SVG's stroke-1 looks similar to HTML's border-2
