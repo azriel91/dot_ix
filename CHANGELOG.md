@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.6.0 (2024-06-09)
+
+* SVGs copied now use `&#160;` for spaces for valid SVG XML.
+* Edges between clusters use the middle node instead of last + first nodes.
+* Support adding labels to edges via `edge_descs` in `InfoGraph`.
+
+
 ## 0.5.0 (2024-03-30)
 
 * In `InfoGraph`, replace `TailwindClasses` with inline `theme`.

@@ -104,22 +104,34 @@ impl IntoGraphvizDotSrc for &InfoGraph {
         };
         let el_css_classes = self.theme().el_css_classes(&info_graph_dot);
 
-        let node_clusters = self
-            .hierarchy()
-            .iter()
-            // Reversing the order we feed nodes to Graphviz dot tends to produce a more natural
-            // layout order.
-            .rev()
-            .map(|(node_id, node_hierarchy)| {
-                node_cluster(self, &el_css_classes, theme, node_id, node_hierarchy)
-            })
-            .collect::<Vec<String>>()
-            .join("\n");
+        let node_clusters = match self.direction() {
+            GraphDir::Horizontal => self
+                .hierarchy()
+                .iter()
+                // Reversing the order we feed nodes to Graphviz dot tends to produce a more natural
+                // layout order.
+                .rev()
+                .map(|(node_id, node_hierarchy)| {
+                    node_cluster(self, &el_css_classes, theme, node_id, node_hierarchy)
+                })
+                .collect::<Vec<String>>()
+                .join("\n"),
+            GraphDir::Vertical => self
+                .hierarchy()
+                .iter()
+                .map(|(node_id, node_hierarchy)| {
+                    node_cluster(self, &el_css_classes, theme, node_id, node_hierarchy)
+                })
+                .collect::<Vec<String>>()
+                .join("\n"),
+        };
 
         let edges = self
             .edges()
             .iter()
             .map(|(edge_id, [src_node_id, target_node_id])| {
+                let edge_desc = self.edge_descs().get(edge_id).map(String::as_str);
+
                 // We need to find the node_hierarchy for both the the `src_node_id` and
                 // `target_node_id`.
                 let src_node_hierarchy = node_id_to_hierarchy.get(src_node_id).copied();
@@ -127,6 +139,7 @@ impl IntoGraphvizDotSrc for &InfoGraph {
                 edge(
                     &el_css_classes,
                     edge_id,
+                    edge_desc,
                     src_node_id,
                     src_node_hierarchy,
                     target_node_id,
@@ -228,10 +241,13 @@ fn node_attrs(theme: &GraphvizDotTheme) -> String {
 fn edge_attrs(theme: &GraphvizDotTheme) -> String {
     let edge_color = theme.edge_color();
     let plain_text_color = theme.plain_text_color();
+    let edge_point_size = theme.edge_point_size();
 
     formatdoc!(
         r#"
         edge [
+            fontname  = "liberationmono"
+            fontsize  = {edge_point_size}
             arrowsize = 0.7
             color     = "{edge_color}"
             fontcolor = "{plain_text_color}"
@@ -447,18 +463,37 @@ fn node_cluster_internal(
             "#
         )?;
 
-        node_hierarchy
-            .iter()
-            .try_for_each(|(child_node_id, child_node_hierarchy)| {
-                node_cluster_internal(
-                    info_graph,
-                    el_css_classes,
-                    theme,
-                    child_node_id,
-                    child_node_hierarchy,
-                    buffer,
-                )
-            })?;
+        match graph_dir {
+            GraphDir::Horizontal => node_hierarchy
+                .iter()
+                // Reversing the order we feed nodes to Graphviz dot tends to produce a more natural
+                // layout order.
+                .rev()
+                .try_for_each(|(child_node_id, child_node_hierarchy)| {
+                    node_cluster_internal(
+                        info_graph,
+                        el_css_classes,
+                        theme,
+                        child_node_id,
+                        child_node_hierarchy,
+                        buffer,
+                    )
+                })?,
+            GraphDir::Vertical => {
+                node_hierarchy
+                    .iter()
+                    .try_for_each(|(child_node_id, child_node_hierarchy)| {
+                        node_cluster_internal(
+                            info_graph,
+                            el_css_classes,
+                            theme,
+                            child_node_id,
+                            child_node_hierarchy,
+                            buffer,
+                        )
+                    })?
+            }
+        }
 
         write!(buffer, "}}")?;
     }
@@ -469,6 +504,7 @@ fn node_cluster_internal(
 fn edge(
     el_css_classes: &ElCssClasses,
     edge_id: &EdgeId,
+    edge_desc: Option<&str>,
     src_node_id: &NodeId,
     src_node_hierarchy: Option<&NodeHierarchy>,
     target_node_id: &NodeId,
@@ -477,9 +513,9 @@ fn edge(
     let (edge_src_node_id, ltail) = if let Some((mut child_node_id, mut child_node_hierarchy)) =
         src_node_hierarchy
             .filter(|node_hierarchy| !node_hierarchy.is_empty())
-            .and_then(|node_hierarchy| node_hierarchy.last())
+            .and_then(middle_node)
     {
-        // This is a cluster, find the bottom / right most node.
+        // This is a cluster, find the innermost node.
         while let Some((next_node_id, next_node_hierarchy)) = child_node_hierarchy.last() {
             child_node_id = next_node_id;
             child_node_hierarchy = next_node_hierarchy;
@@ -497,9 +533,9 @@ fn edge(
     let (edge_target_node_id, lhead) = if let Some((mut child_node_id, mut child_node_hierarchy)) =
         target_node_hierarchy
             .filter(|node_hierarchy| !node_hierarchy.is_empty())
-            .and_then(|node_hierarchy| node_hierarchy.first())
+            .and_then(middle_node)
     {
-        // This is a cluster, find the top / left most node.
+        // This is a cluster, find the innermost node.
         while let Some((next_node_id, next_node_hierarchy)) = child_node_hierarchy.first() {
             child_node_id = next_node_id;
             child_node_hierarchy = next_node_hierarchy;
@@ -514,6 +550,9 @@ fn edge(
         (target_node_id, Cow::Borrowed(""))
     };
 
+    let edge_label = edge_desc
+        .map(|edge_desc| Cow::Owned(format!("label = <{edge_desc}>")))
+        .unwrap_or(Cow::Borrowed(""));
     let edge_css_classes = el_css_classes
         .get(&AnyId::from(edge_id.clone()))
         .map(AsRef::<str>::as_ref)
@@ -523,13 +562,29 @@ fn edge(
     formatdoc!(
         r#"
         {edge_src_node_id} -> {edge_target_node_id} [
-            id     = "{edge_id}",
+            id     = "{edge_id}"
+            {edge_label}
             minlen = 3
             {edge_css_classes}
             {ltail}
             {lhead}
         ]"#
     )
+}
+
+/// Returns the middle node and its hierarchy for a given cluster.
+fn middle_node(node_hierarchy: &NodeHierarchy) -> Option<(&NodeId, &NodeHierarchy)> {
+    let half_index = node_hierarchy.len() / 2;
+
+    // I'm not sure why we subtract 1 instead of add 1 to get the better
+    // `half_index`, but by adding 1, the edge shifted closer to one side of the
+    // cluster instead of the middle.
+    let node_index = if half_index == 0 {
+        half_index
+    } else {
+        half_index - 1
+    };
+    node_hierarchy.get_index(node_index)
 }
 
 fn tag_legend(

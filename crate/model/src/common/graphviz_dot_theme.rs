@@ -32,7 +32,14 @@ pub struct GraphvizDotTheme {
     pub node_margin_y: f64,
     pub plain_text_color: &'static str,
     pub emoji_point_size: u32,
+    /// Default font point size for node labels.
+    ///
+    /// Default: `10`
     pub node_point_size: u32,
+    /// Default font point size for edge labels.
+    ///
+    /// Default: `10`
+    pub edge_point_size: u32,
     pub tag_width: f64,
     pub tag_height: f64,
     /// Left and right margin in inches.
@@ -102,6 +109,11 @@ impl GraphvizDotTheme {
         self
     }
 
+    pub fn with_edge_point_size(mut self, edge_point_size: u32) -> Self {
+        self.edge_point_size = edge_point_size;
+        self
+    }
+
     pub fn with_tag_width(mut self, tag_width: f64) -> Self {
         self.tag_width = tag_width;
         self
@@ -168,6 +180,10 @@ impl GraphvizDotTheme {
         self.node_point_size
     }
 
+    pub fn edge_point_size(&self) -> u32 {
+        self.edge_point_size
+    }
+
     pub fn tag_width(&self) -> f64 {
         self.tag_width
     }
@@ -206,6 +222,7 @@ impl Default for GraphvizDotTheme {
             plain_text_color: "#222222",
             emoji_point_size: 14,
             node_point_size: 10,
+            edge_point_size: 10,
             tag_width: 0.3,
             tag_height: 0.1,
             tag_margin_x: 0.03,
