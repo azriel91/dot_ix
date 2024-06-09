@@ -130,6 +130,8 @@ impl IntoGraphvizDotSrc for &InfoGraph {
             .edges()
             .iter()
             .map(|(edge_id, [src_node_id, target_node_id])| {
+                let edge_desc = self.edge_descs().get(edge_id).map(String::as_str);
+
                 // We need to find the node_hierarchy for both the the `src_node_id` and
                 // `target_node_id`.
                 let src_node_hierarchy = node_id_to_hierarchy.get(src_node_id).copied();
@@ -137,6 +139,7 @@ impl IntoGraphvizDotSrc for &InfoGraph {
                 edge(
                     &el_css_classes,
                     edge_id,
+                    edge_desc,
                     src_node_id,
                     src_node_hierarchy,
                     target_node_id,
@@ -238,10 +241,13 @@ fn node_attrs(theme: &GraphvizDotTheme) -> String {
 fn edge_attrs(theme: &GraphvizDotTheme) -> String {
     let edge_color = theme.edge_color();
     let plain_text_color = theme.plain_text_color();
+    let edge_point_size = theme.edge_point_size();
 
     formatdoc!(
         r#"
         edge [
+            fontname  = "liberationmono"
+            fontsize  = {edge_point_size}
             arrowsize = 0.7
             color     = "{edge_color}"
             fontcolor = "{plain_text_color}"
@@ -498,6 +504,7 @@ fn node_cluster_internal(
 fn edge(
     el_css_classes: &ElCssClasses,
     edge_id: &EdgeId,
+    edge_desc: Option<&str>,
     src_node_id: &NodeId,
     src_node_hierarchy: Option<&NodeHierarchy>,
     target_node_id: &NodeId,
@@ -543,6 +550,9 @@ fn edge(
         (target_node_id, Cow::Borrowed(""))
     };
 
+    let edge_label = edge_desc
+        .map(|edge_desc| Cow::Owned(format!("label = <{edge_desc}>")))
+        .unwrap_or(Cow::Borrowed(""));
     let edge_css_classes = el_css_classes
         .get(&AnyId::from(edge_id.clone()))
         .map(AsRef::<str>::as_ref)
@@ -552,7 +562,8 @@ fn edge(
     formatdoc!(
         r#"
         {edge_src_node_id} -> {edge_target_node_id} [
-            id     = "{edge_id}",
+            id     = "{edge_id}"
+            {edge_label}
             minlen = 3
             {edge_css_classes}
             {ltail}

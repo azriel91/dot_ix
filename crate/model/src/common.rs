@@ -3,6 +3,7 @@ pub use self::{
     any_id::{AnyId, AnyIdInvalidFmt},
     dot_src_and_styles::DotSrcAndStyles,
     edge::Edge,
+    edge_descs::EdgeDescs,
     edge_id::{EdgeId, EdgeIdInvalidFmt},
     edges::Edges,
     graphviz_dot_theme::GraphvizDotTheme,
@@ -20,6 +21,7 @@ pub mod graphviz_dot_theme;
 mod any_id;
 mod dot_src_and_styles;
 mod edge;
+mod edge_descs;
 mod edge_id;
 mod edges;
 mod id_newtype;

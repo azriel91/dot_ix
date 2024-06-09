@@ -1,7 +1,7 @@
 use indexmap::IndexMap;
 
 use crate::{
-    common::{Edges, NodeHierarchy, NodeTags, TagId},
+    common::{EdgeDescs, Edges, NodeHierarchy, NodeTags, TagId},
     info_graph::{GraphDir, NodeDescs, NodeEmojis, NodeNames, Tag},
     theme::Theme,
 };
@@ -15,8 +15,6 @@ pub struct InfoGraphBuilder {
     direction: GraphDir,
     /// Nested nodes.
     hierarchy: NodeHierarchy,
-    /// Logical / ordering dependencies.
-    edges: Edges,
     /// Each node's name.
     node_names: NodeNames,
     /// Each node's description.
@@ -25,6 +23,10 @@ pub struct InfoGraphBuilder {
     node_emojis: NodeEmojis,
     /// Tags associated with each node.
     node_tags: NodeTags,
+    /// Logical / ordering dependencies.
+    edges: Edges,
+    /// Each edge's description.
+    edge_descs: EdgeDescs,
     /// Tags to associate with nodes.
     tags: IndexMap<TagId, Tag>,
     /// Theme that controls the CSS classes to add to elements.
@@ -43,12 +45,6 @@ impl InfoGraphBuilder {
     /// Sets the nested nodes.
     pub fn with_hierarchy(mut self, hierarchy: NodeHierarchy) -> Self {
         self.hierarchy = hierarchy;
-        self
-    }
-
-    /// Sets the logical / ordering dependencies.
-    pub fn with_edges(mut self, edges: Edges) -> Self {
-        self.edges = edges;
         self
     }
 
@@ -76,6 +72,18 @@ impl InfoGraphBuilder {
         self
     }
 
+    /// Sets the logical / ordering dependencies.
+    pub fn with_edges(mut self, edges: Edges) -> Self {
+        self.edges = edges;
+        self
+    }
+
+    /// Sets the map of edge descriptions.
+    pub fn with_edge_descs(mut self, edge_descs: EdgeDescs) -> Self {
+        self.edge_descs = edge_descs;
+        self
+    }
+
     /// Sets the tags to associate with nodes.
     pub fn with_tags(mut self, tags: IndexMap<TagId, Tag>) -> Self {
         self.tags = tags;
@@ -99,11 +107,12 @@ impl InfoGraphBuilder {
         let InfoGraphBuilder {
             direction,
             hierarchy,
-            edges,
             node_names,
             node_descs,
             node_emojis,
             node_tags,
+            edges,
+            edge_descs,
             tags,
             theme,
             css,
@@ -112,11 +121,12 @@ impl InfoGraphBuilder {
         InfoGraph {
             direction,
             hierarchy,
-            edges,
             node_names,
             node_descs,
             node_emojis,
             node_tags,
+            edges,
+            edge_descs,
             tags,
             theme,
             css,

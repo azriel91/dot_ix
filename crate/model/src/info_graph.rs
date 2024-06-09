@@ -5,7 +5,9 @@ pub use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    common::{Edges, NodeDescs, NodeEmojis, NodeHierarchy, NodeId, NodeNames, NodeTags, TagId},
+    common::{
+        EdgeDescs, Edges, NodeDescs, NodeEmojis, NodeHierarchy, NodeId, NodeNames, NodeTags, TagId,
+    },
     theme::Theme,
 };
 
@@ -22,8 +24,6 @@ pub struct InfoGraph {
     pub(crate) direction: GraphDir,
     /// Nested nodes.
     pub(crate) hierarchy: NodeHierarchy,
-    /// Logical / ordering dependencies.
-    pub(crate) edges: Edges,
     /// Each node's name.
     pub(crate) node_names: NodeNames,
     /// Each node's description.
@@ -32,6 +32,10 @@ pub struct InfoGraph {
     pub(crate) node_emojis: NodeEmojis,
     /// Tags associated with each node.
     pub(crate) node_tags: NodeTags,
+    /// Logical / ordering dependencies.
+    pub(crate) edges: Edges,
+    /// Each node's description.
+    pub(crate) edge_descs: EdgeDescs,
     /// Tags to associate with nodes.
     pub(crate) tags: IndexMap<TagId, Tag>,
     /// Theme that controls the CSS classes to add to elements.
@@ -94,11 +98,6 @@ impl InfoGraph {
         node_id_to_hierarchy
     }
 
-    /// Returns the logical / ordering dependencies.
-    pub fn edges(&self) -> &Edges {
-        &self.edges
-    }
-
     /// Returns the map of node names.
     pub fn node_names(&self) -> &NodeNames {
         &self.node_names
@@ -117,6 +116,16 @@ impl InfoGraph {
     /// Returns the tags associated with each node.
     pub fn node_tags(&self) -> &NodeTags {
         &self.node_tags
+    }
+
+    /// Returns the logical / ordering dependencies.
+    pub fn edges(&self) -> &Edges {
+        &self.edges
+    }
+
+    /// Returns the map of edge descriptions.
+    pub fn edge_descs(&self) -> &EdgeDescs {
+        &self.edge_descs
     }
 
     /// Returns the tags to associate with nodes.
