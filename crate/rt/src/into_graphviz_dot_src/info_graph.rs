@@ -506,9 +506,9 @@ fn edge(
     let (edge_src_node_id, ltail) = if let Some((mut child_node_id, mut child_node_hierarchy)) =
         src_node_hierarchy
             .filter(|node_hierarchy| !node_hierarchy.is_empty())
-            .and_then(|node_hierarchy| node_hierarchy.get_index(node_hierarchy.len() / 2))
+            .and_then(middle_node)
     {
-        // This is a cluster, find the bottom / right most node.
+        // This is a cluster, find the innermost node.
         while let Some((next_node_id, next_node_hierarchy)) = child_node_hierarchy.last() {
             child_node_id = next_node_id;
             child_node_hierarchy = next_node_hierarchy;
@@ -526,9 +526,9 @@ fn edge(
     let (edge_target_node_id, lhead) = if let Some((mut child_node_id, mut child_node_hierarchy)) =
         target_node_hierarchy
             .filter(|node_hierarchy| !node_hierarchy.is_empty())
-            .and_then(|node_hierarchy| node_hierarchy.get_index(node_hierarchy.len() / 2))
+            .and_then(middle_node)
     {
-        // This is a cluster, find the top / left most node.
+        // This is a cluster, find the innermost node.
         while let Some((next_node_id, next_node_hierarchy)) = child_node_hierarchy.first() {
             child_node_id = next_node_id;
             child_node_hierarchy = next_node_hierarchy;
@@ -559,6 +559,21 @@ fn edge(
             {lhead}
         ]"#
     )
+}
+
+/// Returns the middle node and its hierarchy for a given cluster.
+fn middle_node(node_hierarchy: &NodeHierarchy) -> Option<(&NodeId, &NodeHierarchy)> {
+    let half_index = node_hierarchy.len() / 2;
+
+    // I'm not sure why we subtract 1 instead of add 1 to get the better
+    // `half_index`, but by adding 1, the edge shifted closer to one side of the
+    // cluster instead of the middle.
+    let node_index = if half_index == 0 {
+        half_index
+    } else {
+        half_index - 1
+    };
+    node_hierarchy.get_index(node_index)
 }
 
 fn tag_legend(
