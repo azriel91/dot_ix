@@ -104,17 +104,27 @@ impl IntoGraphvizDotSrc for &InfoGraph {
         };
         let el_css_classes = self.theme().el_css_classes(&info_graph_dot);
 
-        let node_clusters = self
-            .hierarchy()
-            .iter()
-            // Reversing the order we feed nodes to Graphviz dot tends to produce a more natural
-            // layout order.
-            .rev()
-            .map(|(node_id, node_hierarchy)| {
-                node_cluster(self, &el_css_classes, theme, node_id, node_hierarchy)
-            })
-            .collect::<Vec<String>>()
-            .join("\n");
+        let node_clusters = match self.direction() {
+            GraphDir::Horizontal => self
+                .hierarchy()
+                .iter()
+                // Reversing the order we feed nodes to Graphviz dot tends to produce a more natural
+                // layout order.
+                .rev()
+                .map(|(node_id, node_hierarchy)| {
+                    node_cluster(self, &el_css_classes, theme, node_id, node_hierarchy)
+                })
+                .collect::<Vec<String>>()
+                .join("\n"),
+            GraphDir::Vertical => self
+                .hierarchy()
+                .iter()
+                .map(|(node_id, node_hierarchy)| {
+                    node_cluster(self, &el_css_classes, theme, node_id, node_hierarchy)
+                })
+                .collect::<Vec<String>>()
+                .join("\n"),
+        };
 
         let edges = self
             .edges()
@@ -447,18 +457,37 @@ fn node_cluster_internal(
             "#
         )?;
 
-        node_hierarchy
-            .iter()
-            .try_for_each(|(child_node_id, child_node_hierarchy)| {
-                node_cluster_internal(
-                    info_graph,
-                    el_css_classes,
-                    theme,
-                    child_node_id,
-                    child_node_hierarchy,
-                    buffer,
-                )
-            })?;
+        match graph_dir {
+            GraphDir::Horizontal => node_hierarchy
+                .iter()
+                // Reversing the order we feed nodes to Graphviz dot tends to produce a more natural
+                // layout order.
+                .rev()
+                .try_for_each(|(child_node_id, child_node_hierarchy)| {
+                    node_cluster_internal(
+                        info_graph,
+                        el_css_classes,
+                        theme,
+                        child_node_id,
+                        child_node_hierarchy,
+                        buffer,
+                    )
+                })?,
+            GraphDir::Vertical => {
+                node_hierarchy
+                    .iter()
+                    .try_for_each(|(child_node_id, child_node_hierarchy)| {
+                        node_cluster_internal(
+                            info_graph,
+                            el_css_classes,
+                            theme,
+                            child_node_id,
+                            child_node_hierarchy,
+                            buffer,
+                        )
+                    })?
+            }
+        }
 
         write!(buffer, "}}")?;
     }
