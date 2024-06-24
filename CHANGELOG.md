@@ -1,5 +1,10 @@
 # Changelog
 
+## unreleased
+
+* Playground: Use URL fragment/hash instead of query params to store source.
+
+
 ## 0.6.0 (2024-06-09)
 
 * SVGs copied now use `&#160;` for spaces for valid SVG XML.

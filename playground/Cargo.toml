@@ -38,7 +38,8 @@ lz-str = "0.2.1"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 wasm-bindgen = { workspace = true }
-web-sys = { workspace = true, features = ["Document", "Element", "HtmlElement", "Url", "UrlSearchParams", "Window"] }
+web-sys = { workspace = true, features = ["console", "Document", "Element", "HtmlElement", "Url", "UrlSearchParams", "Window"] }
+js-sys = { workspace = true }
 
 [features]
 hydrate = ["leptos/hydrate", "leptos_meta/hydrate", "leptos_router/hydrate"]
