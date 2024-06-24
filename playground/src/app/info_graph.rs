@@ -10,6 +10,9 @@ use dot_ix::{
 };
 use leptos::*;
 
+#[cfg(target_arch = "wasm32")]
+use super::QUERY_PARAM_DIAGRAM_ONLY;
+
 const INFO_GRAPH_DEMO: &str = include_str!("info_graph_example.yaml");
 
 /// User provided info graph source.
@@ -191,10 +194,29 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
                     let src_compressed = compress_to_encoded_uri_component(&info_graph_src);
                     if let Some(window) = web_sys::window() {
                         let url = {
-                            let u = web_sys::Url::new(&String::from(window.location().to_string()))
+                            let url = web_sys::Url::new(&String::from(window.location().to_string()))
                                 .expect("Expected URL to be valid.");
-                            u.search_params().set(QUERY_PARAM_SRC, &src_compressed);
-                            u.to_string()
+
+                            // Remove this in a few versions.
+                            url.search_params().delete(QUERY_PARAM_SRC);
+                            url.search_params().delete(QUERY_PARAM_DIAGRAM_ONLY);
+
+                            let fragment = {
+                                let mut fragment = String::with_capacity(QUERY_PARAM_SRC.len() + src_compressed.len() + 64);
+                                fragment.push_str(QUERY_PARAM_SRC);
+                                fragment.push_str("=");
+                                fragment.push_str(&src_compressed);
+
+                                if diagram_only.get() {
+                                    fragment.push_str("&");
+                                    fragment.push_str(QUERY_PARAM_DIAGRAM_ONLY);
+                                    fragment.push_str("=true");
+                                }
+
+                                fragment
+                            };
+                            url.set_hash(&fragment);
+                            url.to_string()
                                 .as_string()
                                 .expect("# Failed to decode src parameter")
                         };
