@@ -19,14 +19,30 @@ const QUERY_PARAM_DIAGRAM_ONLY: &str = "diagram_only";
 /// `create_effect` is safe.
 #[cfg(target_arch = "wasm32")]
 fn diagram_only_init(set_diagram_only: WriteSignal<bool>) {
-    use web_sys::Url;
+    use js_sys::Array;
+    use web_sys::{console, Url, UrlSearchParams};
 
     create_effect(move |_| {
-        if let Some(url_search_params) = web_sys::window().map(|window| {
-            Url::new(&String::from(window.location().to_string()))
-                .expect("Expected URL to be valid.")
-                .search_params()
-        }) {
+        let url_search_params = web_sys::window().and_then(|window| {
+            let url = Url::new(&String::from(window.location().to_string()))
+                .expect("Expected URL to be valid.");
+
+            let hash = url.hash();
+            if hash.is_empty() {
+                Some(url.search_params())
+            } else {
+                match UrlSearchParams::new_with_str(hash.as_str()) {
+                    Ok(search_params) => Some(search_params),
+                    Err(error) => {
+                        let message = Array::new_with_length(1);
+                        message.set(0, error);
+                        console::log(&message);
+                        None
+                    }
+                }
+            }
+        });
+        if let Some(url_search_params) = url_search_params {
             let diagram_only = url_search_params
                 .get(QUERY_PARAM_DIAGRAM_ONLY)
                 .and_then(|diagram_only_str| serde_yaml::from_str::<bool>(&diagram_only_str).ok())
