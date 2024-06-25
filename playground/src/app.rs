@@ -31,6 +31,7 @@ fn diagram_only_init(set_diagram_only: WriteSignal<bool>) {
             if hash.is_empty() {
                 Some(url.search_params())
             } else {
+                let hash = hash.replacen('#', "?", 1);
                 match UrlSearchParams::new_with_str(hash.as_str()) {
                     Ok(search_params) => Some(search_params),
                     Err(error) => {

@@ -39,6 +39,7 @@ fn info_graph_src_init(set_info_graph_src: WriteSignal<String>) {
                 if hash.is_empty() {
                     Some(url.search_params())
                 } else {
+                    let hash = hash.replacen('#', "?", 1);
                     match UrlSearchParams::new_with_str(hash.as_str()) {
                         Ok(search_params) => Some(search_params),
                         Err(error) => {
