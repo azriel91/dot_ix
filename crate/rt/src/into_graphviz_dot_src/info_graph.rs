@@ -92,7 +92,8 @@ impl IntoGraphvizDotSrc for &InfoGraph {
     fn into(self, theme: &GraphvizDotTheme) -> DotSrcAndStyles {
         let graph_attrs = graph_attrs(theme, self.direction());
         let node_attrs = node_attrs(theme);
-        let edge_attrs = edge_attrs(theme);
+        let graphviz_attrs = self.graphviz_attrs();
+        let edge_attrs = edge_attrs(graphviz_attrs.edge_constraint_default(), theme);
 
         // Build a map from `NodeId` to their `NodeHierarchy`, so that we don't have to
         // search for it every time we want to create an edge.
@@ -131,6 +132,7 @@ impl IntoGraphvizDotSrc for &InfoGraph {
             .iter()
             .map(|(edge_id, [src_node_id, target_node_id])| {
                 let edge_desc = self.edge_descs().get(edge_id).map(String::as_str);
+                let edge_constraint = graphviz_attrs.edge_constraints().get(edge_id).copied();
 
                 // We need to find the node_hierarchy for both the the `src_node_id` and
                 // `target_node_id`.
@@ -140,6 +142,7 @@ impl IntoGraphvizDotSrc for &InfoGraph {
                     &el_css_classes,
                     edge_id,
                     edge_desc,
+                    edge_constraint,
                     src_node_id,
                     src_node_hierarchy,
                     target_node_id,
@@ -238,7 +241,7 @@ fn node_attrs(theme: &GraphvizDotTheme) -> String {
     )
 }
 
-fn edge_attrs(theme: &GraphvizDotTheme) -> String {
+fn edge_attrs(edge_constraint_default: bool, theme: &GraphvizDotTheme) -> String {
     let edge_color = theme.edge_color();
     let plain_text_color = theme.plain_text_color();
     let edge_point_size = theme.edge_point_size();
@@ -246,6 +249,7 @@ fn edge_attrs(theme: &GraphvizDotTheme) -> String {
     formatdoc!(
         r#"
         edge [
+            constraint = {edge_constraint_default},
             fontname  = "liberationmono"
             fontsize  = {edge_point_size}
             arrowsize = 0.7
@@ -505,6 +509,7 @@ fn edge(
     el_css_classes: &ElCssClasses,
     edge_id: &EdgeId,
     edge_desc: Option<&str>,
+    edge_constraint: Option<bool>,
     src_node_id: &NodeId,
     src_node_hierarchy: Option<&NodeHierarchy>,
     target_node_id: &NodeId,
@@ -558,12 +563,16 @@ fn edge(
         .map(AsRef::<str>::as_ref)
         .map(|edge_css_classes| format!(", class = \"{edge_css_classes}\""));
     let edge_css_classes = edge_css_classes.as_deref().unwrap_or_default();
+    let edge_constraint = edge_constraint
+        .map(|edge_constraint| Cow::Owned(format!("constraint = {edge_constraint}")))
+        .unwrap_or(Cow::Borrowed(""));
 
     formatdoc!(
         r#"
         {edge_src_node_id} -> {edge_target_node_id} [
             id     = "{edge_id}"
             {edge_label}
+            {edge_constraint}
             minlen = 3
             {edge_css_classes}
             {ltail}
