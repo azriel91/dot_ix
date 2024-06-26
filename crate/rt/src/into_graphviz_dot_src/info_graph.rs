@@ -5,8 +5,8 @@ use std::{
 
 use dot_ix_model::{
     common::{
-        graphviz_dot_theme::GraphStyle, AnyId, DotSrcAndStyles, EdgeId, GraphvizDotTheme,
-        NodeHierarchy, NodeId, TagId,
+        graphviz_dot_theme::GraphStyle, AnyId, DotSrcAndStyles, EdgeId, GraphvizAttrs,
+        GraphvizDotTheme, NodeHierarchy, NodeId, TagId,
     },
     info_graph::{GraphDir, InfoGraph, Tag},
     theme::ElCssClasses,
@@ -93,7 +93,7 @@ impl IntoGraphvizDotSrc for &InfoGraph {
         let graph_attrs = graph_attrs(theme, self.direction());
         let node_attrs = node_attrs(theme);
         let graphviz_attrs = self.graphviz_attrs();
-        let edge_attrs = edge_attrs(graphviz_attrs.edge_constraint_default(), theme);
+        let edge_attrs = edge_attrs(graphviz_attrs, theme);
 
         // Build a map from `NodeId` to their `NodeHierarchy`, so that we don't have to
         // search for it every time we want to create an edge.
@@ -133,6 +133,7 @@ impl IntoGraphvizDotSrc for &InfoGraph {
             .map(|(edge_id, [src_node_id, target_node_id])| {
                 let edge_desc = self.edge_descs().get(edge_id).map(String::as_str);
                 let edge_constraint = graphviz_attrs.edge_constraints().get(edge_id).copied();
+                let edge_minlen = graphviz_attrs.edge_minlens().get(edge_id).copied();
 
                 // We need to find the node_hierarchy for both the the `src_node_id` and
                 // `target_node_id`.
@@ -143,6 +144,7 @@ impl IntoGraphvizDotSrc for &InfoGraph {
                     edge_id,
                     edge_desc,
                     edge_constraint,
+                    edge_minlen,
                     src_node_id,
                     src_node_hierarchy,
                     target_node_id,
@@ -241,20 +243,23 @@ fn node_attrs(theme: &GraphvizDotTheme) -> String {
     )
 }
 
-fn edge_attrs(edge_constraint_default: bool, theme: &GraphvizDotTheme) -> String {
+fn edge_attrs(graphviz_attrs: &GraphvizAttrs, theme: &GraphvizDotTheme) -> String {
     let edge_color = theme.edge_color();
     let plain_text_color = theme.plain_text_color();
     let edge_point_size = theme.edge_point_size();
+    let edge_minlen_default = graphviz_attrs.edge_minlen_default();
+    let edge_constraint_default = graphviz_attrs.edge_constraint_default();
 
     formatdoc!(
         r#"
         edge [
             constraint = {edge_constraint_default},
-            fontname  = "liberationmono"
-            fontsize  = {edge_point_size}
-            arrowsize = 0.7
-            color     = "{edge_color}"
-            fontcolor = "{plain_text_color}"
+            minlen     = {edge_minlen_default},
+            fontname   = "liberationmono"
+            fontsize   = {edge_point_size}
+            arrowsize  = 0.7
+            color      = "{edge_color}"
+            fontcolor  = "{plain_text_color}"
         ]
         "#
     )
@@ -510,6 +515,7 @@ fn edge(
     edge_id: &EdgeId,
     edge_desc: Option<&str>,
     edge_constraint: Option<bool>,
+    edge_minlen: Option<u32>,
     src_node_id: &NodeId,
     src_node_hierarchy: Option<&NodeHierarchy>,
     target_node_id: &NodeId,
@@ -566,6 +572,9 @@ fn edge(
     let edge_constraint = edge_constraint
         .map(|edge_constraint| Cow::Owned(format!("constraint = {edge_constraint}")))
         .unwrap_or(Cow::Borrowed(""));
+    let edge_minlen = edge_minlen
+        .map(|edge_minlen| Cow::Owned(format!("minlen = {edge_minlen}")))
+        .unwrap_or(Cow::Borrowed(""));
 
     formatdoc!(
         r#"
@@ -573,7 +582,7 @@ fn edge(
             id     = "{edge_id}"
             {edge_label}
             {edge_constraint}
-            minlen = 3
+            {edge_minlen}
             {edge_css_classes}
             {ltail}
             {lhead}
