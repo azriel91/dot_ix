@@ -1,7 +1,7 @@
 use indexmap::IndexMap;
 
 use crate::{
-    common::{EdgeDescs, Edges, NodeHierarchy, NodeTags, TagId},
+    common::{EdgeDescs, Edges, GraphvizAttrs, NodeHierarchy, NodeTags, TagId},
     info_graph::{GraphDir, NodeDescs, NodeEmojis, NodeNames, Tag},
     theme::Theme,
 };
@@ -29,6 +29,8 @@ pub struct InfoGraphBuilder {
     edge_descs: EdgeDescs,
     /// Tags to associate with nodes.
     tags: IndexMap<TagId, Tag>,
+    /// Additional attributes specifically for GraphViz.
+    graphviz_attrs: GraphvizAttrs,
     /// Theme that controls the CSS classes to add to elements.
     theme: Theme,
     /// Additional CSS to add in the spreadsheet.
@@ -90,6 +92,12 @@ impl InfoGraphBuilder {
         self
     }
 
+    /// Sets the additional attributes specifically for GraphViz.
+    pub fn with_graphviz_attrs(mut self, graphviz_attrs: GraphvizAttrs) -> Self {
+        self.graphviz_attrs = graphviz_attrs;
+        self
+    }
+
     /// Sets the theme that controls the CSS classes to add to elements.
     pub fn with_theme(mut self, theme: Theme) -> Self {
         self.theme = theme;
@@ -114,6 +122,7 @@ impl InfoGraphBuilder {
             edges,
             edge_descs,
             tags,
+            graphviz_attrs,
             theme,
             css,
         } = self;
@@ -128,6 +137,7 @@ impl InfoGraphBuilder {
             edges,
             edge_descs,
             tags,
+            graphviz_attrs,
             theme,
             css,
         }

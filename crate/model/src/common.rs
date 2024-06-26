@@ -6,6 +6,7 @@ pub use self::{
     edge_descs::EdgeDescs,
     edge_id::{EdgeId, EdgeIdInvalidFmt},
     edges::Edges,
+    graphviz_attrs::GraphvizAttrs,
     graphviz_dot_theme::GraphvizDotTheme,
     node_descs::NodeDescs,
     node_emojis::NodeEmojis,
@@ -24,6 +25,7 @@ mod edge;
 mod edge_descs;
 mod edge_id;
 mod edges;
+mod graphviz_attrs;
 mod id_newtype;
 mod node_descs;
 mod node_emojis;

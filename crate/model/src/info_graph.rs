@@ -6,7 +6,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     common::{
-        EdgeDescs, Edges, NodeDescs, NodeEmojis, NodeHierarchy, NodeId, NodeNames, NodeTags, TagId,
+        EdgeDescs, Edges, GraphvizAttrs, NodeDescs, NodeEmojis, NodeHierarchy, NodeId, NodeNames,
+        NodeTags, TagId,
     },
     theme::Theme,
 };
@@ -34,10 +35,12 @@ pub struct InfoGraph {
     pub(crate) node_tags: NodeTags,
     /// Logical / ordering dependencies.
     pub(crate) edges: Edges,
-    /// Each node's description.
+    /// Each edge's description.
     pub(crate) edge_descs: EdgeDescs,
     /// Tags to associate with nodes.
     pub(crate) tags: IndexMap<TagId, Tag>,
+    /// Additional attributes specifically for GraphViz.
+    pub(crate) graphviz_attrs: GraphvizAttrs,
     /// Theme that controls the CSS classes to add to elements.
     pub(crate) theme: Theme,
     /// Additional CSS to add in the spreadsheet.
@@ -131,6 +134,11 @@ impl InfoGraph {
     /// Returns the tags to associate with nodes.
     pub fn tags(&self) -> &IndexMap<TagId, Tag> {
         &self.tags
+    }
+
+    /// Returns the additional attributes specifically for GraphViz.
+    pub fn graphviz_attrs(&self) -> &GraphvizAttrs {
+        &self.graphviz_attrs
     }
 
     /// Returns the theme that controls the CSS classes to add to elements.
