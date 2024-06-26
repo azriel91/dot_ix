@@ -62,6 +62,11 @@ edges:
   iam_policy__s3_object: [iam_policy, s3_object]
   github_app_zip__app_extract: [github_app_zip, app_extract]
 
+graphviz_attrs:
+  edge_constraints:
+    app_download__s3_object: false
+  edge_minlen_default: 1
+
 theme:
   merge_with_base: true
   styles:
