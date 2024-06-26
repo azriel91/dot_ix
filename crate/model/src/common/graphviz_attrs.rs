@@ -7,6 +7,7 @@ mod edge_minlens;
 
 /// Additional attributes specifically for GraphViz.
 #[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
+#[serde(default)]
 pub struct GraphvizAttrs {
     /// The default constraint value for edges, defaults to `true`.
     pub edge_constraint_default: bool,
