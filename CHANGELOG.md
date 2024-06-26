@@ -3,6 +3,12 @@
 ## unreleased
 
 * Playground: Use URL fragment/hash instead of query params to store source.
+* Add `InfoGraph.graphviz_attrs` to specify GraphViz specific attributes.
+* Add `GraphvizAttrs.edge_constraint_default` to specify the default `constraint` for all edges.
+* Add `GraphvizAttrs.edge_constraints` to specify the `constraint` for each edge.
+* Add `GraphvizAttrs.edge_minlen_default` to specify the default `minlen` for all edges.
+* Add `GraphvizAttrs.edge_minlens` to specify the `minlen` for each edge.
+* Change order that nodes are provided to GraphViz for vertical graphs.
 
 
 ## 0.6.0 (2024-06-09)
