@@ -8,6 +8,8 @@
 * Add `GraphvizAttrs.edge_constraints` to specify the `constraint` for each edge.
 * Add `GraphvizAttrs.edge_minlen_default` to specify the default `minlen` for all edges.
 * Add `GraphvizAttrs.edge_minlens` to specify the `minlen` for each edge.
+* Add `GraphvizAttrs.edge_dir_default` to specify the default `dir` for all edges.
+* Add `GraphvizAttrs.edge_dirs` to specify the `dir` for each edge.
 * Change order that nodes are provided to GraphViz for vertical graphs.
 
 
