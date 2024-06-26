@@ -5,8 +5,8 @@ use std::{
 
 use dot_ix_model::{
     common::{
-        graphviz_dot_theme::GraphStyle, AnyId, DotSrcAndStyles, EdgeId, GraphvizAttrs,
-        GraphvizDotTheme, NodeHierarchy, NodeId, TagId,
+        graphviz_attrs::EdgeDir, graphviz_dot_theme::GraphStyle, AnyId, DotSrcAndStyles, EdgeId,
+        GraphvizAttrs, GraphvizDotTheme, NodeHierarchy, NodeId, TagId,
     },
     info_graph::{GraphDir, InfoGraph, Tag},
     theme::ElCssClasses,
@@ -136,6 +136,7 @@ impl IntoGraphvizDotSrc for &InfoGraph {
             .map(|(edge_id, [src_node_id, target_node_id])| {
                 let edge_desc = self.edge_descs().get(edge_id).map(String::as_str);
                 let edge_constraint = graphviz_attrs.edge_constraints().get(edge_id).copied();
+                let edge_dir = graphviz_attrs.edge_dirs().get(edge_id).copied();
                 let edge_minlen = graphviz_attrs.edge_minlens().get(edge_id).copied();
 
                 // We need to find the node_hierarchy for both the the `src_node_id` and
@@ -147,6 +148,7 @@ impl IntoGraphvizDotSrc for &InfoGraph {
                     edge_id,
                     edge_desc,
                     edge_constraint,
+                    edge_dir,
                     edge_minlen,
                     src_node_id,
                     src_node_hierarchy,
@@ -250,13 +252,15 @@ fn edge_attrs(graphviz_attrs: &GraphvizAttrs, theme: &GraphvizDotTheme) -> Strin
     let edge_color = theme.edge_color();
     let plain_text_color = theme.plain_text_color();
     let edge_point_size = theme.edge_point_size();
-    let edge_minlen_default = graphviz_attrs.edge_minlen_default();
     let edge_constraint_default = graphviz_attrs.edge_constraint_default();
+    let edge_dir_default = graphviz_attrs.edge_dir_default();
+    let edge_minlen_default = graphviz_attrs.edge_minlen_default();
 
     formatdoc!(
         r#"
         edge [
             constraint = {edge_constraint_default},
+            dir        = {edge_dir_default},
             minlen     = {edge_minlen_default},
             fontname   = "liberationmono"
             fontsize   = {edge_point_size}
@@ -518,6 +522,7 @@ fn edge(
     edge_id: &EdgeId,
     edge_desc: Option<&str>,
     edge_constraint: Option<bool>,
+    edge_dir: Option<EdgeDir>,
     edge_minlen: Option<u32>,
     src_node_id: &NodeId,
     src_node_hierarchy: Option<&NodeHierarchy>,
@@ -575,6 +580,9 @@ fn edge(
     let edge_constraint = edge_constraint
         .map(|edge_constraint| Cow::Owned(format!("constraint = {edge_constraint}")))
         .unwrap_or(Cow::Borrowed(""));
+    let edge_dir = edge_dir
+        .map(|edge_dir| Cow::Owned(format!("dir = {edge_dir}")))
+        .unwrap_or(Cow::Borrowed(""));
     let edge_minlen = edge_minlen
         .map(|edge_minlen| Cow::Owned(format!("minlen = {edge_minlen}")))
         .unwrap_or(Cow::Borrowed(""));
@@ -585,6 +593,7 @@ fn edge(
             id     = "{edge_id}"
             {edge_label}
             {edge_constraint}
+            {edge_dir}
             {edge_minlen}
             {edge_css_classes}
             {ltail}

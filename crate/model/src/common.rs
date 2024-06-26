@@ -17,6 +17,7 @@ pub use self::{
     tag_id::{TagId, TagIdInvalidFmt},
 };
 
+pub mod graphviz_attrs;
 pub mod graphviz_dot_theme;
 
 mod any_id;
@@ -25,7 +26,6 @@ mod edge;
 mod edge_descs;
 mod edge_id;
 mod edges;
-mod graphviz_attrs;
 mod id_newtype;
 mod node_descs;
 mod node_emojis;
