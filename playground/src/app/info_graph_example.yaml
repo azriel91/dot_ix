@@ -66,6 +66,8 @@ graphviz_attrs:
   edge_constraints:
     app_download__s3_object: false
   edge_minlen_default: 1
+  edge_dirs:
+    app_download__s3_object: back # forward, back, both, none
 
 theme:
   merge_with_base: true
