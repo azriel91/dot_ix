@@ -104,6 +104,7 @@ impl IntoGraphvizDotSrc for &InfoGraph {
             edge_ids: self.edges().keys().collect::<Vec<_>>(),
         };
         let el_css_classes = self.theme().el_css_classes(&info_graph_dot);
+        let el_css_classes = &el_css_classes;
 
         let node_clusters = match self.direction() {
             GraphDir::Horizontal => self
@@ -113,7 +114,7 @@ impl IntoGraphvizDotSrc for &InfoGraph {
                 // layout order.
                 .rev()
                 .map(|(node_id, node_hierarchy)| {
-                    node_cluster(self, &el_css_classes, theme, node_id, node_hierarchy)
+                    node_cluster(self, el_css_classes, theme, node_id, node_hierarchy)
                 })
                 .collect::<Vec<String>>()
                 .join("\n"),
@@ -124,7 +125,7 @@ impl IntoGraphvizDotSrc for &InfoGraph {
                 // layout order.
                 .rev()
                 .map(|(node_id, node_hierarchy)| {
-                    node_cluster(self, &el_css_classes, theme, node_id, node_hierarchy)
+                    node_cluster(self, el_css_classes, theme, node_id, node_hierarchy)
                 })
                 .collect::<Vec<String>>()
                 .join("\n"),
@@ -143,8 +144,9 @@ impl IntoGraphvizDotSrc for &InfoGraph {
                 // `target_node_id`.
                 let src_node_hierarchy = node_id_to_hierarchy.get(src_node_id).copied();
                 let target_node_hierarchy = node_id_to_hierarchy.get(target_node_id).copied();
-                edge(
-                    &el_css_classes,
+
+                let edge_args = EdgeArgs {
+                    el_css_classes,
                     edge_id,
                     edge_desc,
                     edge_constraint,
@@ -154,13 +156,15 @@ impl IntoGraphvizDotSrc for &InfoGraph {
                     src_node_hierarchy,
                     target_node_id,
                     target_node_hierarchy,
-                )
+                };
+
+                edge(edge_args)
             })
             .collect::<Vec<String>>()
             .join("\n");
 
         let mut tag_legend_buffer = String::with_capacity(512 * self.tags().len() + 512);
-        tag_legend(&mut tag_legend_buffer, theme, &el_css_classes, self.tags())
+        tag_legend(&mut tag_legend_buffer, theme, el_css_classes, self.tags())
             .expect("Failed to write `tag_legend` string.");
 
         let dot_src = formatdoc!(
@@ -517,18 +521,32 @@ fn node_cluster_internal(
     Ok(())
 }
 
-fn edge(
-    el_css_classes: &ElCssClasses,
-    edge_id: &EdgeId,
-    edge_desc: Option<&str>,
+struct EdgeArgs<'args> {
+    el_css_classes: &'args ElCssClasses,
+    edge_id: &'args EdgeId,
+    edge_desc: Option<&'args str>,
     edge_constraint: Option<bool>,
     edge_dir: Option<EdgeDir>,
     edge_minlen: Option<u32>,
-    src_node_id: &NodeId,
-    src_node_hierarchy: Option<&NodeHierarchy>,
-    target_node_id: &NodeId,
-    target_node_hierarchy: Option<&NodeHierarchy>,
-) -> String {
+    src_node_id: &'args NodeId,
+    src_node_hierarchy: Option<&'args NodeHierarchy>,
+    target_node_id: &'args NodeId,
+    target_node_hierarchy: Option<&'args NodeHierarchy>,
+}
+
+fn edge(edge_args: EdgeArgs<'_>) -> String {
+    let EdgeArgs {
+        el_css_classes,
+        edge_id,
+        edge_desc,
+        edge_constraint,
+        edge_dir,
+        edge_minlen,
+        src_node_id,
+        src_node_hierarchy,
+        target_node_id,
+        target_node_hierarchy,
+    } = edge_args;
     let (edge_src_node_id, ltail) = if let Some((mut child_node_id, mut child_node_hierarchy)) =
         src_node_hierarchy
             .filter(|node_hierarchy| !node_hierarchy.is_empty())
