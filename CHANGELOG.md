@@ -3,6 +3,8 @@
 ## unreleased
 
 * Playground: Use URL fragment/hash instead of query params to store source.
+* Make `InfoGraph` fields public.
+* Remove `InfoGraphBuilder`, and move builder methods onto `InfoGraph`.
 * Add `InfoGraph.graphviz_attrs` to specify GraphViz specific attributes.
 * Add `GraphvizAttrs.edge_constraint_default` to specify the default `constraint` for all edges.
 * Add `GraphvizAttrs.edge_constraints` to specify the `constraint` for each edge.
