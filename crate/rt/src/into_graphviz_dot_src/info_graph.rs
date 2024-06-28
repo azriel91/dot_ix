@@ -5,8 +5,8 @@ use std::{
 
 use dot_ix_model::{
     common::{
-        graphviz_dot_theme::GraphStyle, AnyId, DotSrcAndStyles, EdgeId, GraphvizDotTheme,
-        NodeHierarchy, NodeId, TagId,
+        graphviz_attrs::EdgeDir, graphviz_dot_theme::GraphStyle, AnyId, DotSrcAndStyles, EdgeId,
+        GraphvizAttrs, GraphvizDotTheme, NodeHierarchy, NodeId, TagId,
     },
     info_graph::{GraphDir, InfoGraph, Tag},
     theme::ElCssClasses,
@@ -92,7 +92,8 @@ impl IntoGraphvizDotSrc for &InfoGraph {
     fn into(self, theme: &GraphvizDotTheme) -> DotSrcAndStyles {
         let graph_attrs = graph_attrs(theme, self.direction());
         let node_attrs = node_attrs(theme);
-        let edge_attrs = edge_attrs(theme);
+        let graphviz_attrs = self.graphviz_attrs();
+        let edge_attrs = edge_attrs(graphviz_attrs, theme);
 
         // Build a map from `NodeId` to their `NodeHierarchy`, so that we don't have to
         // search for it every time we want to create an edge.
@@ -103,6 +104,7 @@ impl IntoGraphvizDotSrc for &InfoGraph {
             edge_ids: self.edges().keys().collect::<Vec<_>>(),
         };
         let el_css_classes = self.theme().el_css_classes(&info_graph_dot);
+        let el_css_classes = &el_css_classes;
 
         let node_clusters = match self.direction() {
             GraphDir::Horizontal => self
@@ -112,15 +114,18 @@ impl IntoGraphvizDotSrc for &InfoGraph {
                 // layout order.
                 .rev()
                 .map(|(node_id, node_hierarchy)| {
-                    node_cluster(self, &el_css_classes, theme, node_id, node_hierarchy)
+                    node_cluster(self, el_css_classes, theme, node_id, node_hierarchy)
                 })
                 .collect::<Vec<String>>()
                 .join("\n"),
             GraphDir::Vertical => self
                 .hierarchy()
                 .iter()
+                // Reversing the order we feed nodes to Graphviz dot tends to produce a more natural
+                // layout order.
+                .rev()
                 .map(|(node_id, node_hierarchy)| {
-                    node_cluster(self, &el_css_classes, theme, node_id, node_hierarchy)
+                    node_cluster(self, el_css_classes, theme, node_id, node_hierarchy)
                 })
                 .collect::<Vec<String>>()
                 .join("\n"),
@@ -131,26 +136,35 @@ impl IntoGraphvizDotSrc for &InfoGraph {
             .iter()
             .map(|(edge_id, [src_node_id, target_node_id])| {
                 let edge_desc = self.edge_descs().get(edge_id).map(String::as_str);
+                let edge_constraint = graphviz_attrs.edge_constraints().get(edge_id).copied();
+                let edge_dir = graphviz_attrs.edge_dirs().get(edge_id).copied();
+                let edge_minlen = graphviz_attrs.edge_minlens().get(edge_id).copied();
 
                 // We need to find the node_hierarchy for both the the `src_node_id` and
                 // `target_node_id`.
                 let src_node_hierarchy = node_id_to_hierarchy.get(src_node_id).copied();
                 let target_node_hierarchy = node_id_to_hierarchy.get(target_node_id).copied();
-                edge(
-                    &el_css_classes,
+
+                let edge_args = EdgeArgs {
+                    el_css_classes,
                     edge_id,
                     edge_desc,
+                    edge_constraint,
+                    edge_dir,
+                    edge_minlen,
                     src_node_id,
                     src_node_hierarchy,
                     target_node_id,
                     target_node_hierarchy,
-                )
+                };
+
+                edge(edge_args)
             })
             .collect::<Vec<String>>()
             .join("\n");
 
         let mut tag_legend_buffer = String::with_capacity(512 * self.tags().len() + 512);
-        tag_legend(&mut tag_legend_buffer, theme, &el_css_classes, self.tags())
+        tag_legend(&mut tag_legend_buffer, theme, el_css_classes, self.tags())
             .expect("Failed to write `tag_legend` string.");
 
         let dot_src = formatdoc!(
@@ -238,19 +252,25 @@ fn node_attrs(theme: &GraphvizDotTheme) -> String {
     )
 }
 
-fn edge_attrs(theme: &GraphvizDotTheme) -> String {
+fn edge_attrs(graphviz_attrs: &GraphvizAttrs, theme: &GraphvizDotTheme) -> String {
     let edge_color = theme.edge_color();
     let plain_text_color = theme.plain_text_color();
     let edge_point_size = theme.edge_point_size();
+    let edge_constraint_default = graphviz_attrs.edge_constraint_default();
+    let edge_dir_default = graphviz_attrs.edge_dir_default();
+    let edge_minlen_default = graphviz_attrs.edge_minlen_default();
 
     formatdoc!(
         r#"
         edge [
-            fontname  = "liberationmono"
-            fontsize  = {edge_point_size}
-            arrowsize = 0.7
-            color     = "{edge_color}"
-            fontcolor = "{plain_text_color}"
+            constraint = {edge_constraint_default},
+            dir        = {edge_dir_default},
+            minlen     = {edge_minlen_default},
+            fontname   = "liberationmono"
+            fontsize   = {edge_point_size}
+            arrowsize  = 0.7
+            color      = "{edge_color}"
+            fontcolor  = "{plain_text_color}"
         ]
         "#
     )
@@ -501,15 +521,32 @@ fn node_cluster_internal(
     Ok(())
 }
 
-fn edge(
-    el_css_classes: &ElCssClasses,
-    edge_id: &EdgeId,
-    edge_desc: Option<&str>,
-    src_node_id: &NodeId,
-    src_node_hierarchy: Option<&NodeHierarchy>,
-    target_node_id: &NodeId,
-    target_node_hierarchy: Option<&NodeHierarchy>,
-) -> String {
+struct EdgeArgs<'args> {
+    el_css_classes: &'args ElCssClasses,
+    edge_id: &'args EdgeId,
+    edge_desc: Option<&'args str>,
+    edge_constraint: Option<bool>,
+    edge_dir: Option<EdgeDir>,
+    edge_minlen: Option<u32>,
+    src_node_id: &'args NodeId,
+    src_node_hierarchy: Option<&'args NodeHierarchy>,
+    target_node_id: &'args NodeId,
+    target_node_hierarchy: Option<&'args NodeHierarchy>,
+}
+
+fn edge(edge_args: EdgeArgs<'_>) -> String {
+    let EdgeArgs {
+        el_css_classes,
+        edge_id,
+        edge_desc,
+        edge_constraint,
+        edge_dir,
+        edge_minlen,
+        src_node_id,
+        src_node_hierarchy,
+        target_node_id,
+        target_node_hierarchy,
+    } = edge_args;
     let (edge_src_node_id, ltail) = if let Some((mut child_node_id, mut child_node_hierarchy)) =
         src_node_hierarchy
             .filter(|node_hierarchy| !node_hierarchy.is_empty())
@@ -558,13 +595,24 @@ fn edge(
         .map(AsRef::<str>::as_ref)
         .map(|edge_css_classes| format!(", class = \"{edge_css_classes}\""));
     let edge_css_classes = edge_css_classes.as_deref().unwrap_or_default();
+    let edge_constraint = edge_constraint
+        .map(|edge_constraint| Cow::Owned(format!("constraint = {edge_constraint}")))
+        .unwrap_or(Cow::Borrowed(""));
+    let edge_dir = edge_dir
+        .map(|edge_dir| Cow::Owned(format!("dir = {edge_dir}")))
+        .unwrap_or(Cow::Borrowed(""));
+    let edge_minlen = edge_minlen
+        .map(|edge_minlen| Cow::Owned(format!("minlen = {edge_minlen}")))
+        .unwrap_or(Cow::Borrowed(""));
 
     formatdoc!(
         r#"
         {edge_src_node_id} -> {edge_target_node_id} [
             id     = "{edge_id}"
             {edge_label}
-            minlen = 3
+            {edge_constraint}
+            {edge_dir}
+            {edge_minlen}
             {edge_css_classes}
             {ltail}
             {lhead}

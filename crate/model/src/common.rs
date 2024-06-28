@@ -6,6 +6,7 @@ pub use self::{
     edge_descs::EdgeDescs,
     edge_id::{EdgeId, EdgeIdInvalidFmt},
     edges::Edges,
+    graphviz_attrs::GraphvizAttrs,
     graphviz_dot_theme::GraphvizDotTheme,
     node_descs::NodeDescs,
     node_emojis::NodeEmojis,
@@ -16,6 +17,7 @@ pub use self::{
     tag_id::{TagId, TagIdInvalidFmt},
 };
 
+pub mod graphviz_attrs;
 pub mod graphviz_dot_theme;
 
 mod any_id;

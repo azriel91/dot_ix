@@ -25,9 +25,9 @@ const QUERY_PARAM_SRC: &str = "src";
 /// `create_effect` is safe.
 #[cfg(target_arch = "wasm32")]
 fn info_graph_src_init(set_info_graph_src: WriteSignal<String>) {
+    use js_sys::Array;
     use lz_str::decompress_from_encoded_uri_component;
     use web_sys::{console, Document, Url, UrlSearchParams};
-    use js_sys::Array;
 
     create_effect(move |_| {
         if let Some(window) = web_sys::window() {
@@ -195,15 +195,18 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
                     let src_compressed = compress_to_encoded_uri_component(&info_graph_src);
                     if let Some(window) = web_sys::window() {
                         let url = {
-                            let url = web_sys::Url::new(&String::from(window.location().to_string()))
-                                .expect("Expected URL to be valid.");
+                            let url =
+                                web_sys::Url::new(&String::from(window.location().to_string()))
+                                    .expect("Expected URL to be valid.");
 
                             // Remove this in a few versions.
                             url.search_params().delete(QUERY_PARAM_SRC);
                             url.search_params().delete(QUERY_PARAM_DIAGRAM_ONLY);
 
                             let fragment = {
-                                let mut fragment = String::with_capacity(QUERY_PARAM_SRC.len() + src_compressed.len() + 64);
+                                let mut fragment = String::with_capacity(
+                                    QUERY_PARAM_SRC.len() + src_compressed.len() + 64,
+                                );
                                 fragment.push_str(QUERY_PARAM_SRC);
                                 fragment.push_str("=");
                                 fragment.push_str(&src_compressed);
