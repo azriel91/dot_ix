@@ -5,10 +5,10 @@ use std::{
 
 use dot_ix_model::{
     common::{
-        graphviz_attrs::EdgeDir, graphviz_dot_theme::GraphStyle, AnyId, DotSrcAndStyles, EdgeId,
-        GraphvizAttrs, GraphvizDotTheme, NodeHierarchy, NodeId, TagId,
+        graphviz_attrs::EdgeDir, AnyId, DotSrcAndStyles, EdgeId, GraphvizAttrs, GraphvizDotTheme,
+        NodeHierarchy, NodeId, TagId,
     },
-    info_graph::{GraphDir, InfoGraph, Tag},
+    info_graph::{GraphDir, GraphStyle, InfoGraph, Tag},
     theme::ElCssClasses,
 };
 use indexmap::IndexMap;
@@ -91,7 +91,7 @@ use crate::{InfoGraphDot, IntoGraphvizDotSrc};
 impl IntoGraphvizDotSrc for &InfoGraph {
     fn into(self, theme: &GraphvizDotTheme) -> DotSrcAndStyles {
         let graph_attrs = graph_attrs(theme, self.direction());
-        let node_attrs = node_attrs(theme);
+        let node_attrs = node_attrs(self.graph_style(), theme);
         let graphviz_attrs = self.graphviz_attrs();
         let edge_attrs = edge_attrs(graphviz_attrs, theme);
 
@@ -206,9 +206,9 @@ fn graph_attrs(theme: &GraphvizDotTheme, graph_dir: GraphDir) -> String {
     )
 }
 
-fn node_attrs(theme: &GraphvizDotTheme) -> String {
-    let node_style_and_shape = match theme.graph_style {
-        GraphStyle::Boxes => {
+fn node_attrs(graph_style: GraphStyle, theme: &GraphvizDotTheme) -> String {
+    let node_style_and_shape = match graph_style {
+        GraphStyle::Box => {
             "shape     = \"rect\"
             style     = \"rounded,filled\""
         }
@@ -293,6 +293,7 @@ fn node_cluster_internal(
     node_hierarchy: &NodeHierarchy,
     buffer: &mut String,
 ) -> fmt::Result {
+    let graph_style = info_graph.graph_style();
     let node_names = info_graph.node_names();
     let node_descs = info_graph.node_descs();
     let node_emojis = info_graph.node_emojis();
@@ -388,8 +389,8 @@ fn node_cluster_internal(
         .unwrap_or_else(String::new);
 
     if node_hierarchy.is_empty() {
-        match theme.graph_style {
-            GraphStyle::Boxes => writedoc!(
+        match graph_style {
+            GraphStyle::Box => writedoc!(
                 buffer,
                 r#"
                     {node_id} [
