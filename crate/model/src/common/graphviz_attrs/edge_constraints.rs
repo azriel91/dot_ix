@@ -7,7 +7,8 @@ use crate::common::EdgeId;
 
 /// GraphViz edge constraint. `IndexMap<EdgeId, bool>` newtype.
 ///
-/// This is only used for GraphViz dot graphs, which sets the [`constraint`] attribute for the edge.
+/// This is only used for GraphViz dot graphs, which sets the [`constraint`]
+/// attribute for the edge.
 ///
 /// [`constraint`]: https://graphviz.org/docs/attrs/constraint/
 #[derive(Clone, Debug, Default, PartialEq, Eq, Deserialize, Serialize)]

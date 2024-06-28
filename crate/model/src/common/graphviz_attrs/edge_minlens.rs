@@ -7,7 +7,8 @@ use crate::common::EdgeId;
 
 /// GraphViz edge minlen. `IndexMap<EdgeId, u32>` newtype.
 ///
-/// This is only used for GraphViz dot graphs, which sets the [`minlen`] attribute for the edge.
+/// This is only used for GraphViz dot graphs, which sets the [`minlen`]
+/// attribute for the edge.
 ///
 /// [`minlen`]: https://graphviz.org/docs/attrs/minlen/
 #[derive(Clone, Debug, Default, PartialEq, Eq, Deserialize, Serialize)]
