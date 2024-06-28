@@ -1,12 +1,5 @@
-pub use graph_style::GraphStyle;
-
-mod graph_style;
-
 #[derive(Clone, Debug, PartialEq)]
 pub struct GraphvizDotTheme {
-    /// Style of graph to render.
-    pub graph_style: GraphStyle,
-
     /// The colour to use for graph edges.
     pub edge_color: &'static str,
 
@@ -59,11 +52,6 @@ pub struct GraphvizDotTheme {
 }
 
 impl GraphvizDotTheme {
-    pub fn with_graph_style(mut self, graph_style: GraphStyle) -> Self {
-        self.graph_style = graph_style;
-        self
-    }
-
     pub fn with_edge_color(mut self, edge_color: &'static str) -> Self {
         self.edge_color = edge_color;
         self
@@ -212,7 +200,6 @@ impl GraphvizDotTheme {
 impl Default for GraphvizDotTheme {
     fn default() -> Self {
         Self {
-            graph_style: GraphStyle::default(),
             edge_color: "#333333",
             node_text_color: "#111111",
             node_width: 0.3,

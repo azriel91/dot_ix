@@ -4,6 +4,8 @@
 
 * Playground: Use URL fragment/hash instead of query params to store source.
 * Make `InfoGraph` fields public.
+* Move `graph_style` into `InfoGraph`.
+* Rename `GraphStyle::Boxes` to `GraphStyle::Box`.
 * Remove `InfoGraphBuilder`, and move builder methods onto `InfoGraph`.
 * Add `InfoGraph.graphviz_attrs` to specify GraphViz specific attributes.
 * Add `GraphvizAttrs.edge_constraint_default` to specify the default `constraint` for all edges.

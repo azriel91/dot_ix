@@ -12,14 +12,17 @@ use crate::{
     theme::Theme,
 };
 
-pub use self::{graph_dir::GraphDir, tag::Tag};
+pub use self::{graph_dir::GraphDir, graph_style::GraphStyle, tag::Tag};
 
 mod graph_dir;
+mod graph_style;
 mod tag;
 
 #[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(default)]
 pub struct InfoGraph {
+    /// Style of graph to render.
+    pub graph_style: GraphStyle,
     /// Direction of the graph, `vertical` or `horizontal`.
     pub direction: GraphDir,
     /// Nested nodes.
@@ -47,6 +50,12 @@ pub struct InfoGraph {
 }
 
 impl InfoGraph {
+    /// Sets the style of graph to render.
+    pub fn with_graph_style(mut self, graph_style: GraphStyle) -> Self {
+        self.graph_style = graph_style;
+        self
+    }
+
     /// Sets the direction of the graph, `vertical` or `horizontal`.
     pub fn with_direction(mut self, direction: GraphDir) -> Self {
         self.direction = direction;
@@ -117,6 +126,11 @@ impl InfoGraph {
     pub fn with_css(mut self, css: String) -> Self {
         self.css = css;
         self
+    }
+
+    /// Returns the style of graph to render.
+    pub fn graph_style(&self) -> GraphStyle {
+        self.graph_style
     }
 
     /// Returns the direction of the graph, `vertical` or `horizontal`.

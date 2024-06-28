@@ -1,4 +1,5 @@
 ---
+graph_style: circle # box, circle
 direction: vertical
 hierarchy:
   github:
@@ -60,14 +61,19 @@ edges:
   iam_role__instance_profile: [iam_role, instance_profile]
   app_download__s3_object: [app_download, s3_object]
   iam_policy__s3_object: [iam_policy, s3_object]
-  github_app_zip__app_extract: [github_app_zip, app_extract]
+  github_app_zip__app_download: [github_app_zip, app_download]
+  app_download__github_app_zip: [app_download, github_app_zip]
 
 graphviz_attrs:
   edge_constraints:
+    app_download__github_app_zip: true
+    github_app_zip__app_download: true
     app_download__s3_object: false
   edge_minlen_default: 1
-  edge_dirs:
-    app_download__s3_object: back # forward, back, both, none
+  edge_minlens:
+    app_download__github_app_zip: 2
+  edge_dirs: # forward, back, both, none
+    app_download__github_app_zip: forward
 
 theme:
   merge_with_base: true
@@ -79,7 +85,7 @@ theme:
       extra: hidden
     github_app_zip__app_extract:
       extra: 'cursor-pointer'
-    app_download__s3_object:
+    blue_animated: &blue_animated
       shape_color: blue
       stroke_style: dashed  # shorthand for [&>path]:[stroke-dasharray:3]
       stroke_width: '[2px]'
@@ -87,6 +93,21 @@ theme:
       fill_shade_normal: '500'
       extra: >-
         [&>path]:animate-[stroke-dashoffset-move_4s_linear_infinite]
+        cursor-pointer
+    app_download__s3_object: *blue_animated
+    github_app_zip__app_download:
+      <<: *blue_animated
+      shape_color: violet
+      extra: >-
+        [&>path]:animate-[stroke-dashoffset-move_5s_linear_infinite]
+        [&>path]:[stroke-dasharray:2]
+        cursor-pointer
+    app_download__github_app_zip:
+      <<: *blue_animated
+      shape_color: purple
+      extra: >-
+        [&>path]:animate-[stroke-dashoffset-move_4s_linear_infinite]
+        [&>path]:[stroke-dasharray:5]
         cursor-pointer
     light: &light
       fill_shade_normal: '100'

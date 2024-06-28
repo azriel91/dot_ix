@@ -36,6 +36,13 @@ impl<'graph> Themeable for InfoGraphDot<'graph> {
             stroke_style,
             "[&>path]:",
         );
+        outline_style_classes(
+            builder,
+            color_params.highlight_state,
+            stroke_width,
+            stroke_style,
+            "[&>ellipse]:",
+        );
     }
 
     fn node_stroke_classes(
@@ -169,7 +176,8 @@ fn path_color_classes(
     color_params: ColorParams<'_>,
     stroke_or_fill: &str,
 ) {
-    el_color_classes(builder, color_params, stroke_or_fill, "[&>path]:")
+    el_color_classes(builder, color_params, stroke_or_fill, "[&>path]:");
+    el_color_classes(builder, color_params, stroke_or_fill, "[&>ellipse]:");
 }
 
 fn polygon_color_classes(
@@ -177,7 +185,7 @@ fn polygon_color_classes(
     color_params: ColorParams<'_>,
     stroke_or_fill: &str,
 ) {
-    el_color_classes(builder, color_params, stroke_or_fill, "[&>polygon]:")
+    el_color_classes(builder, color_params, stroke_or_fill, "[&>polygon]:");
 }
 
 fn el_color_classes(
