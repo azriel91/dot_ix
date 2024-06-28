@@ -419,10 +419,16 @@ fn node_cluster_internal(
 
                 let no_color = "#00000000";
 
+                // We need to reset the `label`, `margin`, and `class` attributes for the
+                // internal cluster, otherwise it inherits from the parent cluster.
                 writedoc!(
                     buffer,
                     r#"
                         subgraph cluster_{node_id} {{
+                            label = <>
+                            margin = 0.0
+                            class = ""
+
                             {node_id} [
                                 label = ""
                                 class = "{node_tailwind_classes} {node_tag_classes}"
