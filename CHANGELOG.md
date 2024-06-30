@@ -1,6 +1,6 @@
 # Changelog
 
-## unreleased
+## 0.7.0 (2024-06-30)
 
 * Playground: Use URL fragment/hash instead of query params to store source.
 * Make `InfoGraph` fields public.
