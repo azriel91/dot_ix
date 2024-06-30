@@ -61,19 +61,23 @@ edges:
   iam_role__instance_profile: [iam_role, instance_profile]
   app_download__s3_object: [app_download, s3_object]
   iam_policy__s3_object: [iam_policy, s3_object]
-  github_app_zip__app_download: [github_app_zip, app_download]
-  app_download__github_app_zip: [app_download, github_app_zip]
+  github_app_zip__app_download_1: [github_app_zip, app_download]
+  github_app_zip__app_download_2: [github_app_zip, app_download]
+
+edge_descs:
+  github_app_zip__app_download_1: ' '
 
 graphviz_attrs:
   edge_constraints:
-    app_download__github_app_zip: true
-    github_app_zip__app_download: true
-    app_download__s3_object: false
+    github_app_zip__app_download_1: false
+    github_app_zip__app_download_2: true
+    app_download__s3_object: true
   edge_minlen_default: 1
   edge_minlens:
-    app_download__github_app_zip: 2
+    github_app_zip__app_download_1: 1
+    github_app_zip__app_download_2: 2
   edge_dirs: # forward, back, both, none
-    app_download__github_app_zip: forward
+    github_app_zip__app_download_1: back
 
 theme:
   merge_with_base: true
@@ -94,20 +98,21 @@ theme:
       extra: >-
         [&>path]:animate-[stroke-dashoffset-move_4s_linear_infinite]
         cursor-pointer
-    app_download__s3_object: *blue_animated
-    github_app_zip__app_download:
+    app_download__s3_object:
+      <<: *blue_animated
+    github_app_zip__app_download_1:
       <<: *blue_animated
       shape_color: violet
       extra: >-
-        [&>path]:animate-[stroke-dashoffset-move_5s_linear_infinite]
-        [&>path]:[stroke-dasharray:2]
+        [&>path]:animate-[stroke-dashoffset-move-reverse_5s_linear_infinite]
         cursor-pointer
-    app_download__github_app_zip:
+    github_app_zip__app_download_2:
       <<: *blue_animated
       shape_color: purple
+      stroke_width: '[1px]'
       extra: >-
-        [&>path]:animate-[stroke-dashoffset-move_4s_linear_infinite]
-        [&>path]:[stroke-dasharray:5]
+        [&>path]:animate-[stroke-dashoffset-move_6s_linear_infinite]
+        [&>path]:[stroke-dasharray:2]
         cursor-pointer
     light: &light
       fill_shade_normal: '100'
@@ -129,9 +134,24 @@ theme:
     github:
       <<: *light
       shape_color: gray
+    s3_bucket:
+      fill_shade_normal: '200'
+      fill_shade_hover: '100'
+      fill_shade_focus: '200'
+      fill_shade_active: '200'
+      stroke_shade_normal: '500'
+      stroke_shade_hover: '400'
+      stroke_shade_active: '600'
+      stroke_style: dotted
+      padding: '3'
+      shape_color: amber
 
 css: >-
   @keyframes stroke-dashoffset-move {
     0%   { stroke-dashoffset: 48; }
     100% { stroke-dashoffset: 0; }
+  }
+  @keyframes stroke-dashoffset-move-reverse {
+    0%   { stroke-dashoffset: 0; }
+    100% { stroke-dashoffset: 48; }
   }
