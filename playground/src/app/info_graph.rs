@@ -10,6 +10,8 @@ use dot_ix::{
 };
 use leptos::*;
 
+use crate::app::TextEditor;
+
 #[cfg(target_arch = "wasm32")]
 use super::QUERY_PARAM_DIAGRAM_ONLY;
 
@@ -249,26 +251,10 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
                 <label for="tab_info_graph_yml">"info_graph.yml"</label>
 
                 <div class="tab">
-                    <textarea
-                        id="info_graph_yml"
-                        name="info_graph_yml"
-                        class="
-                            border
-                            border-slate-400
-                            bg-slate-100
-                            font-mono
-                            min-w-full
-                            min-h-full
-                            p-2
-                            rounded
-                            text-xs
-                        "
-                        on:input=leptos_dom::helpers::debounce(Duration::from_millis(200), move |ev| {
-                            let info_graph_src = event_target_value(&ev);
-                            set_info_graph_src.set(info_graph_src);
-                        })
-
-                        prop:value=info_graph_src />
+                    <TextEditor
+                        info_graph_src=info_graph_src
+                        set_info_graph_src=set_info_graph_src
+                    />
                     <br />
                     <div
                         class={

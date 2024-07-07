@@ -25,8 +25,10 @@ leptos = { workspace = true }
 leptos_axum = { workspace = true, optional = true }
 leptos_meta = { workspace = true }
 leptos_router = { workspace = true }
+leptos-use = { workspace = true }
 log = { workspace = true }
 log4rs = { workspace = true, optional = true, default-features = false, features = ["console_appender", "threshold_filter"] }
+monaco = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 tokio = { workspace = true, optional = true }
 tower = { workspace = true, optional = true }

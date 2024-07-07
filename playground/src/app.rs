@@ -5,9 +5,10 @@ use leptos::*;
 use leptos_meta::*;
 use leptos_router::*;
 
-use self::info_graph::InfoGraph;
+use self::{info_graph::InfoGraph, text_editor::TextEditor};
 
 mod info_graph;
+mod text_editor;
 
 /// Whether to only draw the diagram and hide the text boxes.
 #[cfg(target_arch = "wasm32")]
