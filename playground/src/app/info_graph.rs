@@ -254,6 +254,19 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
                     <TextEditor
                         info_graph_src=info_graph_src
                         set_info_graph_src=set_info_graph_src
+                        id="info_graph_yml"
+                        name="info_graph_yml"
+                        class="
+                            border
+                            border-slate-400
+                            bg-slate-100
+                            font-mono
+                            min-w-full
+                            min-h-full
+                            p-2
+                            rounded
+                            text-xs
+                        "
                     />
                     <br />
                     <div

@@ -28,6 +28,9 @@ use wasm_bindgen::{closure::Closure, JsCast};
 pub fn TextEditor(
     info_graph_src: ReadSignal<String>,
     set_info_graph_src: WriteSignal<String>,
+    #[prop(optional)] id: Option<&'static str>,
+    #[prop(optional)] name: Option<&'static str>,
+    #[prop(optional)] class: Option<&'static str>,
 ) -> impl IntoView {
     let (editor_state, _editor_state_set) = create_signal(EditorState::default());
     let div_ref: NodeRef<Div> = create_node_ref();
@@ -89,19 +92,9 @@ pub fn TextEditor(
     view! {
         <div
             node_ref=div_ref
-            id="info_graph_yml_monaco"
-            name="info_graph_yml_monaco"
-            class="
-                border
-                border-slate-400
-                bg-slate-100
-                font-mono
-                min-w-full
-                min-h-full
-                p-2
-                rounded
-                text-xs
-            "
+            id=id
+            class=class
+            name=name
         ></div>
     }
 }
