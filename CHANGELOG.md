@@ -1,5 +1,13 @@
 # Changelog
 
+## unreleased
+
+* Add `TextEditor` in playground which uses [monaco][monaco] / [rust-monaco][rust-monaco].
+
+[monaco]: https://github.com/microsoft/monaco-editor
+[rust-monaco]: https://github.com/siku2/rust-monaco
+
+
 ## 0.7.0 (2024-06-30)
 
 * Playground: Use URL fragment/hash instead of query params to store source.
