@@ -143,10 +143,14 @@ impl EditorState {
     }
 
     pub fn set_value(&self, value: &str) {
-        if let Some(text_model) = self.code_editor
+        if let Some(text_model) = self
+            .code_editor
             .get_untracked()
             .borrow()
             .as_ref()
-            .and_then(CodeEditor::get_model) { text_model.set_value(value) }
+            .and_then(CodeEditor::get_model)
+        {
+            text_model.set_value(value)
+        }
     }
 }
