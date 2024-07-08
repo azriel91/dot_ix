@@ -26,8 +26,8 @@ use wasm_bindgen::{closure::Closure, JsCast};
 
 #[component]
 pub fn TextEditor(
-    info_graph_src: ReadSignal<String>,
-    set_info_graph_src: WriteSignal<String>,
+    value: ReadSignal<String>,
+    set_value: WriteSignal<String>,
     #[prop(optional)] id: Option<&'static str>,
     #[prop(optional)] name: Option<&'static str>,
     #[prop(optional)] class: Option<&'static str>,
@@ -37,8 +37,8 @@ pub fn TextEditor(
 
     #[cfg(not(target_arch = "wasm32"))]
     {
-        let _info_graph_src = info_graph_src;
-        let _set_info_graph_src = set_info_graph_src;
+        let _value = value;
+        let _set_value = set_value;
         let _editor_state = editor_state;
         let _div_ref = div_ref;
     }
@@ -47,18 +47,18 @@ pub fn TextEditor(
     {
         // We must call this outside the `on_load`, otherwise `on_load` is called
         // multiple times, and it panics on the second invocation.
-        let info_graph_src_initial = info_graph_src.get_untracked();
+        let value_initial = value.get_untracked();
 
         let js_closure = Closure::<dyn Fn()>::new(|| ());
         let update_editor_state_fn = Closure::<dyn Fn()>::new(move || {
-            let info_graph_src = editor_state.get_untracked().get_value();
-            set_info_graph_src.set(info_graph_src);
+            let value = editor_state.get_untracked().get_value();
+            set_value.set(value);
         });
         div_ref.on_load(move |node| {
             let div_element: &web_sys::HtmlDivElement = &node;
             let html_element = div_element.unchecked_ref::<web_sys::HtmlElement>();
             let options = CodeEditorOptions::default().to_sys_options();
-            options.set_value(Some(&info_graph_src_initial));
+            options.set_value(Some(&value_initial));
             options.set_language(Some("yaml"));
             options.set_automatic_layout(Some(true));
             options.set_render_whitespace(Some(IEditorOptionsRenderWhitespace::All));
@@ -87,6 +87,11 @@ pub fn TextEditor(
                 prev.replace(Some((update_editor_state_fn, disposable)));
             });
         });
+
+        // This prevents undo from working in the monaco editor.
+        // create_effect(move |_| {
+        //     editor_state.get_untracked().set_value(&value.get());
+        // });
     }
 
     view! {

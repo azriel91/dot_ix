@@ -252,8 +252,8 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
 
                 <div class="tab">
                     <TextEditor
-                        info_graph_src=info_graph_src
-                        set_info_graph_src=set_info_graph_src
+                        value=info_graph_src
+                        set_value=set_info_graph_src
                         id="info_graph_yml"
                         name="info_graph_yml"
                         class="
