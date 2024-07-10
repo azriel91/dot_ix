@@ -15,7 +15,7 @@ cfg_if! { if #[cfg(feature = "ssr")] {
 
     pub async fn file_and_error_handler(uri: Uri, State(options): State<LeptosOptions>, req: Request<Body>) -> AxumResponse {
         let root = options.site_root.clone();
-        let res = get_static_file(uri.clone(), &root).await.unwrap();
+        let res = get_static_file(&uri, &root).await.unwrap();
 
         if res.status() == StatusCode::OK {
             res.into_response()
@@ -25,8 +25,8 @@ cfg_if! { if #[cfg(feature = "ssr")] {
         }
     }
 
-    async fn get_static_file(uri: Uri, root: &str) -> Result<Response<ServeFileSystemResponseBody>, (StatusCode, String)> {
-        let req = Request::builder().uri(uri.clone()).body(Body::empty()).unwrap();
+    async fn get_static_file(uri: &Uri, root: &str) -> Result<Response<ServeFileSystemResponseBody>, (StatusCode, String)> {
+        let req = Request::builder().uri(uri).body(Body::empty()).unwrap();
         // `ServeDir` implements `tower::Service` so we can call it with `tower::ServiceExt::oneshot`
         // This path is relative to the crate root
         match ServeDir::new(root).oneshot(req).await {
