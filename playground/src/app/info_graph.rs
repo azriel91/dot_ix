@@ -15,85 +15,91 @@ use crate::app::TextEditor;
 #[cfg(target_arch = "wasm32")]
 use super::QUERY_PARAM_DIAGRAM_ONLY;
 
+#[cfg(target_arch = "wasm32")]
 const INFO_GRAPH_DEMO: &str = include_str!("info_graph_example.yaml");
 
 /// User provided info graph source.
 #[cfg(target_arch = "wasm32")]
 const QUERY_PARAM_SRC: &str = "src";
 
+#[cfg(not(target_arch = "wasm32"))]
+fn info_graph_src_init() -> String {
+    String::from("")
+}
+
 /// Sets the info graph src using logic purely executed on the client side.
 ///
 /// This is for a pure client side rendered app, so updating a signal within
 /// `create_effect` is safe.
 #[cfg(target_arch = "wasm32")]
-fn info_graph_src_init(set_info_graph_src: WriteSignal<String>) {
+fn info_graph_src_init() -> String {
     use js_sys::Array;
     use lz_str::decompress_from_encoded_uri_component;
     use web_sys::{console, Document, Url, UrlSearchParams};
 
-    create_effect(move |_| {
-        if let Some(window) = web_sys::window() {
-            let url_search_params = {
-                let url = Url::new(&String::from(window.location().to_string()))
-                    .expect("Expected URL to be valid.");
+    if let Some(window) = web_sys::window() {
+        let url_search_params = {
+            let url = Url::new(&String::from(window.location().to_string()))
+                .expect("Expected URL to be valid.");
 
-                let hash = url.hash();
-                if hash.is_empty() {
-                    Some(url.search_params())
-                } else {
-                    let hash = hash.replacen('#', "?", 1);
-                    match UrlSearchParams::new_with_str(hash.as_str()) {
-                        Ok(search_params) => Some(search_params),
-                        Err(error) => {
-                            let message = Array::new_with_length(1);
-                            message.set(0, error);
-                            console::log(&message);
-                            None
-                        }
+            let hash = url.hash();
+            if hash.is_empty() {
+                Some(url.search_params())
+            } else {
+                let hash = hash.replacen('#', "?", 1);
+                match UrlSearchParams::new_with_str(hash.as_str()) {
+                    Ok(search_params) => Some(search_params),
+                    Err(error) => {
+                        let message = Array::new_with_length(1);
+                        message.set(0, error);
+                        console::log(&message);
+                        None
                     }
                 }
-            };
-
-            if let Some(url_search_params) = url_search_params {
-                let info_graph_src_initial = url_search_params
-                    .get(QUERY_PARAM_SRC)
-                    .map(|src| {
-                        if src.contains("\n") {
-                            // Treat src as plain yaml
-                            src
-                        } else {
-                            // Try deserialize/serialize src as lz_str
-                            decompress_from_encoded_uri_component(&src).map_or_else(
-                                || format!("# deserialize src error: invalid data"),
-                                |s| {
-                                    String::from_utf16(&s).unwrap_or_else(|_| {
-                                        format!("# deserialize src error: invalid data")
-                                    })
-                                },
-                            )
-                        }
-                    })
-                    .unwrap_or_else(|| String::from(INFO_GRAPH_DEMO));
-
-                set_info_graph_src.set(info_graph_src_initial);
-
-                // Hack: Get Tailwind CSS from CDN to reevaluate document.
-                set_timeout(
-                    move || {
-                        let _ = window
-                            .document()
-                            .as_ref()
-                            .and_then(Document::body)
-                            .as_deref()
-                            .map(|element| element.append_with_str_1(""));
-                    },
-                    Duration::from_millis(200),
-                );
             }
+        };
+
+        if let Some(url_search_params) = url_search_params {
+            let info_graph_src_initial = url_search_params
+                .get(QUERY_PARAM_SRC)
+                .map(|src| {
+                    if src.contains("\n") {
+                        // Treat src as plain yaml
+                        src
+                    } else {
+                        // Try deserialize/serialize src as lz_str
+                        decompress_from_encoded_uri_component(&src).map_or_else(
+                            || format!("# deserialize src error: invalid data"),
+                            |s| {
+                                String::from_utf16(&s).unwrap_or_else(|_| {
+                                    format!("# deserialize src error: invalid data")
+                                })
+                            },
+                        )
+                    }
+                })
+                .unwrap_or_else(|| String::from(INFO_GRAPH_DEMO));
+
+            // Hack: Get Tailwind CSS from CDN to reevaluate document.
+            set_timeout(
+                move || {
+                    let _ = window
+                        .document()
+                        .as_ref()
+                        .and_then(Document::body)
+                        .as_deref()
+                        .map(|element| element.append_with_str_1(""));
+                },
+                Duration::from_millis(200),
+            );
+
+            info_graph_src_initial
         } else {
-            set_info_graph_src.set(String::from("# Could not extract search params."));
+            String::from(INFO_GRAPH_DEMO)
         }
-    });
+    } else {
+        String::from("# Could not extract search params.")
+    }
 }
 
 /// Text input and dot graph rendering.
@@ -113,7 +119,7 @@ fn info_graph_src_init(set_info_graph_src: WriteSignal<String>) {
 /// > just not the best practice and can be hard to do correctly
 #[component]
 pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
-    let (info_graph_src, set_info_graph_src) = create_signal(String::from(INFO_GRAPH_DEMO));
+    let (info_graph_src, set_info_graph_src) = create_signal(info_graph_src_init());
     let flex_diag_radio = create_node_ref::<html::Input>();
     let (flex_diag_visible, flex_diag_visible_set) = create_signal(false);
     let flex_diag_visible_update = move |_ev| {
@@ -153,9 +159,6 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
             .zip(styles.get())
             .map(|(dot_src, styles)| DotSrcAndStyles { dot_src, styles })
     };
-
-    #[cfg(target_arch = "wasm32")]
-    info_graph_src_init(set_info_graph_src);
 
     let (info_graph, set_info_graph) = create_signal(InfoGraph::default());
 
