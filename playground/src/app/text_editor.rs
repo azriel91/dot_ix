@@ -45,10 +45,6 @@ pub fn TextEditor(
 
     #[cfg(target_arch = "wasm32")]
     {
-        // We must call this outside the `on_load`, otherwise `on_load` is called
-        // multiple times, and it panics on the second invocation.
-        let value_initial = value.get_untracked();
-
         let js_closure = Closure::<dyn Fn()>::new(|| ());
         let update_editor_state_fn = Closure::<dyn Fn()>::new(move || {
             let value = editor_state.get_untracked().get_value();
@@ -58,6 +54,11 @@ pub fn TextEditor(
             let div_element: &web_sys::HtmlDivElement = &node;
             let html_element = div_element.unchecked_ref::<web_sys::HtmlElement>();
             let options = CodeEditorOptions::default().to_sys_options();
+
+            // We must use `get_untracked()`, otherwise `on_load` is called
+            // multiple times, and it panics on the second invocation.
+            let value_initial = value.get_untracked();
+
             options.set_value(Some(&value_initial));
             options.set_language(Some("yaml"));
             options.set_automatic_layout(Some(true));
@@ -88,10 +89,15 @@ pub fn TextEditor(
             });
         });
 
-        // This prevents undo from working in the monaco editor.
+        // Enabling this updates the text in the editor when `value` is changed
+        // externally, or on load. However it also breaks undo.
+        //
+        // ```rust
         // create_effect(move |_| {
-        //     editor_state.get_untracked().set_value(&value.get());
+        //     let updated_value = value.get();
+        //     editor_state.get_untracked().set_value(&updated_value);
         // });
+        // ```
     }
 
     view! {
