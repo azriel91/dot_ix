@@ -90,9 +90,9 @@ use crate::{InfoGraphDot, IntoGraphvizDotSrc};
 /// [`tailwind-css`]: https://github.com/oovm/tailwind-rs
 impl IntoGraphvizDotSrc for &InfoGraph {
     fn into(self, theme: &GraphvizDotTheme) -> DotSrcAndStyles {
-        let graph_attrs = graph_attrs(theme, self.direction());
-        let node_attrs = node_attrs(self.graph_style(), theme);
         let graphviz_attrs = self.graphviz_attrs();
+        let graph_attrs = graph_attrs(theme, self.direction(), graphviz_attrs);
+        let node_attrs = node_attrs(self.graph_style(), theme);
         let edge_attrs = edge_attrs(graphviz_attrs, theme);
 
         // Build a map from `NodeId` to their `NodeHierarchy`, so that we don't have to
@@ -174,13 +174,19 @@ impl IntoGraphvizDotSrc for &InfoGraph {
     }
 }
 
-fn graph_attrs(theme: &GraphvizDotTheme, graph_dir: GraphDir) -> String {
+fn graph_attrs(
+    theme: &GraphvizDotTheme,
+    graph_dir: GraphDir,
+    graphviz_attrs: &GraphvizAttrs,
+) -> String {
     let plain_text_color = theme.plain_text_color();
     // Note: `margin` is set to 0.1 because some text lies outside the viewport.
     // This may be due to incorrect width calculation for emoji characters, which
     // GraphViz falls back to the space character width.
 
     let node_point_size = theme.node_point_size();
+
+    let pack_mode = &graphviz_attrs.pack_mode;
 
     let rankdir = match graph_dir {
         GraphDir::Horizontal => "LR",
@@ -197,7 +203,7 @@ fn graph_attrs(theme: &GraphvizDotTheme, graph_dir: GraphDir) -> String {
             ranksep   = 0.02
             bgcolor   = "transparent"
             fontname  = "helvetica"
-            packmode  = "graph"
+            packmode  = "{pack_mode}"
             fontcolor = "{plain_text_color}"
             fontsize  = {node_point_size}
             rankdir   = {rankdir}

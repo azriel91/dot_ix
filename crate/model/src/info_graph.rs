@@ -18,7 +18,7 @@ mod graph_dir;
 mod graph_style;
 mod tag;
 
-#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
 #[serde(default)]
 pub struct InfoGraph {
     /// Style of graph to render.
