@@ -2,16 +2,18 @@ use serde::{Deserialize, Serialize};
 
 pub use self::{
     edge_constraints::EdgeConstraints, edge_dir::EdgeDir, edge_dirs::EdgeDirs,
-    edge_minlens::EdgeMinlens,
+    edge_minlens::EdgeMinlens, pack_mode::PackMode, pack_mode_flag::PackModeFlag,
 };
 
 mod edge_constraints;
 mod edge_dir;
 mod edge_dirs;
 mod edge_minlens;
+mod pack_mode;
+mod pack_mode_flag;
 
 /// Additional attributes specifically for GraphViz.
-#[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 #[serde(default)]
 pub struct GraphvizAttrs {
     /// The default [`constraint`] value for edges, defaults to `true`.
@@ -38,6 +40,8 @@ pub struct GraphvizAttrs {
     ///
     /// [`minlen`]: https://graphviz.org/docs/attrs/minlen/
     pub edge_minlens: EdgeMinlens,
+    /// How closely to pack together graph components.
+    pub pack_mode: PackMode,
 }
 
 impl GraphvizAttrs {
@@ -146,6 +150,7 @@ impl Default for GraphvizAttrs {
             edge_dirs: EdgeDirs::default(),
             edge_minlen_default: 1,
             edge_minlens: EdgeMinlens::default(),
+            pack_mode: PackMode::default(),
         }
     }
 }
