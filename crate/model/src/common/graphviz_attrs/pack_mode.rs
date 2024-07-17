@@ -49,7 +49,7 @@ impl FromStr for PackMode {
                 } else {
                     None
                 };
-                let flags_end = number_start.unwrap_or_else(|| array_args.len());
+                let flags_end = number_start.unwrap_or(array_args.len());
                 let flags = flags_start
                     .map(|flags_start| {
                         let flag_candidates = &array_args[flags_start..flags_end];
