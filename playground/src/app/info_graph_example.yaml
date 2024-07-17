@@ -79,6 +79,18 @@ graphviz_attrs:
   edge_dirs: # forward, back, both, none
     github_app_zip__app_download_1: back
 
+  # "node", "cluster", "graph", "array(_flags)?(n)?"
+  #
+  # array flags:
+  #
+  # - <none>: row major order
+  # - c: column major order
+  # - t: align clusters top (horizontal graphs)
+  # - b: align clusters bottom (horizontal graphs)
+  # - l: align clusters left (vertical graphs)
+  # - r: align clusters right (vertical graphs)
+  pack_mode: "array_l1"
+
 theme:
   merge_with_base: true
   styles:
