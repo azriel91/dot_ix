@@ -3,6 +3,7 @@
 ## unreleased
 
 * Add `TextEditor` in playground which uses [monaco][monaco] / [rust-monaco][rust-monaco].
+* Add `GraphvizAttrs.pack_mode` to specify the `packmode` for subgraphs.
 
 [monaco]: https://github.com/microsoft/monaco-editor
 [rust-monaco]: https://github.com/siku2/rust-monaco
