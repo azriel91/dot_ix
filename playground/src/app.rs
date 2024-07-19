@@ -174,6 +174,7 @@ fn HomePage() -> impl IntoView {
             border
             border-amber-300
             bg-gradient-to-b from-amber-100 to-amber-200
+            inline-block
             my-2
             p-2
             rounded
@@ -207,13 +208,20 @@ fn HomePage() -> impl IntoView {
                 <p>
                     <b>"Notes:"</b>
                     <ol class="list-disc mx-4">
+                    <li>"URLs are shareable: the graph is stored in the bookmark fragment."</li>
                     <li>"The Flex Diagram is still experimental, and the arrows don't \
                         receive styling."</li>
+                    <li>"Docs for GraphViz attributes can be found at: "<a
+                        class="text-sky-600 hover:text-sky-400 active:text-sky-300"
+                        href="https://docs.rs/dot_ix_model/latest/dot_ix_model/common/graphviz_attrs/struct.GraphvizAttrs.html"
+                    >
+                        "docs.rs: GraphvizAttrs"
+                    </a></li>
                     <li>"Docs for theme keys can be found at: "<a
                         class="text-sky-600 hover:text-sky-400 active:text-sky-300"
                         href="https://docs.rs/dot_ix_model/latest/dot_ix_model/theme/enum.ThemeAttr.html"
                     >
-                        "docs.rs/dot_ix_model/theme/enum.ThemeAttr.html"
+                        "docs.rs: ThemeAttr"
                     </a></li>
                     <li>"If you'd like to contribute to the development of this library, \
                         I'd be super delighted, since I'm not a web-dev™️ 🙃."</li>
