@@ -96,11 +96,12 @@ theme:
   styles:
     node_defaults:
       stroke_width: '1'
-      extra: 'cursor-pointer rounded-lg'
+      extra: 'rounded-lg'
     edge_defaults:
       extra: hidden
     github_app_zip__app_extract:
-      extra: 'cursor-pointer'
+      cursor: 'progress' # https://tailwindcss.com/docs/cursor
+      extra: ''
     blue_animated: &blue_animated
       shape_color: blue
       stroke_style: dashed  # shorthand for [&>path]:[stroke-dasharray:3]
@@ -109,7 +110,6 @@ theme:
       fill_shade_normal: '500'
       extra: >-
         [&>path]:animate-[stroke-dashoffset-move_4s_linear_infinite]
-        cursor-pointer
     app_download__s3_object:
       <<: *blue_animated
     github_app_zip__app_download_1:
@@ -117,7 +117,6 @@ theme:
       shape_color: violet
       extra: >-
         [&>path]:animate-[stroke-dashoffset-move-reverse_5s_linear_infinite]
-        cursor-pointer
     github_app_zip__app_download_2:
       <<: *blue_animated
       shape_color: purple
@@ -125,7 +124,6 @@ theme:
       extra: >-
         [&>path]:animate-[stroke-dashoffset-move_6s_linear_infinite]
         [&>path]:[stroke-dasharray:2]
-        cursor-pointer
     light: &light
       fill_shade_normal: '100'
       fill_shade_hover: '50'
