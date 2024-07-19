@@ -106,7 +106,7 @@ theme:
       stroke_shade_normal: '600'
       fill_shade_normal: '500'
       extra: >-
-        [&>path]:animate-[stroke-dashoffset-move_3s_linear_infinite]
+        [&>path]:animate-[stroke-dashoffset-move_15s_linear_infinite]
     app_download__s3_object:
       <<: *blue_animated
     github_app_zip__app_download_request:
@@ -123,6 +123,17 @@ theme:
       stroke_width: '[2px]'
       extra: >-
         [&>path]:animate-[stroke-dashoffset-move_2s_linear_infinite]
+    github_app_zip:
+      shape_color: green
+    app_download:
+      shape_color: green
+    s3_object:
+      shape_color: blue
+      stroke_style: "dasharray:0.5,3,0.5,3,2,3,4,18"
+      stroke_width: '[2px]'
+      extra: |-
+        [&>ellipse]:[stroke-linecap:round]
+        [&>ellipse]:animate-[ellipse-spin_1.5s_linear_infinite]
     light: &light
       fill_shade_normal: '100'
       fill_shade_hover: '50'
@@ -156,6 +167,10 @@ theme:
       shape_color: amber
 
 css: >-
+  @keyframes ellipse-spin {
+    0%   { stroke-dashoffset: 34; }
+    100% { stroke-dashoffset: 0; }
+  }
   @keyframes stroke-dashoffset-move {
     0%   { stroke-dashoffset: 298; }
     100% { stroke-dashoffset: 50; }
