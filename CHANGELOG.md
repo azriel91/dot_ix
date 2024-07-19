@@ -4,9 +4,14 @@
 
 * Add `TextEditor` in playground which uses [monaco][monaco] / [rust-monaco][rust-monaco].
 * Add `GraphvizAttrs.pack_mode` to specify the `packmode` for subgraphs.
+* Fix leading space not rendered in web SVG view.
+* Add `ThemeAttr::Cursor` for better support for [cursor styling].
+* Support `dasharray:5,2,3,2..` in `stroke_style` in SVG.
+* Support stroke style for ellipse elements in SVG.
 
 [monaco]: https://github.com/microsoft/monaco-editor
 [rust-monaco]: https://github.com/siku2/rust-monaco
+[cursor styling]: https://tailwindcss.com/docs/cursor
 
 
 ## 0.7.0 (2024-06-30)
