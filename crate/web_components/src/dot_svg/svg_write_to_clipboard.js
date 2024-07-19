@@ -21,7 +21,6 @@ if (svg_first_chunk.includes("/* TW_PLACEHOLDER */")) {
 }
 
 svg_with_styles = svg_with_styles
-    .replaceAll(" &nbsp;", "&#160;&#160;")
     .replaceAll("&nbsp;", "&#160;");
 
 navigator.clipboard.writeText(svg_with_styles).then(

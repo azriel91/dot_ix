@@ -88,6 +88,8 @@ impl Theme {
 
         theme.insert(AnyIdOrDefaults::NodeDefaults, {
             let mut node_defaults = CssClassPartials::new();
+            node_defaults.insert(ThemeAttr::Cursor, "pointer".into());
+
             node_defaults.insert(ThemeAttr::Padding, "1.5".into());
             node_defaults.insert(ThemeAttr::ShapeColor, "slate".into());
 
@@ -115,6 +117,8 @@ impl Theme {
 
         theme.insert(AnyIdOrDefaults::EdgeDefaults, {
             let mut edge_defaults = CssClassPartials::new();
+            edge_defaults.insert(ThemeAttr::Cursor, "pointer".into());
+
             edge_defaults.insert(ThemeAttr::ShapeColor, "slate".into());
 
             edge_defaults.insert(ThemeAttr::FillShadeNormal, "800".into());
@@ -312,10 +316,8 @@ impl Theme {
                 .map(|spacing| css_classes_builder.append(&format!("{spacing_prefix}-{spacing}")));
         });
 
-        specified
-            .and_then(|partials| partials.get(&ThemeAttr::Extra))
-            .or_else(|| defaults.and_then(|partials| partials.get(&ThemeAttr::Extra)))
-            .map(|extra| css_classes_builder.append(extra));
+        Self::cursor_classes(specified, defaults, &mut css_classes_builder);
+        Self::extra_classes(specified, defaults, &mut css_classes_builder);
 
         Some(css_classes_builder.build())
     }
@@ -406,10 +408,8 @@ impl Theme {
             &mut css_classes_builder,
         );
 
-        specified
-            .and_then(|partials| partials.get(&ThemeAttr::Extra))
-            .or_else(|| defaults.and_then(|partials| partials.get(&ThemeAttr::Extra)))
-            .map(|extra| css_classes_builder.append(extra));
+        Self::cursor_classes(specified, defaults, &mut css_classes_builder);
+        Self::extra_classes(specified, defaults, &mut css_classes_builder);
 
         Some(css_classes_builder.build())
     }
@@ -662,6 +662,28 @@ impl Theme {
                 fn_css_classes(themeable, css_classes_builder, params)
             }
         });
+    }
+
+    fn cursor_classes(
+        specified: Option<&CssClassPartials>,
+        defaults: Option<&CssClassPartials>,
+        css_classes_builder: &mut CssClassesBuilder,
+    ) {
+        specified
+            .and_then(|partials| partials.get(&ThemeAttr::Cursor))
+            .or_else(|| defaults.and_then(|partials| partials.get(&ThemeAttr::Cursor)))
+            .map(|cursor| css_classes_builder.append(&format!("cursor-{cursor}")));
+    }
+
+    fn extra_classes(
+        specified: Option<&CssClassPartials>,
+        defaults: Option<&CssClassPartials>,
+        css_classes_builder: &mut CssClassesBuilder,
+    ) {
+        specified
+            .and_then(|partials| partials.get(&ThemeAttr::Extra))
+            .or_else(|| defaults.and_then(|partials| partials.get(&ThemeAttr::Extra)))
+            .map(|extra| css_classes_builder.append(extra));
     }
 }
 

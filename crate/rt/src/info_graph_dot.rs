@@ -155,17 +155,46 @@ fn border_style_classes(
     match stroke_style {
         "none" => {}
         "solid" => {
-            builder.append(&format!("[&>path]:{highlight_prefix}stroke-{stroke_width}"));
+            builder
+                .append(&format!("[&>path]:{highlight_prefix}stroke-{stroke_width}"))
+                .append(&format!(
+                    "[&>ellipse]:{highlight_prefix}stroke-{stroke_width}"
+                ));
         }
         "dashed" => {
             builder
                 .append(&format!("[&>path]:{highlight_prefix}stroke-{stroke_width}"))
-                .append(&format!("[&>path]:{highlight_prefix}[stroke-dasharray:3]"));
+                .append(&format!("[&>path]:{highlight_prefix}[stroke-dasharray:3]"))
+                .append(&format!(
+                    "[&>ellipse]:{highlight_prefix}stroke-{stroke_width}"
+                ))
+                .append(&format!(
+                    "[&>ellipse]:{highlight_prefix}[stroke-dasharray:3]"
+                ));
         }
         "dotted" => {
             builder
                 .append(&format!("[&>path]:{highlight_prefix}stroke-{stroke_width}"))
-                .append(&format!("[&>path]:{highlight_prefix}[stroke-dasharray:2]"));
+                .append(&format!("[&>path]:{highlight_prefix}[stroke-dasharray:2]"))
+                .append(&format!(
+                    "[&>ellipse]:{highlight_prefix}stroke-{stroke_width}"
+                ))
+                .append(&format!(
+                    "[&>ellipse]:{highlight_prefix}[stroke-dasharray:2]"
+                ));
+        }
+        stroke_style if stroke_style.starts_with("dasharray:") => {
+            builder
+                .append(&format!("[&>path]:{highlight_prefix}stroke-{stroke_width}"))
+                .append(&format!(
+                    "[&>path]:{highlight_prefix}[stroke-{stroke_style}]"
+                ))
+                .append(&format!(
+                    "[&>ellipse]:{highlight_prefix}stroke-{stroke_width}"
+                ))
+                .append(&format!(
+                    "[&>ellipse]:{highlight_prefix}[stroke-{stroke_style}]"
+                ));
         }
         _ => {}
     };

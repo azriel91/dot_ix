@@ -315,7 +315,7 @@ fn node_cluster_internal(
     let node_desc = node_descs.get(node_id).map(String::as_str);
     let node_emoji = node_emojis.get(node_id).map(String::as_str);
     // TODO: escape
-    let node_label = node_name.unwrap_or(node_id);
+    let node_label = node_name.unwrap_or(node_id).replace(' ', "&nbsp;");
     // TODO: escape
     let node_desc = node_desc
         .map(|desc| desc.replace('\n', "<br />"))

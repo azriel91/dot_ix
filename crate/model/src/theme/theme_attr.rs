@@ -308,6 +308,10 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Deserialize, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum ThemeAttr {
+    /// The [cursor style], e.g. `"pointer"`.
+    ///
+    /// [cursor style]: https://tailwindcss.com/docs/cursor
+    Cursor,
     /// Extra classes to attach as is.
     Extra,
     /// Colour for element background/arrow head for all states, e.g. `"slate"`.

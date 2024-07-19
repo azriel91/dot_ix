@@ -94,6 +94,7 @@ fn dot_svg_sanitize(dot_svg: &str, styles: &str) -> String {
         .replace("fill=\"#000000\"", "")
         .replace("stroke=\"#000000\"", "")
         .replace("stroke=\"black\"", "")
+        .replace("&nbsp;", "&#160;")
 }
 
 #[cfg(feature = "ssr")]

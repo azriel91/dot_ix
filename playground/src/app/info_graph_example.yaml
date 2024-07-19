@@ -61,23 +61,20 @@ edges:
   iam_role__instance_profile: [iam_role, instance_profile]
   app_download__s3_object: [app_download, s3_object]
   iam_policy__s3_object: [iam_policy, s3_object]
-  github_app_zip__app_download_1: [github_app_zip, app_download]
-  github_app_zip__app_download_2: [github_app_zip, app_download]
-
-edge_descs:
-  github_app_zip__app_download_1: ' '
+  github_app_zip__app_download_request: [github_app_zip:sw, app_download:nw]
+  github_app_zip__app_download_response: [github_app_zip:se, app_download:ne]
 
 graphviz_attrs:
   edge_constraints:
-    github_app_zip__app_download_1: false
-    github_app_zip__app_download_2: true
+    github_app_zip__app_download_request: true
+    github_app_zip__app_download_response: true
     app_download__s3_object: true
   edge_minlen_default: 1
   edge_minlens:
-    github_app_zip__app_download_1: 1
-    github_app_zip__app_download_2: 2
+    github_app_zip__app_download_request: 1
+    github_app_zip__app_download_response: 1
   edge_dirs: # forward, back, both, none
-    github_app_zip__app_download_1: back
+    github_app_zip__app_download_request: back
 
   # "node", "cluster", "graph", "array(_flags)?(n)?"
   #
@@ -96,11 +93,12 @@ theme:
   styles:
     node_defaults:
       stroke_width: '1'
-      extra: 'cursor-pointer rounded-lg'
+      extra: 'rounded-lg'
     edge_defaults:
       extra: hidden
     github_app_zip__app_extract:
-      extra: 'cursor-pointer'
+      cursor: 'progress' # https://tailwindcss.com/docs/cursor
+      extra: ''
     blue_animated: &blue_animated
       shape_color: blue
       stroke_style: dashed  # shorthand for [&>path]:[stroke-dasharray:3]
@@ -108,24 +106,34 @@ theme:
       stroke_shade_normal: '600'
       fill_shade_normal: '500'
       extra: >-
-        [&>path]:animate-[stroke-dashoffset-move_4s_linear_infinite]
-        cursor-pointer
+        [&>path]:animate-[stroke-dashoffset-move_15s_linear_infinite]
     app_download__s3_object:
       <<: *blue_animated
-    github_app_zip__app_download_1:
+    github_app_zip__app_download_request:
       <<: *blue_animated
       shape_color: violet
-      extra: >-
-        [&>path]:animate-[stroke-dashoffset-move-reverse_5s_linear_infinite]
-        cursor-pointer
-    github_app_zip__app_download_2:
-      <<: *blue_animated
-      shape_color: purple
+      stroke_style: "dasharray:12,2,4,2,2,2,1,2,1,200"
       stroke_width: '[1px]'
       extra: >-
-        [&>path]:animate-[stroke-dashoffset-move_6s_linear_infinite]
-        [&>path]:[stroke-dasharray:2]
-        cursor-pointer
+        [&>path]:animate-[stroke-dashoffset-move-reverse_2s_linear_infinite]
+    github_app_zip__app_download_response:
+      <<: *blue_animated
+      shape_color: purple
+      stroke_style: "dasharray:1,2,1,2,2,2,4,2,8,2,20,200"
+      stroke_width: '[2px]'
+      extra: >-
+        [&>path]:animate-[stroke-dashoffset-move_2s_linear_infinite]
+    github_app_zip:
+      shape_color: green
+    app_download:
+      shape_color: green
+    s3_object:
+      shape_color: blue
+      stroke_style: "dasharray:0.5,3,0.5,3,2,3,4,18"
+      stroke_width: '[2px]'
+      extra: |-
+        [&>ellipse]:[stroke-linecap:round]
+        [&>ellipse]:animate-[ellipse-spin_1.5s_linear_infinite]
     light: &light
       fill_shade_normal: '100'
       fill_shade_hover: '50'
@@ -159,11 +167,15 @@ theme:
       shape_color: amber
 
 css: >-
-  @keyframes stroke-dashoffset-move {
-    0%   { stroke-dashoffset: 48; }
+  @keyframes ellipse-spin {
+    0%   { stroke-dashoffset: 34; }
     100% { stroke-dashoffset: 0; }
+  }
+  @keyframes stroke-dashoffset-move {
+    0%   { stroke-dashoffset: 298; }
+    100% { stroke-dashoffset: 50; }
   }
   @keyframes stroke-dashoffset-move-reverse {
     0%   { stroke-dashoffset: 0; }
-    100% { stroke-dashoffset: 48; }
+    100% { stroke-dashoffset: 228; }
   }
