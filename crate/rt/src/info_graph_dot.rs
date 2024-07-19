@@ -167,6 +167,13 @@ fn border_style_classes(
                 .append(&format!("[&>path]:{highlight_prefix}stroke-{stroke_width}"))
                 .append(&format!("[&>path]:{highlight_prefix}[stroke-dasharray:2]"));
         }
+        stroke_style if stroke_style.starts_with("dasharray:") => {
+            builder
+                .append(&format!("[&>path]:{highlight_prefix}stroke-{stroke_width}"))
+                .append(&format!(
+                    "[&>path]:{highlight_prefix}[stroke-{stroke_style}]"
+                ));
+        }
         _ => {}
     };
 }
