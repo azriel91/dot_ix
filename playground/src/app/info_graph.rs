@@ -426,6 +426,10 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
                         class="\
                             hidden \
                             peer-checked/tab_dot_svg:block \
+                            w-dvw \
+                            lg:w-auto \
+                            max-w-dvw \
+                            overflow-auto \
                         "
                     >
                         <DotSvg
@@ -438,6 +442,10 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
                         class="\
                             hidden \
                             peer-checked/tab_flex_diag:block \
+                            w-dvw \
+                            lg:w-auto \
+                            max-w-dvw \
+                            overflow-auto \
                         "
                     >
                         <FlexDiag
