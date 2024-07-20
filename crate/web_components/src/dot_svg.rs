@@ -355,8 +355,8 @@ pub fn DotSvg(
             // Button
             <div
                 class="
-                    hidden
-                    group-hover:block
+                    lg:hidden
+                    lg:group-hover:block
                 "
             >
                 <input

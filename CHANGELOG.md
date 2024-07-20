@@ -8,6 +8,7 @@
 * Add `ThemeAttr::Cursor` for better support for [cursor styling].
 * Support `dasharray:5,2,3,2..` in `stroke_style` in SVG.
 * Support stroke style for ellipse elements in SVG.
+* Reimplement playground for better responsive layout.
 
 [monaco]: https://github.com/microsoft/monaco-editor
 [rust-monaco]: https://github.com/siku2/rust-monaco
