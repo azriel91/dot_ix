@@ -10,7 +10,7 @@ use dot_ix::{
 };
 use leptos::*;
 
-use crate::app::TextEditor;
+use crate::app::{TabLabel, TextEditor};
 
 #[cfg(target_arch = "wasm32")]
 use super::QUERY_PARAM_DIAGRAM_ONLY;
@@ -123,29 +123,59 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
     let flex_diag_radio = create_node_ref::<html::Input>();
     let (flex_diag_visible, flex_diag_visible_set) = create_signal(false);
     let flex_diag_visible_update = move |_ev| {
-        flex_diag_visible_set.set(
-            flex_diag_radio
-                .get()
-                .map(|input| input.checked())
-                .unwrap_or(true),
-        );
-        // flex_diag_visible_set.update(|visible| {
-        //     *visible = leptos::event_target_checked(&ev);
-        // })
+        let flex_diag_checked = flex_diag_radio
+            .get()
+            .map(|input| input.checked())
+            .unwrap_or(true);
+        leptos::logging::log!("flex_diag_checked: {flex_diag_checked}");
+        flex_diag_visible_set.set(flex_diag_checked);
     };
 
-    let layout_classes = move || {
+    let editor_and_disclaimer_wrapper_classes = "\
+        flex \
+        items-start \
+        flex-nowrap \
+        flex-col \
+    ";
+    let editor_and_diagram_div_classes = move || {
         if diagram_only.get() {
-            "flex items-start"
+            "
+            basis-auto \
+            grow \
+            \
+            flex \
+            flex-row \
+            justify-center \
+            "
         } else {
-            "flex items-start flex-wrap"
+            "\
+            basis-auto \
+            grow \
+            \
+            flex \
+            flex-row \
+            items-start \
+            mb-10 \
+            flex-wrap \
+            lg:flex-row \
+            lg:flex-nowrap \
+            "
         }
     };
     let textbox_div_display_classes = move || {
         if diagram_only.get() {
             "hidden"
         } else {
-            "tabs basis-full grow md:basis-1/2"
+            "\
+            basis-1/2 \
+            grow \
+            w-[40dvw] \
+            h-[50dvh] \
+            lg:h-[78dvh] \
+            \
+            lg:basis-2/5 \
+            lg:grow-0 \
+            "
         }
     };
 
@@ -247,139 +277,164 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
     });
 
     view! {
-        <div class={ layout_classes }>
-            <div class={ textbox_div_display_classes }>
+        <div class={ editor_and_disclaimer_wrapper_classes }>
+            <div class={ editor_and_diagram_div_classes }>
+                <div class={ textbox_div_display_classes }>
 
-                <input type="radio" name="src_tabs" id="tab_info_graph_yml" checked="checked" />
-                <label for="tab_info_graph_yml">"info_graph.yml"</label>
-
-                <div class="tab">
-                    <TextEditor
-                        value=info_graph_src
-                        set_value=set_info_graph_src
-                        id="info_graph_yml"
-                        name="info_graph_yml"
-                        class="
-                            border
-                            border-slate-400
-                            bg-slate-100
-                            font-mono
-                            min-w-full
-                            min-h-full
-                            p-2
-                            rounded
-                            text-xs
-                        "
+                    <TabLabel
+                        tab_group_name="src_tabs"
+                        tab_id="tab_info_graph_yml"
+                        label="info_graph.yml"
+                        checked=true
                     />
-                    <br />
-                    <div
-                        class={
-                            move || {
-                                let error_text = error_text.get();
-                                let error_text_empty = error_text
-                                    .as_deref()
-                                    .map(str::is_empty)
-                                    .unwrap_or(true);
-                                if error_text_empty {
-                                    "hidden"
-                                } else {
-                                    "
-                                    border
-                                    border-amber-300
-                                    bg-gradient-to-b from-amber-100 to-amber-200
-                                    rounded
-                                    "
+
+                    <TabLabel
+                        tab_group_name="src_tabs"
+                        tab_id="tab_info_graph_dot"
+                        label="generated.dot"
+                    />
+
+                    // tab content
+                    <div class="\
+                        hidden \
+                        peer-checked/tab_info_graph_yml:block \
+                        \
+                        h-full \
+                        "
+                    >
+                        <TextEditor
+                            value=info_graph_src
+                            set_value=set_info_graph_src
+                            id="info_graph_yml"
+                            name="info_graph_yml"
+                            class="\
+                                border \
+                                border-slate-400 \
+                                bg-slate-100 \
+                                font-mono \
+                                h-full \
+                                p-2 \
+                                rounded \
+                                text-xs \
+                            "
+                        />
+                        <br />
+                        <div
+                            class={
+                                move || {
+                                    let error_text = error_text.get();
+                                    let error_text_empty = error_text
+                                        .as_deref()
+                                        .map(str::is_empty)
+                                        .unwrap_or(true);
+                                    if error_text_empty {
+                                        "hidden"
+                                    } else {
+                                        "
+                                        border
+                                        border-amber-300
+                                        bg-gradient-to-b from-amber-100 to-amber-200
+                                        rounded
+                                        "
+                                    }
                                 }
                             }
-                        }
-                        >{
-                            move || {
-                                let error_text = error_text.get();
-                                error_text.as_deref()
-                                    .unwrap_or("")
-                                    .to_string()
-                            }
-                        }</div>
-                </div>
+                            >{
+                                move || {
+                                    let error_text = error_text.get();
+                                    error_text.as_deref()
+                                        .unwrap_or("")
+                                        .to_string()
+                                }
+                            }</div>
+                    </div>
 
-                <input type="radio" name="src_tabs" id="tab_info_graph_dot" />
-                <label for="tab_info_graph_dot">"info_graph.dot"</label>
-                <div class="tab">
-                    <textarea
-                        id="info_graph_dot"
-                        name="info_graph_dot"
-                        class="
-                            border
-                            border-slate-400
-                            bg-slate-100
-                            min-w-full
-                            min-h-full
-                            font-mono
-                            p-2
-                            rounded
-                            text-xs
+                    // tab content
+                    <div class="\
+                        hidden \
+                        peer-checked/tab_info_graph_dot:block \
+                        \
+                        h-full \
                         "
-                        on:input=leptos_dom::helpers::debounce(Duration::from_millis(400), move |ev| {
-                            let dot_src = event_target_value(&ev);
-                            set_dot_src.set(Some(dot_src));
-                        })
-                        prop:value={
-                            move || {
-                                let dot_src = dot_src.get();
-                                dot_src.as_deref()
-                                    .unwrap_or("")
-                                    .to_string()
-                            }
-                        } />
+                    >
+                        <textarea
+                            id="info_graph_dot"
+                            name="info_graph_dot"
+                            class="\
+                                border \
+                                border-slate-400 \
+                                bg-slate-100 \
+                                h-full \
+                                font-mono \
+                                p-2 \
+                                rounded \
+                                text-xs \
+                            "
+                            on:input=leptos_dom::helpers::debounce(Duration::from_millis(400), move |ev| {
+                                let dot_src = event_target_value(&ev);
+                                set_dot_src.set(Some(dot_src));
+                            })
+                            prop:value={
+                                move || {
+                                    let dot_src = dot_src.get();
+                                    dot_src.as_deref()
+                                        .unwrap_or("")
+                                        .to_string()
+                                }
+                            } />
+                    </div>
                 </div>
-            </div>
-            <div
-                class={move || {
-                    if diagram_only.get() {
-                        // Take up the full screen.
-                        "tabs basis-full grow"
-                    } else {
-                        // Take up the full screen if the screen size is small,
-                        // otherwise take up the right half of the screen,
-                        "tabs basis-full grow md:basis-1/2"
-                    }
-                }}
-            >
-                <input
-                    type="radio"
-                    name="diagram_tabs"
-                    id="tab_dot_svg"
-                    on:change=flex_diag_visible_update
-                    checked="checked"
-                />
-                <label
-                    for="tab_dot_svg"
-                    // TODO: class: hidden is overridden by main.scss
-                    style={move || if diagram_only.get() { "display: none;" } else { "" }}
-                >"Dot SVG"</label>
-                <div class="tab">
-                    <div class="diagram">
+                <div
+                    class={move || {
+                        if diagram_only.get() {
+                            ""
+                        } else {
+                            // Take up the full screen if the screen size is small,
+                            // otherwise take up just enough for content.
+                            "\
+                            basis-1/2 \
+                            grow \
+                            lg:basis-3/5 \
+                            lg:grow \
+                            "
+                        }
+                    }}
+                >
+
+                    <TabLabel
+                        tab_group_name="diagram_tabs"
+                        tab_id="tab_dot_svg"
+                        label="Dot SVG"
+                        checked=true
+                        on_change=flex_diag_visible_update
+                    />
+
+                    <TabLabel
+                        tab_group_name="diagram_tabs"
+                        tab_id="tab_flex_diag"
+                        label="Flex Diagram"
+                        on_change=flex_diag_visible_update
+                        node_ref=flex_diag_radio
+                    />
+
+                    <div
+                        class="\
+                            hidden \
+                            peer-checked/tab_dot_svg:block \
+                        "
+                    >
                         <DotSvg
                             dot_src_and_styles=dot_src_and_styles.into()
                             diagram_only=diagram_only.into()
                         />
                     </div>
-                </div>
 
-                <input
-                    type="radio"
-                    name="diagram_tabs"
-                    id="tab_flex_diag"
-                    node_ref=flex_diag_radio
-                    on:change=flex_diag_visible_update
-                />
-                <label
-                    for="tab_flex_diag"
-                    // TODO: class: hidden is overridden by main.scss
-                    style={move || if diagram_only.get() { "display: none;" } else { "" }}
-                >"Flex Diagram"</label>
-                <div class="tab">
-                    <div class="diagram">
+                    <div
+                        class="\
+                            hidden \
+                            peer-checked/tab_flex_diag:block \
+                        "
+                    >
                         <FlexDiag
                             info_graph=info_graph
                             visible=flex_diag_visible.into()
@@ -387,6 +442,74 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
                     </div>
                 </div>
             </div>
+            <Disclaimer diagram_only />
+        </div>
+    }
+}
+
+#[component]
+pub fn Disclaimer(diagram_only: ReadSignal<bool>) -> impl IntoView {
+    let disclaimer_classes = move || {
+        if diagram_only.get() {
+            "hidden"
+        } else {
+            "
+            basis-auto \
+            \
+            border \
+            border-amber-300 \
+            bg-gradient-to-b from-amber-100 to-amber-200 \
+            inline-block \
+            my-2 \
+            p-2 \
+            rounded \
+            "
+        }
+    };
+
+    view! {
+        <div class=disclaimer_classes>
+            <p>
+                <span class="font-bold">"🐱 GitHub: "</span>
+                <a
+                    class="text-sky-600 hover:text-sky-400 active:text-sky-300"
+                    href="https://github.com/azriel91/dot_ix"
+                >
+                    "azriel91/dot_ix"
+                </a>
+            </p>
+            <p>
+                "This is an "<i>"early"</i>" frontend prototype for the "
+                <a
+                    class="text-sky-600 hover:text-sky-400 active:text-sky-300"
+                    href="https://peace.mk"
+                >
+                    "Peace"
+                </a>
+                " automation framework"
+            </p>
+            <p>
+                <b>"Notes:"</b>
+                <ol class="list-disc mx-4">
+                <li>"URLs are shareable: the graph is stored in the bookmark fragment."</li>
+                <li>"The Flex Diagram is still experimental, and the arrows don't \
+                    receive styling."</li>
+                <li>"Docs for GraphViz attributes can be found at: "<a
+                    class="text-sky-600 hover:text-sky-400 active:text-sky-300"
+                    href="https://docs.rs/dot_ix_model/latest/dot_ix_model/common/graphviz_attrs/struct.GraphvizAttrs.html"
+                >
+                    "docs.rs: GraphvizAttrs"
+                </a></li>
+                <li>"Docs for theme keys can be found at: "<a
+                    class="text-sky-600 hover:text-sky-400 active:text-sky-300"
+                    href="https://docs.rs/dot_ix_model/latest/dot_ix_model/theme/enum.ThemeAttr.html"
+                >
+                    "docs.rs: ThemeAttr"
+                </a></li>
+                <li>"If you'd like to contribute to the development of this library, \
+                    I'd be super delighted, since I'm not a web-dev™️ 🙃."</li>
+                </ol>
+            </p>
         </div>
     }
 }

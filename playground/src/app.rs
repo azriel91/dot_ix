@@ -5,9 +5,10 @@ use leptos::*;
 use leptos_meta::*;
 use leptos_router::*;
 
-use self::{info_graph::InfoGraph, text_editor::TextEditor};
+use self::{info_graph::InfoGraph, tabs::TabLabel, text_editor::TextEditor};
 
 mod info_graph;
+mod tabs;
 mod text_editor;
 
 /// Whether to only draw the diagram and hide the text boxes.
@@ -87,6 +88,7 @@ pub fn App() -> impl IntoView {
             <Stylesheet id="leptos" href=stylesheet_path />
             <Stylesheet id="fonts" href=fonts_path />
             <Title text="dot_ix: Interactive dot graphs" />
+            <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
             // content for this welcome page
             <Router
@@ -110,6 +112,7 @@ pub fn App() -> impl IntoView {
             <Stylesheet id="leptos" href=stylesheet_path />
             <Stylesheet id="fonts" href=fonts_path />
             <Title text="dot_ix: Interactive dot graphs" />
+            <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
             // content for this welcome page
             <Router
@@ -164,70 +167,12 @@ fn HomePage() -> impl IntoView {
     let _set_diagram_only = set_diagram_only;
 
     let main_div_classes = move || {
-        if diagram_only.get() { "" } else { "md:p-12" }
-    };
-    let disclaimer_classes = move || {
-        if diagram_only.get() {
-            "hidden"
-        } else {
-            "
-            border
-            border-amber-300
-            bg-gradient-to-b from-amber-100 to-amber-200
-            inline-block
-            my-2
-            p-2
-            rounded
-            "
-        }
+        if diagram_only.get() { "" } else { "lg:p-4" }
     };
 
     view! {
         <div class=main_div_classes>
             <InfoGraph diagram_only=diagram_only />
-            <div class=disclaimer_classes>
-                <p>
-                    <span class="font-bold">"🐱 GitHub: "</span>
-                    <a
-                        class="text-sky-600 hover:text-sky-400 active:text-sky-300"
-                        href="https://github.com/azriel91/dot_ix"
-                    >
-                        "azriel91/dot_ix"
-                    </a>
-                </p>
-                <p>
-                    "This is an "<i>"early"</i>" frontend prototype for the "
-                    <a
-                        class="text-sky-600 hover:text-sky-400 active:text-sky-300"
-                        href="https://peace.mk"
-                    >
-                        "Peace"
-                    </a>
-                    " automation framework"
-                </p>
-                <p>
-                    <b>"Notes:"</b>
-                    <ol class="list-disc mx-4">
-                    <li>"URLs are shareable: the graph is stored in the bookmark fragment."</li>
-                    <li>"The Flex Diagram is still experimental, and the arrows don't \
-                        receive styling."</li>
-                    <li>"Docs for GraphViz attributes can be found at: "<a
-                        class="text-sky-600 hover:text-sky-400 active:text-sky-300"
-                        href="https://docs.rs/dot_ix_model/latest/dot_ix_model/common/graphviz_attrs/struct.GraphvizAttrs.html"
-                    >
-                        "docs.rs: GraphvizAttrs"
-                    </a></li>
-                    <li>"Docs for theme keys can be found at: "<a
-                        class="text-sky-600 hover:text-sky-400 active:text-sky-300"
-                        href="https://docs.rs/dot_ix_model/latest/dot_ix_model/theme/enum.ThemeAttr.html"
-                    >
-                        "docs.rs: ThemeAttr"
-                    </a></li>
-                    <li>"If you'd like to contribute to the development of this library, \
-                        I'd be super delighted, since I'm not a web-dev™️ 🙃."</li>
-                    </ol>
-                </p>
-            </div>
         </div>
     }
 }
