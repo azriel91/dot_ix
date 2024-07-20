@@ -167,7 +167,11 @@ fn HomePage() -> impl IntoView {
     let _set_diagram_only = set_diagram_only;
 
     let main_div_classes = move || {
-        if diagram_only.get() { "" } else { "lg:p-4" }
+        if diagram_only.get() {
+            "font-sans"
+        } else {
+            "font-sans lg:p-4"
+        }
     };
 
     view! {
