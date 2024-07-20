@@ -169,7 +169,11 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
             "\
             basis-1/2 \
             grow \
-            w-[40dvw] \
+            \
+            mb-10 \
+            lg:mb-0 \
+            \
+            lg:w-[40dvw] \
             h-[50dvh] \
             lg:h-[78dvh] \
             \
@@ -364,6 +368,7 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
                                 border \
                                 border-slate-400 \
                                 bg-slate-100 \
+                                w-full \
                                 h-full \
                                 font-mono \
                                 p-2 \
