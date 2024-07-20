@@ -48,7 +48,7 @@ pub fn TabLabel(
             id=tab_id
             class=tab_classes
             checked=checked
-            on:change={move |ev| { on_change.map(|on_change| on_change.call(ev.into())); }}
+            on:change={move |ev| { if let Some(on_change) = on_change { on_change.call(ev) } }}
             node_ref=node_ref
         />
         <label for=tab_id class=label_classes>
