@@ -173,12 +173,13 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
             mb-10 \
             lg:mb-0 \
             \
+            w-dvw \
             lg:w-[40dvw] \
             h-[50dvh] \
             lg:h-[78dvh] \
             \
             lg:basis-2/5 \
-            lg:grow-0 \
+            lg:grow \
             "
         }
     };
@@ -300,10 +301,10 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
 
                     // tab content
                     <div class="\
-                        hidden \
-                        peer-checked/tab_info_graph_yml:block \
-                        \
-                        h-full \
+                        invisible \
+                        h-0 \
+                        peer-checked/tab_info_graph_yml:visible \
+                        peer-checked/tab_info_graph_yml:h-full \
                         "
                     >
                         <TextEditor
@@ -355,10 +356,10 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
 
                     // tab content
                     <div class="\
-                        hidden \
-                        peer-checked/tab_info_graph_dot:block \
-                        \
-                        h-full \
+                        invisible \
+                        h-0 \
+                        peer-checked/tab_info_graph_dot:visible \
+                        peer-checked/tab_info_graph_dot:h-full \
                         "
                     >
                         <textarea
@@ -401,6 +402,7 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
                             grow \
                             lg:basis-3/5 \
                             lg:grow \
+                            lg:shrink \
                             "
                         }
                     }}
@@ -424,8 +426,10 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
 
                     <div
                         class="\
-                            hidden \
-                            peer-checked/tab_dot_svg:block \
+                            invisible \
+                            h-0 \
+                            peer-checked/tab_dot_svg:visible \
+                            peer-checked/tab_dot_svg:h-auto \
                             w-dvw \
                             lg:w-auto \
                             max-w-dvw \
@@ -440,8 +444,10 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
 
                     <div
                         class="\
-                            hidden \
-                            peer-checked/tab_flex_diag:block \
+                            invisible \
+                            h-0 \
+                            peer-checked/tab_flex_diag:visible \
+                            peer-checked/tab_flex_diag:h-auto \
                             w-dvw \
                             lg:w-auto \
                             max-w-dvw \
