@@ -47,6 +47,8 @@ pub struct InfoGraph {
     pub theme: Theme,
     /// Additional CSS to add in the spreadsheet.
     pub css: String,
+    /// Additional elements to add in the SVG.
+    pub svg_extra: String,
 }
 
 impl InfoGraph {
@@ -125,6 +127,12 @@ impl InfoGraph {
     /// Sets the additional CSS to add in the spreadsheet.
     pub fn with_css(mut self, css: String) -> Self {
         self.css = css;
+        self
+    }
+
+    /// Sets the additional elements to add in the SVG.
+    pub fn with_svg_extra(mut self, svg_extra: String) -> Self {
+        self.svg_extra = svg_extra;
         self
     }
 
@@ -229,5 +237,10 @@ impl InfoGraph {
     /// Returns the additional CSS to add in the spreadsheet.
     pub fn css(&self) -> &str {
         &self.css
+    }
+
+    /// Returns the additional elements to add in the SVG.
+    pub fn svg_extra(&self) -> &str {
+        &self.svg_extra
     }
 }
