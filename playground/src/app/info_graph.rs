@@ -437,6 +437,7 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
                         "
                     >
                         <DotSvg
+                            info_graph=info_graph.into()
                             dot_src_and_styles=dot_src_and_styles.into()
                             diagram_only=diagram_only.into()
                         />

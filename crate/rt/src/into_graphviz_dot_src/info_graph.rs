@@ -127,10 +127,28 @@ impl IntoGraphvizDotSrc for &InfoGraph {
                 let edge_dir = graphviz_attrs.edge_dirs().get(edge_id).copied();
                 let edge_minlen = graphviz_attrs.edge_minlens().get(edge_id).copied();
 
+                // Graphviz has a bug where setting the `headport` / `tailport` attributes
+                // causes the edge to not be rendered with spline curves if the `lhead` /
+                // `ltail` is a node. So we workaround this by still passing the
+                // compass points through as the source / target node IDs.
+                let (src_node_id_plain, src_compass_point) = match src_node_id.split_once(':') {
+                    Some((src_node_id_plain, src_compass_point)) => {
+                        (src_node_id_plain, Some(src_compass_point))
+                    }
+                    None => (src_node_id.as_str(), None),
+                };
+                let (target_node_id_plain, target_compass_point) =
+                    match target_node_id.split_once(':') {
+                        Some((target_node_id_plain, target_compass_point)) => {
+                            (target_node_id_plain, Some(target_compass_point))
+                        }
+                        None => (target_node_id.as_str(), None),
+                    };
+
                 // We need to find the node_hierarchy for both the the `src_node_id` and
                 // `target_node_id`.
-                let src_node_hierarchy = node_id_to_hierarchy.get(src_node_id).copied();
-                let target_node_hierarchy = node_id_to_hierarchy.get(target_node_id).copied();
+                let src_node_hierarchy = node_id_to_hierarchy.get(src_node_id_plain).copied();
+                let target_node_hierarchy = node_id_to_hierarchy.get(target_node_id_plain).copied();
 
                 let edge_args = EdgeArgs {
                     el_css_classes,
@@ -139,10 +157,14 @@ impl IntoGraphvizDotSrc for &InfoGraph {
                     edge_constraint,
                     edge_dir,
                     edge_minlen,
-                    src_node_id,
+                    src_node_id_with_port: src_node_id.as_str(),
+                    src_node_id_plain,
+                    src_compass_point,
                     src_node_hierarchy,
-                    target_node_id,
+                    target_node_id_with_port: target_node_id.as_str(),
+                    target_node_id_plain,
                     target_node_hierarchy,
+                    target_compass_point,
                 };
 
                 edge(edge_args)
@@ -528,10 +550,14 @@ struct EdgeArgs<'args> {
     edge_constraint: Option<bool>,
     edge_dir: Option<EdgeDir>,
     edge_minlen: Option<u32>,
-    src_node_id: &'args NodeId,
+    src_node_id_with_port: &'args str,
+    src_node_id_plain: &'args str,
     src_node_hierarchy: Option<&'args NodeHierarchy>,
-    target_node_id: &'args NodeId,
+    src_compass_point: Option<&'args str>,
+    target_node_id_with_port: &'args str,
+    target_node_id_plain: &'args str,
     target_node_hierarchy: Option<&'args NodeHierarchy>,
+    target_compass_point: Option<&'args str>,
 }
 
 fn edge(edge_args: EdgeArgs<'_>) -> String {
@@ -542,10 +568,14 @@ fn edge(edge_args: EdgeArgs<'_>) -> String {
         edge_constraint,
         edge_dir,
         edge_minlen,
-        src_node_id,
+        src_node_id_with_port,
+        src_node_id_plain,
         src_node_hierarchy,
-        target_node_id,
+        src_compass_point,
+        target_node_id_with_port,
+        target_node_id_plain,
         target_node_hierarchy,
+        target_compass_point,
     } = edge_args;
     let (edge_src_node_id, ltail) = if let Some((mut child_node_id, mut child_node_hierarchy)) =
         src_node_hierarchy
@@ -559,12 +589,16 @@ fn edge(edge_args: EdgeArgs<'_>) -> String {
         }
         let edge_src_node_id = child_node_id;
 
-        let ltail = Cow::Owned(format!(", ltail = cluster_{src_node_id}"));
+        let mut ltail = format!(", ltail = cluster_{src_node_id_plain}");
+        if let Some(src_compass_point) = src_compass_point {
+            ltail.push_str(" tailport = ");
+            ltail.push_str(src_compass_point);
+        }
 
-        (edge_src_node_id, ltail)
+        (edge_src_node_id.as_str(), Cow::Owned(ltail))
     } else {
         // This is a node, not a cluster.
-        (src_node_id, Cow::Borrowed(""))
+        (src_node_id_with_port, Cow::Borrowed(""))
     };
 
     let (edge_target_node_id, lhead) = if let Some((mut child_node_id, mut child_node_hierarchy)) =
@@ -579,12 +613,16 @@ fn edge(edge_args: EdgeArgs<'_>) -> String {
         }
         let edge_target_node_id = child_node_id;
 
-        let lhead = Cow::Owned(format!(", lhead = cluster_{target_node_id}"));
+        let mut lhead = format!(", lhead = cluster_{target_node_id_plain}");
+        if let Some(target_compass_point) = target_compass_point {
+            lhead.push_str(" headport = ");
+            lhead.push_str(target_compass_point);
+        }
 
-        (edge_target_node_id, lhead)
+        (edge_target_node_id.as_str(), Cow::Owned(lhead))
     } else {
         // This is a node, not a cluster.
-        (target_node_id, Cow::Borrowed(""))
+        (target_node_id_with_port, Cow::Borrowed(""))
     };
 
     let edge_label = edge_desc
