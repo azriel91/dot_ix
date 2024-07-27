@@ -187,7 +187,7 @@ pub fn DotSvg(
     let _diagram_only = diagram_only;
     let dot_svg_and_error_resource = leptos::create_resource(
         move || dot_src_and_styles.get(),
-        |dot_src_and_styles| async move {
+        move |dot_src_and_styles| async move {
             if let Some(dot_src_and_styles) = dot_src_and_styles {
                 if !dot_src_and_styles.dot_src.is_empty() {
                     let info_graph = info_graph.get().clone();
