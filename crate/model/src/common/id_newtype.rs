@@ -136,6 +136,18 @@ macro_rules! id_newtype {
             }
         }
 
+        impl std::borrow::Borrow<str> for $ty_name {
+            fn borrow(&self) -> &str {
+                &self.0
+            }
+        }
+
+        impl<'s> std::borrow::Borrow<str> for &'s $ty_name {
+            fn borrow(&self) -> &str {
+                &self.0
+            }
+        }
+
         #[doc = concat!("Error indicating `", stringify!($ty_name), "` provided is not in the correct format.")]
         #[derive(Debug, PartialEq, Eq)]
         pub struct $ty_err_name<'s> {
