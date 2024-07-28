@@ -106,30 +106,30 @@ theme:
       stroke_shade_normal: '600'
       fill_shade_normal: '500'
       extra: >-
-        [&>path]:animate-[stroke-dashoffset-move_15s_linear_infinite]
+        [&>path]:animate-[stroke-dashoffset-move_2s_linear_infinite]
     app_download__s3_object:
       <<: *blue_animated
     github_app_zip__app_download_request:
       <<: *blue_animated
       shape_color: violet
-      stroke_style: "dasharray:12,2,4,2,2,2,1,2,1,200"
+      stroke_style: "dasharray:0,80,12,2,4,2,2,2,1,2,1,120"
       stroke_width: '[1px]'
       extra: >-
-        [&>path]:animate-[stroke-dashoffset-move-reverse_2s_linear_infinite]
+        [&>path]:animate-[stroke-dashoffset-move-request_2s_linear_infinite]
     github_app_zip__app_download_response:
       <<: *blue_animated
       shape_color: purple
-      stroke_style: "dasharray:1,2,1,2,2,2,4,2,8,2,20,200"
+      stroke_style: "dasharray:0,120,1,2,1,2,2,2,4,2,8,2,20,80"
       stroke_width: '[2px]'
       extra: >-
-        [&>path]:animate-[stroke-dashoffset-move_2s_linear_infinite]
+        [&>path]:animate-[stroke-dashoffset-move-response_2s_linear_infinite]
     github_app_zip:
       shape_color: green
     app_download:
       shape_color: green
     s3_object:
       shape_color: blue
-      stroke_style: "dasharray:0.5,3,0.5,3,2,3,4,18"
+      stroke_style: "dasharray:0.5,3,0.5,3,0.5,3,0.5,3,6,3,12,30"
       stroke_width: '[2px]'
       extra: |-
         [&>ellipse]:[stroke-linecap:round]
@@ -168,14 +168,18 @@ theme:
 
 css: >-
   @keyframes ellipse-spin {
-    0%   { stroke-dashoffset: 34; }
+    0%   { stroke-dashoffset: 65; }
     100% { stroke-dashoffset: 0; }
   }
   @keyframes stroke-dashoffset-move {
-    0%   { stroke-dashoffset: 298; }
-    100% { stroke-dashoffset: 50; }
+    0%   { stroke-dashoffset: 30; }
+    100% { stroke-dashoffset: 0; }
   }
-  @keyframes stroke-dashoffset-move-reverse {
+  @keyframes stroke-dashoffset-move-request {
     0%   { stroke-dashoffset: 0; }
     100% { stroke-dashoffset: 228; }
+  }
+  @keyframes stroke-dashoffset-move-response {
+    0%   { stroke-dashoffset: 0; }
+    100% { stroke-dashoffset: -248; }
   }
