@@ -7,16 +7,15 @@ use serde::{Deserialize, Serialize};
 use crate::{
     common::{
         EdgeDescs, Edges, GraphvizAttrs, NodeDescs, NodeEmojis, NodeHierarchy, NodeId, NodeNames,
-        NodeTags, TagId,
+        NodeTags, TagItems, TagNames,
     },
     theme::Theme,
 };
 
-pub use self::{graph_dir::GraphDir, graph_style::GraphStyle, tag::Tag};
+pub use self::{graph_dir::GraphDir, graph_style::GraphStyle};
 
 mod graph_dir;
 mod graph_style;
-mod tag;
 
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
 #[serde(default)]
@@ -39,8 +38,10 @@ pub struct InfoGraph {
     pub edges: Edges,
     /// Each edge's description.
     pub edge_descs: EdgeDescs,
-    /// Tags to associate with nodes.
-    pub tags: IndexMap<TagId, Tag>,
+    /// Tags to associate with nodes or edges.
+    pub tags: TagNames,
+    /// The nodes or edges associated with each tag.
+    pub tag_items: TagItems,
     /// Additional attributes specifically for GraphViz.
     pub graphviz_attrs: GraphvizAttrs,
     /// Theme that controls the CSS classes to add to elements.
@@ -106,9 +107,15 @@ impl InfoGraph {
         self
     }
 
-    /// Sets the tags to associate with nodes.
-    pub fn with_tags(mut self, tags: IndexMap<TagId, Tag>) -> Self {
+    /// Sets the tags to associate with nodes or edges.
+    pub fn with_tags(mut self, tags: TagNames) -> Self {
         self.tags = tags;
+        self
+    }
+
+    /// Sets the nodes or edges associated with each tag.
+    pub fn with_tag_items(mut self, tag_items: TagItems) -> Self {
+        self.tag_items = tag_items;
         self
     }
 
@@ -219,9 +226,14 @@ impl InfoGraph {
         &self.edge_descs
     }
 
-    /// Returns the tags to associate with nodes.
-    pub fn tags(&self) -> &IndexMap<TagId, Tag> {
+    /// Returns the tags to associate with nodes or edges.
+    pub fn tags(&self) -> &TagNames {
         &self.tags
+    }
+
+    /// Returns the nodes or edges associated with each tag.
+    pub fn tag_items(&self) -> &TagItems {
+        &self.tag_items
     }
 
     /// Returns the additional attributes specifically for GraphViz.

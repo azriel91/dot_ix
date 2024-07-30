@@ -6,12 +6,11 @@ use std::{
 use dot_ix_model::{
     common::{
         graphviz_attrs::EdgeDir, AnyId, DotSrcAndStyles, EdgeId, GraphvizAttrs, GraphvizDotTheme,
-        NodeHierarchy, NodeId, TagId,
+        NodeHierarchy, NodeId, TagNames,
     },
-    info_graph::{GraphDir, GraphStyle, InfoGraph, Tag},
+    info_graph::{GraphDir, GraphStyle, InfoGraph},
     theme::ElCssClasses,
 };
-use indexmap::IndexMap;
 use indoc::{formatdoc, writedoc};
 
 use crate::{InfoGraphDot, IntoGraphvizDotSrc};
@@ -677,7 +676,7 @@ fn tag_legend(
     buffer: &mut String,
     theme: &GraphvizDotTheme,
     el_css_classes: &ElCssClasses,
-    tags: &IndexMap<TagId, Tag>,
+    tags: &TagNames,
 ) -> fmt::Result {
     let node_point_size = theme.node_point_size();
     writedoc!(
@@ -695,8 +694,8 @@ fn tag_legend(
     let tag_margin_y = theme.tag_margin_y();
     let tag_point_size = theme.tag_point_size();
     let tag_classes = theme.tag_classes().trim();
-    tags.iter().try_for_each(|(tag_id, tag)| {
-        let tag_label = tag.name(); // TODO: escape
+    tags.iter().try_for_each(|(tag_id, tag_name)| {
+        let tag_label = tag_name; // TODO: escape
 
         // This is for tailwindcss to identify this peer by name.
         let tag_peer_class = format!("peer/{tag_id}");

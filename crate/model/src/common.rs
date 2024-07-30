@@ -15,6 +15,8 @@ pub use self::{
     node_names::NodeNames,
     node_tags::NodeTags,
     tag_id::{TagId, TagIdInvalidFmt},
+    tag_items::TagItems,
+    tag_names::TagNames,
 };
 
 pub mod graphviz_attrs;
@@ -34,3 +36,5 @@ mod node_id;
 mod node_names;
 mod node_tags;
 mod tag_id;
+mod tag_items;
+mod tag_names;
