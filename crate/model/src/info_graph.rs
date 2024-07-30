@@ -2,12 +2,13 @@ use std::collections::{HashMap, VecDeque};
 
 pub use indexmap::IndexMap;
 
+use indexmap::IndexSet;
 use serde::{Deserialize, Serialize};
 
 use crate::{
     common::{
-        EdgeDescs, Edges, GraphvizAttrs, NodeDescs, NodeEmojis, NodeHierarchy, NodeId, NodeNames,
-        NodeTags, TagItems, TagNames,
+        EdgeDescs, EdgeId, EdgeTagsSet, Edges, GraphvizAttrs, NodeDescs, NodeEmojis, NodeHierarchy,
+        NodeId, NodeNames, NodeTagsSet, TagItems, TagNames,
     },
     theme::Theme,
 };
@@ -32,8 +33,6 @@ pub struct InfoGraph {
     pub node_descs: NodeDescs,
     /// Each node's emoji.
     pub node_emojis: NodeEmojis,
-    /// Tags associated with each node.
-    pub node_tags: NodeTags,
     /// Logical / ordering dependencies.
     pub edges: Edges,
     /// Each edge's description.
@@ -86,12 +85,6 @@ impl InfoGraph {
     /// Sets the map of node emojis.
     pub fn with_node_emojis(mut self, node_emojis: NodeEmojis) -> Self {
         self.node_emojis = node_emojis;
-        self
-    }
-
-    /// Sets the tags associated with each node.
-    pub fn with_node_tags(mut self, node_tags: NodeTags) -> Self {
-        self.node_tags = node_tags;
         self
     }
 
@@ -182,7 +175,7 @@ impl InfoGraph {
     /// ```
     pub fn hierarchy_flat(&self) -> HashMap<&NodeId, &NodeHierarchy> {
         let mut node_id_to_hierarchy =
-            HashMap::<&NodeId, &NodeHierarchy>::with_capacity(self.edges().len());
+            HashMap::<&NodeId, &NodeHierarchy>::with_capacity(self.node_names.len());
         let mut hierarchy_queue = VecDeque::new();
         hierarchy_queue.push_back(self.hierarchy());
 
@@ -211,11 +204,6 @@ impl InfoGraph {
         &self.node_emojis
     }
 
-    /// Returns the tags associated with each node.
-    pub fn node_tags(&self) -> &NodeTags {
-        &self.node_tags
-    }
-
     /// Returns the logical / ordering dependencies.
     pub fn edges(&self) -> &Edges {
         &self.edges
@@ -232,6 +220,13 @@ impl InfoGraph {
     }
 
     /// Returns the nodes or edges associated with each tag.
+    ///
+    /// This is keyed by the tag ID; you may instead be looking for the
+    /// [`node_tags_set`] and [`edge_tags_set`] methods which groups the tags by
+    /// node ID / edge ID.
+    ///
+    /// [`node_tags_set`]: Self::node_tags_set
+    /// [`edge_tags_set`]: Self::edge_tags_set
     pub fn tag_items(&self) -> &TagItems {
         &self.tag_items
     }
@@ -254,5 +249,53 @@ impl InfoGraph {
     /// Returns the additional elements to add in the SVG.
     pub fn svg_extra(&self) -> &str {
         &self.svg_extra
+    }
+
+    /// Returns the tags associated with each node.
+    pub fn node_tags_set(&self) -> NodeTagsSet {
+        let hierarchy_flat = self.hierarchy_flat();
+
+        self.tag_items.iter().fold(
+            NodeTagsSet::new(),
+            |mut node_tags_set, (tag_id, any_ids)| {
+                any_ids
+                    .iter()
+                    .filter(|any_id| hierarchy_flat.contains_key(any_id.as_str()))
+                    .cloned()
+                    .map(NodeId::from)
+                    .for_each(|node_id| {
+                        node_tags_set
+                            .entry(node_id)
+                            .or_insert_with(IndexSet::new)
+                            .insert(tag_id.clone());
+                    });
+
+                node_tags_set
+            },
+        )
+    }
+
+    /// Returns the tags associated with each edge.
+    pub fn edge_tags_set(&self) -> EdgeTagsSet {
+        let edges = &self.edges;
+
+        self.tag_items.iter().fold(
+            EdgeTagsSet::new(),
+            |mut edge_tags_set, (tag_id, any_ids)| {
+                any_ids
+                    .iter()
+                    .filter(|any_id| edges.contains_key(any_id.as_str()))
+                    .cloned()
+                    .map(EdgeId::from)
+                    .for_each(|edge_id| {
+                        edge_tags_set
+                            .entry(edge_id)
+                            .or_insert_with(IndexSet::new)
+                            .insert(tag_id.clone());
+                    });
+
+                edge_tags_set
+            },
+        )
     }
 }

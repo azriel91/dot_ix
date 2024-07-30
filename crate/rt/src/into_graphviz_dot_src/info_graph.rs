@@ -6,11 +6,12 @@ use std::{
 use dot_ix_model::{
     common::{
         graphviz_attrs::EdgeDir, AnyId, DotSrcAndStyles, EdgeId, GraphvizAttrs, GraphvizDotTheme,
-        NodeHierarchy, NodeId, TagNames,
+        NodeHierarchy, NodeId, TagId, TagNames,
     },
     info_graph::{GraphDir, GraphStyle, InfoGraph},
     theme::ElCssClasses,
 };
+use indexmap::IndexSet;
 use indoc::{formatdoc, writedoc};
 
 use crate::{InfoGraphDot, IntoGraphvizDotSrc};
@@ -117,6 +118,8 @@ impl IntoGraphvizDotSrc for &InfoGraph {
             .collect::<Vec<String>>()
             .join("\n");
 
+        let edge_tags_set = self.edge_tags_set();
+        let edge_tags_set = &edge_tags_set;
         let edges = self
             .edges()
             .iter()
@@ -125,6 +128,7 @@ impl IntoGraphvizDotSrc for &InfoGraph {
                 let edge_constraint = graphviz_attrs.edge_constraints().get(edge_id).copied();
                 let edge_dir = graphviz_attrs.edge_dirs().get(edge_id).copied();
                 let edge_minlen = graphviz_attrs.edge_minlens().get(edge_id).copied();
+                let edge_tags = edge_tags_set.get(edge_id);
 
                 // Graphviz has a bug where setting the `headport` / `tailport` attributes
                 // causes the edge to not be rendered with spline curves if the `lhead` /
@@ -151,6 +155,7 @@ impl IntoGraphvizDotSrc for &InfoGraph {
 
                 let edge_args = EdgeArgs {
                     el_css_classes,
+                    edge_tags,
                     edge_id,
                     edge_desc,
                     edge_constraint,
@@ -324,7 +329,7 @@ fn node_cluster_internal(
     let node_names = info_graph.node_names();
     let node_descs = info_graph.node_descs();
     let node_emojis = info_graph.node_emojis();
-    let node_tags = info_graph.node_tags();
+    let node_tags_set = info_graph.node_tags_set();
     let graph_dir = info_graph.direction();
     let node_tailwind_classes = el_css_classes
         .get(&AnyId::from(node_id.clone()))
@@ -398,7 +403,7 @@ fn node_cluster_internal(
     let node_desc = node_desc.as_deref().unwrap_or("");
     let emoji = emoji.as_deref().unwrap_or("");
 
-    let node_tag_classes = node_tags
+    let node_tag_classes = node_tags_set
         .get(node_id)
         .map(|tag_ids| {
             let mut node_tag_classes = String::with_capacity(128 * tag_ids.len());
@@ -549,6 +554,7 @@ struct EdgeArgs<'args> {
     edge_constraint: Option<bool>,
     edge_dir: Option<EdgeDir>,
     edge_minlen: Option<u32>,
+    edge_tags: Option<&'args IndexSet<TagId>>,
     src_node_id_with_port: &'args str,
     src_node_id_plain: &'args str,
     src_node_hierarchy: Option<&'args NodeHierarchy>,
@@ -567,6 +573,7 @@ fn edge(edge_args: EdgeArgs<'_>) -> String {
         edge_constraint,
         edge_dir,
         edge_minlen,
+        edge_tags,
         src_node_id_with_port,
         src_node_id_plain,
         src_node_hierarchy,
@@ -627,11 +634,26 @@ fn edge(edge_args: EdgeArgs<'_>) -> String {
     let edge_label = edge_desc
         .map(|edge_desc| Cow::Owned(format!("label = <{edge_desc}>")))
         .unwrap_or(Cow::Borrowed(""));
-    let edge_css_classes = el_css_classes
+    let edge_tailwind_classes = el_css_classes
         .get(&AnyId::from(edge_id.clone()))
         .map(AsRef::<str>::as_ref)
-        .map(|edge_css_classes| format!(", class = \"{edge_css_classes}\""));
-    let edge_css_classes = edge_css_classes.as_deref().unwrap_or_default();
+        .unwrap_or_default();
+    let edge_tag_classes = edge_tags
+        .map(|tag_ids| {
+            let mut edge_tag_classes = String::with_capacity(128 * tag_ids.len());
+            tag_ids.iter().try_for_each(|tag_id| {
+                writedoc!(
+                    &mut edge_tag_classes,
+                    "peer-focus/{tag_id}:[&>path]:fill-lime-200 \
+                    peer-focus/{tag_id}:[&>path]:stroke-lime-500"
+                )
+            })?;
+
+            Ok::<_, fmt::Error>(edge_tag_classes)
+        })
+        .transpose()
+        .expect("Expected to create edge dot src") // TODO: remove when writing to buffer.
+        .unwrap_or_else(String::new);
     let edge_constraint = edge_constraint
         .map(|edge_constraint| Cow::Owned(format!("constraint = {edge_constraint}")))
         .unwrap_or(Cow::Borrowed(""));
@@ -650,7 +672,7 @@ fn edge(edge_args: EdgeArgs<'_>) -> String {
             {edge_constraint}
             {edge_dir}
             {edge_minlen}
-            {edge_css_classes}
+            class = "{edge_tailwind_classes} {edge_tag_classes}"
             {ltail}
             {lhead}
         ]"#

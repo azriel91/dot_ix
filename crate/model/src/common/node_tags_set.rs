@@ -7,9 +7,9 @@ use crate::common::{NodeId, TagId};
 
 /// Tags associated with each node. `IndexMap<NodeId, IndexSet<TagId>>` newtype.
 #[derive(Clone, Debug, Default, PartialEq, Eq, Deserialize, Serialize)]
-pub struct NodeTags(IndexMap<NodeId, IndexSet<TagId>>);
+pub struct NodeTagsSet(IndexMap<NodeId, IndexSet<TagId>>);
 
-impl NodeTags {
+impl NodeTagsSet {
     /// Returns a new `NodeTags` map.
     pub fn new() -> Self {
         Self::default()
@@ -27,7 +27,7 @@ impl NodeTags {
     }
 }
 
-impl Deref for NodeTags {
+impl Deref for NodeTagsSet {
     type Target = IndexMap<NodeId, IndexSet<TagId>>;
 
     fn deref(&self) -> &Self::Target {
@@ -35,19 +35,19 @@ impl Deref for NodeTags {
     }
 }
 
-impl DerefMut for NodeTags {
+impl DerefMut for NodeTagsSet {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.0
     }
 }
 
-impl From<IndexMap<NodeId, IndexSet<TagId>>> for NodeTags {
+impl From<IndexMap<NodeId, IndexSet<TagId>>> for NodeTagsSet {
     fn from(inner: IndexMap<NodeId, IndexSet<TagId>>) -> Self {
         Self(inner)
     }
 }
 
-impl FromIterator<(NodeId, IndexSet<TagId>)> for NodeTags {
+impl FromIterator<(NodeId, IndexSet<TagId>)> for NodeTagsSet {
     fn from_iter<I: IntoIterator<Item = (NodeId, IndexSet<TagId>)>>(iter: I) -> Self {
         Self(IndexMap::from_iter(iter))
     }
