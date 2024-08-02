@@ -42,25 +42,25 @@ impl CssClassMerger {
             };
 
         Self::outline_classes(
+            &mut css_classes_builder,
             themeable_node_outline_classes,
             specified,
             defaults,
             themeable,
-            &mut css_classes_builder,
         );
-        Self::stroke_classes(
+        Self::stroke_classes_append(
+            &mut css_classes_builder,
             themeable_node_stroke_classes,
             specified,
             defaults,
             themeable,
-            &mut css_classes_builder,
         );
-        Self::fill_classes(
+        Self::fill_classes_append(
+            &mut css_classes_builder,
             themeable_node_fill_classes,
             specified,
             defaults,
             themeable,
-            &mut css_classes_builder,
         );
 
         [
@@ -123,25 +123,25 @@ impl CssClassMerger {
             };
 
         Self::outline_classes(
+            &mut css_classes_builder,
             themeable_edge_outline_classes,
             specified,
             defaults,
             themeable,
-            &mut css_classes_builder,
         );
-        Self::stroke_classes(
+        Self::stroke_classes_append(
+            &mut css_classes_builder,
             themeable_edge_stroke_classes,
             specified,
             defaults,
             themeable,
-            &mut css_classes_builder,
         );
-        Self::fill_classes(
+        Self::fill_classes_append(
+            &mut css_classes_builder,
             themeable_edge_fill_classes,
             specified,
             defaults,
             themeable,
-            &mut css_classes_builder,
         );
 
         Self::cursor_classes(specified, defaults, &mut css_classes_builder);
@@ -151,41 +151,17 @@ impl CssClassMerger {
     }
 
     fn outline_classes(
+        css_classes_builder: &mut CssClassesBuilder,
         fn_outline_classes: fn(&dyn Themeable, &mut CssClassesBuilder, StrokeParams<'_>),
         specified: Option<&CssClassPartials>,
         defaults: Option<&CssClassPartials>,
         themeable: &dyn Themeable,
-        css_classes_builder: &mut CssClassesBuilder,
     ) {
         [
-            StrokeParamGroupings::new(
-                HighlightState::Normal,
-                &[ThemeAttr::OutlineColorNormal, ThemeAttr::OutlineColor],
-                &[ThemeAttr::OutlineShadeNormal, ThemeAttr::OutlineShade],
-                &[ThemeAttr::OutlineStyleNormal, ThemeAttr::OutlineStyle],
-                fn_outline_classes,
-            ),
-            StrokeParamGroupings::new(
-                HighlightState::Focus,
-                &[ThemeAttr::OutlineColorFocus, ThemeAttr::OutlineColor],
-                &[ThemeAttr::OutlineShadeFocus, ThemeAttr::OutlineShade],
-                &[ThemeAttr::OutlineStyleFocus, ThemeAttr::OutlineStyle],
-                fn_outline_classes,
-            ),
-            StrokeParamGroupings::new(
-                HighlightState::Hover,
-                &[ThemeAttr::OutlineColorHover, ThemeAttr::OutlineColor],
-                &[ThemeAttr::OutlineShadeHover, ThemeAttr::OutlineShade],
-                &[ThemeAttr::OutlineStyleHover, ThemeAttr::OutlineStyle],
-                fn_outline_classes,
-            ),
-            StrokeParamGroupings::new(
-                HighlightState::Active,
-                &[ThemeAttr::OutlineColorActive, ThemeAttr::OutlineColor],
-                &[ThemeAttr::OutlineShadeActive, ThemeAttr::OutlineShade],
-                &[ThemeAttr::OutlineStyleActive, ThemeAttr::OutlineStyle],
-                fn_outline_classes,
-            ),
+            StrokeParamGroupings::new_outline_normal(fn_outline_classes),
+            StrokeParamGroupings::new_outline_focus(fn_outline_classes),
+            StrokeParamGroupings::new_outline_hover(fn_outline_classes),
+            StrokeParamGroupings::new_outline_active(fn_outline_classes),
         ]
         .into_iter()
         .for_each(|css_classes_param_groupings| {
@@ -221,183 +197,128 @@ impl CssClassMerger {
         });
     }
 
-    fn stroke_classes(
+    /// Appends CSS classes for stroke styling for all [`HighlightState`]s to
+    /// the CSS classes builder.
+    fn stroke_classes_append(
+        css_classes_builder: &mut CssClassesBuilder,
         fn_stroke_classes: fn(&dyn Themeable, &mut CssClassesBuilder, StrokeParams<'_>),
         specified: Option<&CssClassPartials>,
         defaults: Option<&CssClassPartials>,
         themeable: &dyn Themeable,
-        css_classes_builder: &mut CssClassesBuilder,
     ) {
         [
-            StrokeParamGroupings::new(
-                HighlightState::Normal,
-                &[
-                    ThemeAttr::StrokeColorNormal,
-                    ThemeAttr::StrokeColor,
-                    ThemeAttr::ShapeColor,
-                ],
-                &[ThemeAttr::StrokeShadeNormal, ThemeAttr::StrokeShade],
-                &[ThemeAttr::StrokeStyleNormal, ThemeAttr::StrokeStyle],
-                fn_stroke_classes,
-            ),
-            StrokeParamGroupings::new(
-                HighlightState::Focus,
-                &[
-                    ThemeAttr::StrokeColorFocus,
-                    ThemeAttr::StrokeColor,
-                    ThemeAttr::ShapeColor,
-                ],
-                &[ThemeAttr::StrokeShadeFocus, ThemeAttr::StrokeShade],
-                &[ThemeAttr::StrokeStyleFocus, ThemeAttr::StrokeStyle],
-                fn_stroke_classes,
-            ),
-            StrokeParamGroupings::new(
-                HighlightState::FocusHover,
-                &[
-                    ThemeAttr::StrokeColorHover,
-                    ThemeAttr::StrokeColor,
-                    ThemeAttr::ShapeColor,
-                ],
-                &[ThemeAttr::StrokeShadeHover, ThemeAttr::StrokeShade],
-                &[ThemeAttr::StrokeStyleHover, ThemeAttr::StrokeStyle],
-                fn_stroke_classes,
-            ),
-            StrokeParamGroupings::new(
-                HighlightState::Hover,
-                &[
-                    ThemeAttr::StrokeColorHover,
-                    ThemeAttr::StrokeColor,
-                    ThemeAttr::ShapeColor,
-                ],
-                &[ThemeAttr::StrokeShadeHover, ThemeAttr::StrokeShade],
-                &[ThemeAttr::StrokeStyleHover, ThemeAttr::StrokeStyle],
-                fn_stroke_classes,
-            ),
-            StrokeParamGroupings::new(
-                HighlightState::Active,
-                &[
-                    ThemeAttr::StrokeColorActive,
-                    ThemeAttr::StrokeColor,
-                    ThemeAttr::ShapeColor,
-                ],
-                &[ThemeAttr::StrokeShadeActive, ThemeAttr::StrokeShade],
-                &[ThemeAttr::StrokeStyleActive, ThemeAttr::StrokeStyle],
-                fn_stroke_classes,
-            ),
+            StrokeParamGroupings::new_stroke_normal(fn_stroke_classes),
+            StrokeParamGroupings::new_stroke_focus(fn_stroke_classes),
+            StrokeParamGroupings::new_stroke_focus_hover(fn_stroke_classes),
+            StrokeParamGroupings::new_stroke_hover(fn_stroke_classes),
+            StrokeParamGroupings::new_stroke_active(fn_stroke_classes),
         ]
         .into_iter()
         .for_each(|css_classes_param_groupings| {
-            let StrokeParamGroupings {
-                highlight_state,
-                color_keys,
-                shade_keys,
-                stroke_style_keys,
-                fn_css_classes,
-            } = css_classes_param_groupings;
-
-            let color = attr_value_find(color_keys, specified, defaults);
-            let shade = attr_value_find(shade_keys, specified, defaults);
-            let stroke_style = attr_value_find(stroke_style_keys, specified, defaults);
-
-            let stroke_width = specified
-                .and_then(|partials| partials.get(&ThemeAttr::StrokeWidth))
-                .or_else(|| defaults.and_then(|partials| partials.get(&ThemeAttr::StrokeWidth)));
-
-            if let Some(params) = color.zip(shade).zip(stroke_width).zip(stroke_style).map(
-                |(((color, shade), stroke_width), stroke_style)| StrokeParams {
-                    color_params: ColorParams {
-                        highlight_state,
-                        color,
-                        shade,
-                    },
-                    stroke_width,
-                    stroke_style,
-                },
-            ) {
-                fn_css_classes(themeable, css_classes_builder, params)
-            }
+            Self::stroke_classes_highlight_state_append(
+                css_classes_builder,
+                &css_classes_param_groupings,
+                specified,
+                defaults,
+                themeable,
+            );
         });
     }
 
-    fn fill_classes(
+    /// Appends CSS classes for stroke styling for a given [`HighlightState`] to
+    /// the CSS classes builder.
+    fn stroke_classes_highlight_state_append<'f1, 'f2: 'f1>(
+        css_classes_builder: &mut CssClassesBuilder,
+        css_classes_param_groupings: &StrokeParamGroupings<StrokeParams<'f1>>,
+        specified: Option<&'f2 CssClassPartials>,
+        defaults: Option<&'f2 CssClassPartials>,
+        themeable: &dyn Themeable,
+    ) {
+        let StrokeParamGroupings {
+            highlight_state,
+            color_keys,
+            shade_keys,
+            stroke_style_keys,
+            fn_css_classes,
+        } = css_classes_param_groupings;
+
+        let color = attr_value_find(color_keys, specified, defaults);
+        let shade = attr_value_find(shade_keys, specified, defaults);
+        let stroke_style = attr_value_find(stroke_style_keys, specified, defaults);
+
+        let stroke_width = specified
+            .and_then(|partials| partials.get(&ThemeAttr::StrokeWidth))
+            .or_else(|| defaults.and_then(|partials| partials.get(&ThemeAttr::StrokeWidth)));
+
+        if let Some(params) = color.zip(shade).zip(stroke_width).zip(stroke_style).map(
+            |(((color, shade), stroke_width), stroke_style)| StrokeParams {
+                color_params: ColorParams {
+                    highlight_state: *highlight_state,
+                    color,
+                    shade,
+                },
+                stroke_width,
+                stroke_style,
+            },
+        ) {
+            fn_css_classes(themeable, css_classes_builder, params)
+        }
+    }
+
+    /// Appends CSS classes for fill styling for all [`HighlightState`]s to
+    /// the CSS classes builder.
+    fn fill_classes_append(
+        css_classes_builder: &mut CssClassesBuilder,
         fn_fill_classes: fn(&dyn Themeable, &mut CssClassesBuilder, ColorParams<'_>),
         specified: Option<&CssClassPartials>,
         defaults: Option<&CssClassPartials>,
         themeable: &dyn Themeable,
-        css_classes_builder: &mut CssClassesBuilder,
     ) {
         [
-            ColorParamGroupings::new(
-                HighlightState::Normal,
-                &[
-                    ThemeAttr::FillColorNormal,
-                    ThemeAttr::FillColor,
-                    ThemeAttr::ShapeColor,
-                ],
-                &[ThemeAttr::FillShadeNormal, ThemeAttr::FillShade],
-                fn_fill_classes,
-            ),
-            ColorParamGroupings::new(
-                HighlightState::Focus,
-                &[
-                    ThemeAttr::FillColorFocus,
-                    ThemeAttr::FillColor,
-                    ThemeAttr::ShapeColor,
-                ],
-                &[ThemeAttr::FillShadeFocus, ThemeAttr::FillShade],
-                fn_fill_classes,
-            ),
-            ColorParamGroupings::new(
-                HighlightState::FocusHover,
-                &[
-                    ThemeAttr::FillColorHover,
-                    ThemeAttr::FillColor,
-                    ThemeAttr::ShapeColor,
-                ],
-                &[ThemeAttr::FillShadeHover, ThemeAttr::FillShade],
-                fn_fill_classes,
-            ),
-            ColorParamGroupings::new(
-                HighlightState::Hover,
-                &[
-                    ThemeAttr::FillColorHover,
-                    ThemeAttr::FillColor,
-                    ThemeAttr::ShapeColor,
-                ],
-                &[ThemeAttr::FillShadeHover, ThemeAttr::FillShade],
-                fn_fill_classes,
-            ),
-            ColorParamGroupings::new(
-                HighlightState::Active,
-                &[
-                    ThemeAttr::FillColorActive,
-                    ThemeAttr::FillColor,
-                    ThemeAttr::ShapeColor,
-                ],
-                &[ThemeAttr::FillShadeActive, ThemeAttr::FillShade],
-                fn_fill_classes,
-            ),
+            ColorParamGroupings::new_fill_normal(fn_fill_classes),
+            ColorParamGroupings::new_fill_focus(fn_fill_classes),
+            ColorParamGroupings::new_fill_focus_hover(fn_fill_classes),
+            ColorParamGroupings::new_fill_hover(fn_fill_classes),
+            ColorParamGroupings::new_fill_active(fn_fill_classes),
         ]
         .into_iter()
         .for_each(|css_classes_param_groupings| {
-            let ColorParamGroupings {
-                highlight_state,
-                color_keys,
-                shade_keys,
-                fn_css_classes,
-            } = css_classes_param_groupings;
-
-            let color = attr_value_find(color_keys, specified, defaults);
-            let shade = attr_value_find(shade_keys, specified, defaults);
-
-            if let Some(params) = color.zip(shade).map(|(color, shade)| ColorParams {
-                highlight_state,
-                color,
-                shade,
-            }) {
-                fn_css_classes(themeable, css_classes_builder, params)
-            }
+            Self::fill_classes_highlight_state_append(
+                css_classes_param_groupings,
+                specified,
+                defaults,
+                themeable,
+                css_classes_builder,
+            );
         });
+    }
+
+    /// Appends CSS classes for fill styling for a given [`HighlightState`]s to
+    /// the CSS classes builder.
+    fn fill_classes_highlight_state_append<'f1, 'f2: 'f1>(
+        css_classes_param_groupings: ColorParamGroupings<ColorParams<'f1>>,
+        specified: Option<&'f2 CssClassPartials>,
+        defaults: Option<&'f2 CssClassPartials>,
+        themeable: &dyn Themeable,
+        css_classes_builder: &mut CssClassesBuilder,
+    ) {
+        let ColorParamGroupings {
+            highlight_state,
+            color_keys,
+            shade_keys,
+            fn_css_classes,
+        } = css_classes_param_groupings;
+
+        let color = attr_value_find(color_keys, specified, defaults);
+        let shade = attr_value_find(shade_keys, specified, defaults);
+
+        if let Some(params) = color.zip(shade).map(|(color, shade)| ColorParams {
+            highlight_state,
+            color,
+            shade,
+        }) {
+            fn_css_classes(themeable, css_classes_builder, params)
+        }
     }
 
     fn cursor_classes(
@@ -477,16 +398,69 @@ struct ColorParamGroupings<Params> {
 }
 
 impl<Params> ColorParamGroupings<Params> {
-    fn new(
-        highlight_state: HighlightState,
-        color_keys: &'static [ThemeAttr],
-        shade_keys: &'static [ThemeAttr],
+    fn new_fill_normal(fn_css_classes: fn(&dyn Themeable, &mut CssClassesBuilder, Params)) -> Self {
+        Self {
+            highlight_state: HighlightState::Normal,
+            color_keys: &[
+                ThemeAttr::FillColorNormal,
+                ThemeAttr::FillColor,
+                ThemeAttr::ShapeColor,
+            ],
+            shade_keys: &[ThemeAttr::FillShadeNormal, ThemeAttr::FillShade],
+            fn_css_classes,
+        }
+    }
+
+    fn new_fill_focus(fn_css_classes: fn(&dyn Themeable, &mut CssClassesBuilder, Params)) -> Self {
+        Self {
+            highlight_state: HighlightState::Focus,
+            color_keys: &[
+                ThemeAttr::FillColorFocus,
+                ThemeAttr::FillColor,
+                ThemeAttr::ShapeColor,
+            ],
+            shade_keys: &[ThemeAttr::FillShadeFocus, ThemeAttr::FillShade],
+            fn_css_classes,
+        }
+    }
+
+    fn new_fill_focus_hover(
         fn_css_classes: fn(&dyn Themeable, &mut CssClassesBuilder, Params),
     ) -> Self {
         Self {
-            highlight_state,
-            color_keys,
-            shade_keys,
+            highlight_state: HighlightState::FocusHover,
+            color_keys: &[
+                ThemeAttr::FillColorHover,
+                ThemeAttr::FillColor,
+                ThemeAttr::ShapeColor,
+            ],
+            shade_keys: &[ThemeAttr::FillShadeHover, ThemeAttr::FillShade],
+            fn_css_classes,
+        }
+    }
+
+    fn new_fill_hover(fn_css_classes: fn(&dyn Themeable, &mut CssClassesBuilder, Params)) -> Self {
+        Self {
+            highlight_state: HighlightState::Hover,
+            color_keys: &[
+                ThemeAttr::FillColorHover,
+                ThemeAttr::FillColor,
+                ThemeAttr::ShapeColor,
+            ],
+            shade_keys: &[ThemeAttr::FillShadeHover, ThemeAttr::FillShade],
+            fn_css_classes,
+        }
+    }
+
+    fn new_fill_active(fn_css_classes: fn(&dyn Themeable, &mut CssClassesBuilder, Params)) -> Self {
+        Self {
+            highlight_state: HighlightState::Active,
+            color_keys: &[
+                ThemeAttr::FillColorActive,
+                ThemeAttr::FillColor,
+                ThemeAttr::ShapeColor,
+            ],
+            shade_keys: &[ThemeAttr::FillShadeActive, ThemeAttr::FillShade],
             fn_css_classes,
         }
     }
@@ -505,18 +479,130 @@ struct StrokeParamGroupings<Params> {
 }
 
 impl<Params> StrokeParamGroupings<Params> {
-    fn new(
-        highlight_state: HighlightState,
-        color_keys: &'static [ThemeAttr],
-        shade_keys: &'static [ThemeAttr],
-        stroke_style_keys: &'static [ThemeAttr],
+    fn new_stroke_normal(
         fn_css_classes: fn(&dyn Themeable, &mut CssClassesBuilder, Params),
     ) -> Self {
         Self {
-            highlight_state,
-            color_keys,
-            shade_keys,
-            stroke_style_keys,
+            highlight_state: HighlightState::Normal,
+            color_keys: &[
+                ThemeAttr::StrokeColorNormal,
+                ThemeAttr::StrokeColor,
+                ThemeAttr::ShapeColor,
+            ],
+            shade_keys: &[ThemeAttr::StrokeShadeNormal, ThemeAttr::StrokeShade],
+            stroke_style_keys: &[ThemeAttr::StrokeStyleNormal, ThemeAttr::StrokeStyle],
+            fn_css_classes,
+        }
+    }
+
+    fn new_stroke_focus(
+        fn_css_classes: fn(&dyn Themeable, &mut CssClassesBuilder, Params),
+    ) -> Self {
+        Self {
+            highlight_state: HighlightState::Focus,
+            color_keys: &[
+                ThemeAttr::StrokeColorFocus,
+                ThemeAttr::StrokeColor,
+                ThemeAttr::ShapeColor,
+            ],
+            shade_keys: &[ThemeAttr::StrokeShadeFocus, ThemeAttr::StrokeShade],
+            stroke_style_keys: &[ThemeAttr::StrokeStyleFocus, ThemeAttr::StrokeStyle],
+            fn_css_classes,
+        }
+    }
+
+    fn new_stroke_focus_hover(
+        fn_css_classes: fn(&dyn Themeable, &mut CssClassesBuilder, Params),
+    ) -> Self {
+        Self {
+            highlight_state: HighlightState::FocusHover,
+            color_keys: &[
+                ThemeAttr::StrokeColorHover,
+                ThemeAttr::StrokeColor,
+                ThemeAttr::ShapeColor,
+            ],
+            shade_keys: &[ThemeAttr::StrokeShadeHover, ThemeAttr::StrokeShade],
+            stroke_style_keys: &[ThemeAttr::StrokeStyleHover, ThemeAttr::StrokeStyle],
+            fn_css_classes,
+        }
+    }
+
+    fn new_stroke_hover(
+        fn_css_classes: fn(&dyn Themeable, &mut CssClassesBuilder, Params),
+    ) -> Self {
+        Self {
+            highlight_state: HighlightState::Hover,
+            color_keys: &[
+                ThemeAttr::StrokeColorHover,
+                ThemeAttr::StrokeColor,
+                ThemeAttr::ShapeColor,
+            ],
+            shade_keys: &[ThemeAttr::StrokeShadeHover, ThemeAttr::StrokeShade],
+            stroke_style_keys: &[ThemeAttr::StrokeStyleHover, ThemeAttr::StrokeStyle],
+            fn_css_classes,
+        }
+    }
+
+    fn new_stroke_active(
+        fn_css_classes: fn(&dyn Themeable, &mut CssClassesBuilder, Params),
+    ) -> Self {
+        Self {
+            highlight_state: HighlightState::Active,
+            color_keys: &[
+                ThemeAttr::StrokeColorActive,
+                ThemeAttr::StrokeColor,
+                ThemeAttr::ShapeColor,
+            ],
+            shade_keys: &[ThemeAttr::StrokeShadeActive, ThemeAttr::StrokeShade],
+            stroke_style_keys: &[ThemeAttr::StrokeStyleActive, ThemeAttr::StrokeStyle],
+            fn_css_classes,
+        }
+    }
+
+    fn new_outline_normal(
+        fn_css_classes: fn(&dyn Themeable, &mut CssClassesBuilder, Params),
+    ) -> Self {
+        Self {
+            highlight_state: HighlightState::Normal,
+            color_keys: &[ThemeAttr::OutlineColorNormal, ThemeAttr::OutlineColor],
+            shade_keys: &[ThemeAttr::OutlineShadeNormal, ThemeAttr::OutlineShade],
+            stroke_style_keys: &[ThemeAttr::OutlineStyleNormal, ThemeAttr::OutlineStyle],
+            fn_css_classes,
+        }
+    }
+
+    fn new_outline_focus(
+        fn_css_classes: fn(&dyn Themeable, &mut CssClassesBuilder, Params),
+    ) -> Self {
+        Self {
+            highlight_state: HighlightState::Focus,
+            color_keys: &[ThemeAttr::OutlineColorFocus, ThemeAttr::OutlineColor],
+            shade_keys: &[ThemeAttr::OutlineShadeFocus, ThemeAttr::OutlineShade],
+            stroke_style_keys: &[ThemeAttr::OutlineStyleFocus, ThemeAttr::OutlineStyle],
+            fn_css_classes,
+        }
+    }
+
+    fn new_outline_hover(
+        fn_css_classes: fn(&dyn Themeable, &mut CssClassesBuilder, Params),
+    ) -> Self {
+        Self {
+            highlight_state: HighlightState::Hover,
+            color_keys: &[ThemeAttr::OutlineColorHover, ThemeAttr::OutlineColor],
+            shade_keys: &[ThemeAttr::OutlineShadeHover, ThemeAttr::OutlineShade],
+            stroke_style_keys: &[ThemeAttr::OutlineStyleHover, ThemeAttr::OutlineStyle],
+            fn_css_classes,
+        }
+    }
+
+    fn new_outline_active(
+        fn_css_classes: fn(&dyn Themeable, &mut CssClassesBuilder, Params),
+    ) -> Self {
+        Self {
+            highlight_state: HighlightState::Active,
+            color_keys: &[ThemeAttr::OutlineColorActive, ThemeAttr::OutlineColor],
+            shade_keys: &[ThemeAttr::OutlineShadeActive, ThemeAttr::OutlineShade],
+            stroke_style_keys: &[ThemeAttr::OutlineStyleActive, ThemeAttr::OutlineStyle],
             fn_css_classes,
         }
     }
