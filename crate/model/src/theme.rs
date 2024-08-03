@@ -114,7 +114,6 @@ impl Theme {
             node_defaults.insert(ThemeAttr::OutlineColor, "blue".into());
             node_defaults.insert(ThemeAttr::OutlineShadeFocus, "500".into());
             node_defaults.insert(ThemeAttr::OutlineWidth, "2".into());
-            node_defaults.insert(ThemeAttr::OutlineStyle, "none".into());
             node_defaults.insert(ThemeAttr::OutlineStyleFocus, "dashed".into());
 
             node_defaults
@@ -142,7 +141,6 @@ impl Theme {
             edge_defaults.insert(ThemeAttr::OutlineColor, "blue".into());
             edge_defaults.insert(ThemeAttr::OutlineShadeFocus, "500".into());
             edge_defaults.insert(ThemeAttr::OutlineWidth, "2".into());
-            edge_defaults.insert(ThemeAttr::OutlineStyle, "none".into());
             edge_defaults.insert(ThemeAttr::OutlineStyleFocus, "dashed".into());
 
             edge_defaults

@@ -184,30 +184,61 @@ tag_styles_focus:
   tag_ready:
     # Attaches the following to nodes:
     #
+    # From defaults:
+    #
+    # ```text
     # peer-focus/{tag_id}:[&>path]:fill-lime-200
     # peer-focus/{tag_id}:[&>ellipse]:fill-lime-200
+    # ```
+    #
+    # Specified:
+    #
+    # ```text
+    # peer-focus/tag_ready:[&>path]:focus:outline-red-600
+    # peer-focus/tag_ready:[&>path]:focus:outline-[2px]
+    # peer-focus/tag_ready:[&>path]:focus:outline-dashed
+    # peer-focus/tag_ready:[&>ellipse]:focus:outline-red-600
+    # peer-focus/tag_ready:[&>ellipse]:focus:outline-[2px]
+    # peer-focus/tag_ready:[&>ellipse]:focus:outline-dashed
+    # ```
     node_styles:
+      outline_color: red
       outline_style: dashed
-      extra: |-
-        fill-lime-200
+      outline_width: '[2px]'
+      outline_shade: '600'
 
     # Attaches the following to edges:
     #
+    # From defaults:
+    #
+    # ```text
     # peer-focus/{tag_id}:[&>path]:stroke-lime-200
+    # ```
+    #
+    # Specified:
+    #
+    # ```text
+    # peer-focus/tag_ready:[&>path]:focus:outline-red-600
+    # peer-focus/tag_ready:[&>path]:focus:outline-[2px]
+    # peer-focus/tag_ready:[&>path]:focus:outline-dashed
+    # ```
     edge_styles:
+      outline_color: red
+      outline_style: dashed
+      outline_width: '[2px]'
+      outline_shade: '600'
       extra: 'stroke-lime-200'
   tag_waiting:
-    # Attaches the following to nodes:
-    #
-    # peer-focus/{tag_id}:[&>path]:fill-lime-200
-    # peer-focus/{tag_id}:[&>ellipse]:fill-lime-200
     node_styles:
+      outline_color: red
       outline_style: dashed
-
-    # Attaches the following to edges:
-    #
-    # peer-focus/{tag_id}:[&>path]:stroke-lime-200
+      outline_width: '[2px]'
+      outline_shade: '600'
     edge_styles:
+      outline_color: red
+      outline_style: dashed
+      outline_width: '[2px]'
+      outline_shade: '600'
       shape_color: lime
 
 css: >-
