@@ -1,6 +1,9 @@
-use crate::theme::{
-    ColorParams, CssClassPartials, CssClasses, CssClassesBuilder, HighlightState, StrokeParams,
-    ThemeAttr, Themeable,
+use crate::{
+    common::TagId,
+    theme::{
+        ColorParams, CssClassPartials, CssClasses, CssClassesBuilder, HighlightState, StrokeParams,
+        StyleFor, ThemeAttr, Themeable,
+    },
 };
 
 /// Common logic for merging [`CssClassPartials`] into [`CssClasses`].
@@ -14,6 +17,33 @@ impl CssClassMerger {
         defaults: Option<&CssClassPartials>,
         specified: Option<&CssClassPartials>,
         themeable: &T,
+    ) -> CssClasses
+    where
+        T: Themeable,
+    {
+        Self::node_classes_calculate(defaults, specified, themeable, StyleFor::Regular)
+    }
+
+    /// Returns the CSS classes for a node associated with a tag.
+    pub fn node_tag_classes<T>(
+        specified: &CssClassPartials,
+        themeable: &T,
+        tag_id: &TagId,
+    ) -> CssClasses
+    where
+        T: Themeable,
+    {
+        Self::node_classes_calculate(None, Some(specified), themeable, StyleFor::TagFocus(tag_id))
+    }
+
+    /// Returns the CSS classes for a node in a particular themeable rendering.
+    ///
+    /// This merges the specified themed values over the defaults.
+    fn node_classes_calculate<T>(
+        defaults: Option<&CssClassPartials>,
+        specified: Option<&CssClassPartials>,
+        themeable: &T,
+        style_for: StyleFor,
     ) -> CssClasses
     where
         T: Themeable,
@@ -95,6 +125,33 @@ impl CssClassMerger {
         defaults: Option<&CssClassPartials>,
         specified: Option<&CssClassPartials>,
         themeable: &T,
+    ) -> CssClasses
+    where
+        T: Themeable,
+    {
+        Self::edge_classes_calculate(defaults, specified, themeable, StyleFor::Regular)
+    }
+
+    /// Returns the CSS classes for an edge associated with a tag.
+    pub fn edge_tag_classes<T>(
+        specified: &CssClassPartials,
+        themeable: &T,
+        tag_id: &TagId,
+    ) -> CssClasses
+    where
+        T: Themeable,
+    {
+        Self::edge_classes_calculate(None, Some(specified), themeable, StyleFor::TagFocus(tag_id))
+    }
+
+    /// Returns the CSS classes for an edge in a particular themeable rendering.
+    ///
+    /// This merges the specified themed values over the defaults.
+    fn edge_classes_calculate<T>(
+        defaults: Option<&CssClassPartials>,
+        specified: Option<&CssClassPartials>,
+        themeable: &T,
+        style_for: StyleFor,
     ) -> CssClasses
     where
         T: Themeable,

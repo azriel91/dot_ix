@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 use crate::{
     common::{
         EdgeDescs, EdgeId, EdgeTagsSet, Edges, GraphvizAttrs, NodeDescs, NodeEmojis, NodeHierarchy,
-        NodeId, NodeNames, NodeTagsSet, TagItems, TagNames,
+        NodeId, NodeNames, NodeTagsSet, TagItems, TagNames, TagStyles,
     },
     theme::Theme,
 };
@@ -41,6 +41,8 @@ pub struct InfoGraph {
     pub tags: TagNames,
     /// The nodes or edges associated with each tag.
     pub tag_items: TagItems,
+    /// The styles to apply to nodes or edges when each tag is focused.
+    pub tag_styles_focus: TagStyles,
     /// Additional attributes specifically for GraphViz.
     pub graphviz_attrs: GraphvizAttrs,
     /// Theme that controls the CSS classes to add to elements.
@@ -109,6 +111,12 @@ impl InfoGraph {
     /// Sets the nodes or edges associated with each tag.
     pub fn with_tag_items(mut self, tag_items: TagItems) -> Self {
         self.tag_items = tag_items;
+        self
+    }
+
+    /// Sets the styles to apply to nodes or edges when each tag is focused.
+    pub fn with_tag_styles_focus(mut self, tag_styles_focus: TagStyles) -> Self {
+        self.tag_styles_focus = tag_styles_focus;
         self
     }
 
@@ -229,6 +237,11 @@ impl InfoGraph {
     /// [`edge_tags_set`]: Self::edge_tags_set
     pub fn tag_items(&self) -> &TagItems {
         &self.tag_items
+    }
+
+    /// Returns the styles to apply to nodes or edges when each tag is focused.
+    pub fn tag_styles_focus(&self) -> &TagStyles {
+        &self.tag_styles_focus
     }
 
     /// Returns the additional attributes specifically for GraphViz.

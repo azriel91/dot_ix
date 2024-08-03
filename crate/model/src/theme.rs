@@ -12,7 +12,8 @@ pub use self::{
     any_id_or_defaults::AnyIdOrDefaults, color_params::ColorParams,
     css_class_merger::CssClassMerger, css_class_partials::CssClassPartials,
     css_classes::CssClasses, css_classes_builder::CssClassesBuilder, el_css_classes::ElCssClasses,
-    highlight_state::HighlightState, stroke_params::StrokeParams, theme_attr::ThemeAttr,
+    highlight_state::HighlightState, stroke_params::StrokeParams, style_for::StyleFor,
+    tag_el_css_classes::TagElCssClasses, tag_theme::TagTheme, theme_attr::ThemeAttr,
     themeable::Themeable,
 };
 
@@ -25,6 +26,9 @@ mod css_classes_builder;
 mod el_css_classes;
 mod highlight_state;
 mod stroke_params;
+mod style_for;
+mod tag_el_css_classes;
+mod tag_theme;
 mod theme_attr;
 mod themeable;
 
@@ -163,11 +167,6 @@ impl Theme {
     /// Returns whether to merge with the base styles.
     pub fn merge_with_base(&self) -> bool {
         self.merge_with_base
-    }
-
-    /// Returns whether to merge with the base styles.
-    pub fn merge_with_base_mut(&mut self) -> &mut bool {
-        &mut self.merge_with_base
     }
 
     /// Merges the given overlay theme over this theme.

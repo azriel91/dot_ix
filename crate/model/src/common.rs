@@ -18,6 +18,7 @@ pub use self::{
     tag_id::{TagId, TagIdInvalidFmt},
     tag_items::TagItems,
     tag_names::TagNames,
+    tag_styles::TagStyles,
 };
 
 pub mod graphviz_attrs;
@@ -40,3 +41,4 @@ mod node_tags_set;
 mod tag_id;
 mod tag_items;
 mod tag_names;
+mod tag_styles;
