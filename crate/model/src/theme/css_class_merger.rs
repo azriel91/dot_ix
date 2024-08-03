@@ -43,12 +43,12 @@ impl CssClassMerger {
         defaults: Option<&CssClassPartials>,
         specified: Option<&CssClassPartials>,
         themeable: &T,
-        style_for: StyleFor,
+        style_for: StyleFor<'_>,
     ) -> CssClasses
     where
         T: Themeable,
     {
-        let mut css_classes_builder = CssClassesBuilder::new();
+        let mut css_classes_builder = CssClassesBuilder::new(style_for);
 
         let themeable_node_outline_classes =
             |themeable: &dyn Themeable,
@@ -151,12 +151,12 @@ impl CssClassMerger {
         defaults: Option<&CssClassPartials>,
         specified: Option<&CssClassPartials>,
         themeable: &T,
-        style_for: StyleFor,
+        style_for: StyleFor<'_>,
     ) -> CssClasses
     where
         T: Themeable,
     {
-        let mut css_classes_builder = CssClassesBuilder::new();
+        let mut css_classes_builder = CssClassesBuilder::new(style_for);
 
         let themeable_edge_outline_classes =
             |themeable: &dyn Themeable,
