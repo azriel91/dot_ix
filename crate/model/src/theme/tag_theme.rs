@@ -53,9 +53,7 @@ impl TagTheme {
     ///
     /// These are the values used by `dot_ix` for diagrams.
     pub fn base() -> Self {
-        let mut tag_theme = Self::default();
-
-        tag_theme.node_styles = {
+        let node_styles = {
             let mut node_defaults = CssClassPartials::new();
 
             node_defaults.insert(ThemeAttr::ShapeColor, "lime".into());
@@ -67,8 +65,7 @@ impl TagTheme {
 
             node_defaults
         };
-
-        tag_theme.edge_styles = {
+        let edge_styles = {
             let mut edge_defaults = CssClassPartials::new();
 
             edge_defaults.insert(ThemeAttr::ShapeColor, "lime".into());
@@ -81,7 +78,11 @@ impl TagTheme {
             edge_defaults
         };
 
-        tag_theme
+        Self {
+            node_styles,
+            edge_styles,
+            ..Default::default()
+        }
     }
 
     /// Returns the node styles and edge styles.

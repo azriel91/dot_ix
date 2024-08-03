@@ -441,7 +441,7 @@ fn node_cluster_internal(
                 .map(TagElCssClasses::node_css_classes)
                 .collect::<String>()
         })
-        .unwrap_or_else(String::new);
+        .unwrap_or_default();
 
     if node_hierarchy.is_empty() {
         match graph_style {

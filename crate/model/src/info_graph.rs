@@ -2,7 +2,6 @@ use std::collections::{HashMap, VecDeque};
 
 pub use indexmap::IndexMap;
 
-use indexmap::IndexSet;
 use serde::{Deserialize, Serialize};
 
 use crate::{
@@ -279,7 +278,7 @@ impl InfoGraph {
                     .for_each(|node_id| {
                         node_tags_set
                             .entry(node_id)
-                            .or_insert_with(IndexSet::new)
+                            .or_default()
                             .insert(tag_id.clone());
                     });
 
@@ -303,7 +302,7 @@ impl InfoGraph {
                     .for_each(|edge_id| {
                         edge_tags_set
                             .entry(edge_id)
-                            .or_insert_with(IndexSet::new)
+                            .or_default()
                             .insert(tag_id.clone());
                     });
 
