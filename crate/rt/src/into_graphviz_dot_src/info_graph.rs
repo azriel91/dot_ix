@@ -9,9 +9,9 @@ use dot_ix_model::{
         NodeHierarchy, NodeId, TagId, TagNames,
     },
     info_graph::{GraphDir, GraphStyle, InfoGraph},
-    theme::ElCssClasses,
+    theme::{ElCssClasses, TagElCssClasses, TagTheme},
 };
-use indexmap::IndexSet;
+use indexmap::{IndexMap, IndexSet};
 use indoc::{formatdoc, writedoc};
 
 use crate::{InfoGraphDot, IntoGraphvizDotSrc};
@@ -103,8 +103,26 @@ impl IntoGraphvizDotSrc for &InfoGraph {
             node_ids: node_id_to_hierarchy.keys().copied().collect::<Vec<_>>(),
             edge_ids: self.edges().keys().collect::<Vec<_>>(),
         };
-        let el_css_classes = self.theme().el_css_classes(&info_graph_dot);
+        let info_graph_dot = &info_graph_dot;
+        let el_css_classes = self.theme().el_css_classes(info_graph_dot);
         let el_css_classes = &el_css_classes;
+
+        // tag styles per tag
+        let tag_styles_focus = self.tag_styles_focus();
+        let tag_el_css_classes_map = self
+            .tags()
+            .keys()
+            .map(|tag_id| {
+                let tag_theme = tag_styles_focus
+                    .get(tag_id)
+                    .map(Cow::Borrowed)
+                    .unwrap_or_else(|| Cow::Owned(TagTheme::base()));
+                let tag_el_css_classes = tag_theme.tag_el_css_classes(info_graph_dot, tag_id);
+
+                (tag_id, tag_el_css_classes)
+            })
+            .collect::<IndexMap<&TagId, TagElCssClasses>>();
+        let tag_el_css_classes_map = &tag_el_css_classes_map;
 
         let node_clusters = self
             .hierarchy()
@@ -113,7 +131,14 @@ impl IntoGraphvizDotSrc for &InfoGraph {
             // layout order.
             .rev()
             .map(|(node_id, node_hierarchy)| {
-                node_cluster(self, el_css_classes, theme, node_id, node_hierarchy)
+                node_cluster(
+                    self,
+                    el_css_classes,
+                    tag_el_css_classes_map,
+                    theme,
+                    node_id,
+                    node_hierarchy,
+                )
             })
             .collect::<Vec<String>>()
             .join("\n");
@@ -155,6 +180,7 @@ impl IntoGraphvizDotSrc for &InfoGraph {
 
                 let edge_args = EdgeArgs {
                     el_css_classes,
+                    tag_el_css_classes_map,
                     edge_tags,
                     edge_id,
                     edge_desc,
@@ -298,6 +324,7 @@ fn edge_attrs(graphviz_attrs: &GraphvizAttrs, theme: &GraphvizDotTheme) -> Strin
 fn node_cluster(
     info_graph: &InfoGraph,
     el_css_classes: &ElCssClasses,
+    tag_el_css_classes_map: &IndexMap<&TagId, TagElCssClasses>,
     theme: &GraphvizDotTheme,
     node_id: &NodeId,
     node_hierarchy: &NodeHierarchy,
@@ -307,6 +334,7 @@ fn node_cluster(
     node_cluster_internal(
         info_graph,
         el_css_classes,
+        tag_el_css_classes_map,
         theme,
         node_id,
         node_hierarchy,
@@ -320,6 +348,7 @@ fn node_cluster(
 fn node_cluster_internal(
     info_graph: &InfoGraph,
     el_css_classes: &ElCssClasses,
+    tag_el_css_classes_map: &IndexMap<&TagId, TagElCssClasses>,
     theme: &GraphvizDotTheme,
     node_id: &NodeId,
     node_hierarchy: &NodeHierarchy,
@@ -406,18 +435,12 @@ fn node_cluster_internal(
     let node_tag_classes = node_tags_set
         .get(node_id)
         .map(|tag_ids| {
-            let mut node_tag_classes = String::with_capacity(128 * tag_ids.len());
-            tag_ids.iter().try_for_each(|tag_id| {
-                writedoc!(
-                    &mut node_tag_classes,
-                    "peer-focus/{tag_id}:[&>path]:fill-lime-200 \
-                    peer-focus/{tag_id}:[&>path]:stroke-lime-500"
-                )
-            })?;
-
-            Ok(node_tag_classes)
+            tag_ids
+                .iter()
+                .filter_map(|tag_id| tag_el_css_classes_map.get(tag_id))
+                .map(TagElCssClasses::node_css_classes)
+                .collect::<String>()
         })
-        .transpose()?
         .unwrap_or_else(String::new);
 
     if node_hierarchy.is_empty() {
@@ -519,6 +542,7 @@ fn node_cluster_internal(
                     node_cluster_internal(
                         info_graph,
                         el_css_classes,
+                        tag_el_css_classes_map,
                         theme,
                         child_node_id,
                         child_node_hierarchy,
@@ -532,6 +556,7 @@ fn node_cluster_internal(
                         node_cluster_internal(
                             info_graph,
                             el_css_classes,
+                            tag_el_css_classes_map,
                             theme,
                             child_node_id,
                             child_node_hierarchy,
@@ -549,6 +574,7 @@ fn node_cluster_internal(
 
 struct EdgeArgs<'args> {
     el_css_classes: &'args ElCssClasses,
+    tag_el_css_classes_map: &'args IndexMap<&'args TagId, TagElCssClasses>,
     edge_id: &'args EdgeId,
     edge_desc: Option<&'args str>,
     edge_constraint: Option<bool>,
@@ -568,6 +594,7 @@ struct EdgeArgs<'args> {
 fn edge(edge_args: EdgeArgs<'_>) -> String {
     let EdgeArgs {
         el_css_classes,
+        tag_el_css_classes_map,
         edge_id,
         edge_desc,
         edge_constraint,
@@ -638,21 +665,15 @@ fn edge(edge_args: EdgeArgs<'_>) -> String {
         .get(&AnyId::from(edge_id.clone()))
         .map(AsRef::<str>::as_ref)
         .unwrap_or_default();
+
     let edge_tag_classes = edge_tags
         .map(|tag_ids| {
-            let mut edge_tag_classes = String::with_capacity(128 * tag_ids.len());
-            tag_ids.iter().try_for_each(|tag_id| {
-                writedoc!(
-                    &mut edge_tag_classes,
-                    "peer-focus/{tag_id}:[&>path]:fill-lime-200 \
-                    peer-focus/{tag_id}:[&>path]:stroke-lime-500"
-                )
-            })?;
-
-            Ok::<_, fmt::Error>(edge_tag_classes)
+            tag_ids
+                .iter()
+                .filter_map(|tag_id| tag_el_css_classes_map.get(tag_id))
+                .map(TagElCssClasses::edge_css_classes)
+                .collect::<String>()
         })
-        .transpose()
-        .expect("Expected to create edge dot src") // TODO: remove when writing to buffer.
         .unwrap_or_else(String::new);
     let edge_constraint = edge_constraint
         .map(|edge_constraint| Cow::Owned(format!("constraint = {edge_constraint}")))

@@ -86,7 +86,15 @@ graphviz_attrs:
   # - b: align clusters bottom (horizontal graphs)
   # - l: align clusters left (vertical graphs)
   # - r: align clusters right (vertical graphs)
-  pack_mode: "array_l1"
+  pack_mode: "array_t"
+
+tags:
+  tag_ready: "Ready"
+  tag_waiting: "Waiting"
+
+tag_items:
+  tag_ready: [iam_policy, iam_role]
+  tag_waiting: [instance_profile, app_extract, github_app_zip__app_download_response]
 
 theme:
   merge_with_base: true
@@ -165,6 +173,42 @@ theme:
       stroke_style: dotted
       padding: '3'
       shape_color: amber
+
+# We always use the `focus` pseudo class.
+#
+# There are other pseudo classes, but it doesn't appear useful enough for most of those to be
+# used. The most likely one is `hover`.
+#
+# See <https://tailwindcss.com/docs/hover-focus-and-other-states#pseudo-class-reference>
+tag_styles_focus:
+  tag_ready:
+    # Attaches the following to nodes:
+    #
+    # peer-focus/{tag_id}:[&>path]:fill-lime-200
+    # peer-focus/{tag_id}:[&>ellipse]:fill-lime-200
+    node_styles:
+      outline_style: dashed
+      extra: |-
+        fill-lime-200
+
+    # Attaches the following to edges:
+    #
+    # peer-focus/{tag_id}:[&>path]:stroke-lime-200
+    edge_styles:
+      extra: 'stroke-lime-200'
+  tag_waiting:
+    # Attaches the following to nodes:
+    #
+    # peer-focus/{tag_id}:[&>path]:fill-lime-200
+    # peer-focus/{tag_id}:[&>ellipse]:fill-lime-200
+    node_styles:
+      outline_style: dashed
+
+    # Attaches the following to edges:
+    #
+    # peer-focus/{tag_id}:[&>path]:stroke-lime-200
+    edge_styles:
+      shape_color: lime
 
 css: >-
   @keyframes ellipse-spin {

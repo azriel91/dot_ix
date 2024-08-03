@@ -29,4 +29,14 @@ impl TagElCssClasses {
     pub fn into_inner(self) -> (CssClasses, CssClasses) {
         (self.node_css_classes, self.edge_css_classes)
     }
+
+    /// Returns the CSS classes to apply to nodes for the tag.
+    pub fn node_css_classes(&self) -> &str {
+        &self.node_css_classes
+    }
+
+    /// Returns the CSS classes to apply to edges for the tag.
+    pub fn edge_css_classes(&self) -> &str {
+        &self.edge_css_classes
+    }
 }

@@ -61,6 +61,8 @@ impl TagTheme {
             node_defaults.insert(ThemeAttr::ShapeColor, "lime".into());
             node_defaults.insert(ThemeAttr::StrokeShade, "500".into());
             node_defaults.insert(ThemeAttr::StrokeWidth, "2".into());
+            // TODO: pass in the normal `Theme` and use the stroke style from that?
+            node_defaults.insert(ThemeAttr::StrokeStyle, "solid".into());
             node_defaults.insert(ThemeAttr::FillShade, "200".into());
 
             node_defaults
@@ -72,6 +74,8 @@ impl TagTheme {
             edge_defaults.insert(ThemeAttr::ShapeColor, "lime".into());
             edge_defaults.insert(ThemeAttr::StrokeShade, "600".into());
             edge_defaults.insert(ThemeAttr::StrokeWidth, "2".into());
+            // TODO: pass in the normal `Theme` and use the stroke style from that?
+            edge_defaults.insert(ThemeAttr::StrokeStyle, "solid".into());
             edge_defaults.insert(ThemeAttr::FillShade, "300".into());
 
             edge_defaults
@@ -97,6 +101,9 @@ impl TagTheme {
     pub fn merge_overlay(mut self, overlay: &TagTheme) -> Self {
         overlay.node_styles.iter().for_each(|(theme_attr, value)| {
             self.node_styles.insert(*theme_attr, value.clone());
+        });
+        overlay.edge_styles.iter().for_each(|(theme_attr, value)| {
+            self.edge_styles.insert(*theme_attr, value.clone());
         });
 
         self
