@@ -3,16 +3,19 @@
 // https://github.com/broxamson/hcl-leptos-app/blob/6f2da694fb97e60f4d2fd7cc7038bfb483566ba3/src/pages/global_components/text_editor.rs
 // https://github.com/siku2/rust-monaco/issues/50
 
+#[cfg(target_arch = "wasm32")]
 use std::{cell::RefCell, rc::Rc};
 
 use leptos::{
-    component, create_node_ref, create_rw_signal, create_signal, html::Div, view, IntoView,
-    NodeRef, ReadSignal, RwSignal, SignalGetUntracked, WriteSignal,
+    component, create_node_ref, create_signal, html::Div, view, IntoView, NodeRef, ReadSignal,
+    WriteSignal,
 };
+
+#[cfg(target_arch = "wasm32")]
 use monaco::api::{CodeEditor, TextModel};
 
 #[cfg(target_arch = "wasm32")]
-use leptos::{SignalGet, SignalSet, SignalUpdate};
+use leptos::{create_rw_signal, RwSignal, SignalGet, SignalGetUntracked, SignalSet, SignalUpdate};
 #[cfg(target_arch = "wasm32")]
 use monaco::{
     api::CodeEditorOptions,
@@ -111,12 +114,14 @@ pub fn TextEditor(
 }
 
 /// Shared reference to the underlying [`CodeEditor`].
+#[cfg(target_arch = "wasm32")]
 pub type CodeEditorCell = Rc<RefCell<Option<CodeEditor>>>;
 #[cfg(target_arch = "wasm32")]
 pub type ClosureCell = Rc<RefCell<Option<(Closure<dyn Fn()>, IDisposable)>>>;
 
 #[derive(Copy, Clone, Debug)]
 pub struct EditorState {
+    #[cfg(target_arch = "wasm32")]
     pub code_editor: RwSignal<CodeEditorCell>,
     #[cfg(target_arch = "wasm32")]
     pub update_fn_closure: RwSignal<ClosureCell>,
@@ -131,12 +136,14 @@ impl Default for EditorState {
 impl EditorState {
     pub fn new() -> Self {
         Self {
+            #[cfg(target_arch = "wasm32")]
             code_editor: create_rw_signal(CodeEditorCell::default()),
             #[cfg(target_arch = "wasm32")]
             update_fn_closure: create_rw_signal(ClosureCell::default()),
         }
     }
 
+    #[cfg(target_arch = "wasm32")]
     pub fn get_value(&self) -> String {
         self.code_editor
             .get_untracked()
@@ -148,6 +155,7 @@ impl EditorState {
             .unwrap_or_default()
     }
 
+    #[cfg(target_arch = "wasm32")]
     pub fn set_value(&self, value: &str) {
         if let Some(text_model) = self
             .code_editor
