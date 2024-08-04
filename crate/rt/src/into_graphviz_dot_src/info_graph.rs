@@ -9,7 +9,7 @@ use dot_ix_model::{
         NodeHierarchy, NodeId, TagId, TagNames,
     },
     info_graph::{GraphDir, GraphStyle, InfoGraph},
-    theme::{ElCssClasses, TagElCssClasses, TagTheme},
+    theme::{ElCssClasses, Theme},
 };
 use indexmap::{IndexMap, IndexSet};
 use indoc::{formatdoc, writedoc};
@@ -94,6 +94,7 @@ impl IntoGraphvizDotSrc for &InfoGraph {
         let graph_attrs = graph_attrs(theme, self.direction(), graphviz_attrs);
         let node_attrs = node_attrs(self.graph_style(), theme);
         let edge_attrs = edge_attrs(graphviz_attrs, theme);
+        let diagram_theme = self.theme();
 
         // Build a map from `NodeId` to their `NodeHierarchy`, so that we don't have to
         // search for it every time we want to create an edge.
@@ -104,7 +105,7 @@ impl IntoGraphvizDotSrc for &InfoGraph {
             edge_ids: self.edges().keys().collect::<Vec<_>>(),
         };
         let info_graph_dot = &info_graph_dot;
-        let el_css_classes = self.theme().el_css_classes(info_graph_dot);
+        let el_css_classes = diagram_theme.el_css_classes(info_graph_dot);
         let el_css_classes = &el_css_classes;
 
         // tag styles per tag
@@ -115,13 +116,15 @@ impl IntoGraphvizDotSrc for &InfoGraph {
             .map(|tag_id| {
                 let tag_theme = tag_styles_focus
                     .get(tag_id)
-                    .map(Cow::Borrowed)
-                    .unwrap_or_else(|| Cow::Owned(TagTheme::base()));
-                let tag_el_css_classes = tag_theme.tag_el_css_classes(info_graph_dot, tag_id);
+                    .cloned()
+                    .map(Theme::from)
+                    .unwrap_or_else(Theme::tag_base);
+                let tag_el_css_classes =
+                    tag_theme.tag_el_css_classes(info_graph_dot, diagram_theme, tag_id);
 
                 (tag_id, tag_el_css_classes)
             })
-            .collect::<IndexMap<&TagId, TagElCssClasses>>();
+            .collect::<IndexMap<&TagId, ElCssClasses>>();
         let tag_el_css_classes_map = &tag_el_css_classes_map;
 
         let node_clusters = self
@@ -208,6 +211,10 @@ impl IntoGraphvizDotSrc for &InfoGraph {
 
         let dot_src = formatdoc!(
             "digraph G {{
+                // {tag_styles_focus:?}
+
+                // {tag_el_css_classes_map:?}
+
                 {graph_attrs}
                 {node_attrs}
                 {edge_attrs}
@@ -324,7 +331,7 @@ fn edge_attrs(graphviz_attrs: &GraphvizAttrs, theme: &GraphvizDotTheme) -> Strin
 fn node_cluster(
     info_graph: &InfoGraph,
     el_css_classes: &ElCssClasses,
-    tag_el_css_classes_map: &IndexMap<&TagId, TagElCssClasses>,
+    tag_el_css_classes_map: &IndexMap<&TagId, ElCssClasses>,
     theme: &GraphvizDotTheme,
     node_id: &NodeId,
     node_hierarchy: &NodeHierarchy,
@@ -348,7 +355,7 @@ fn node_cluster(
 fn node_cluster_internal(
     info_graph: &InfoGraph,
     el_css_classes: &ElCssClasses,
-    tag_el_css_classes_map: &IndexMap<&TagId, TagElCssClasses>,
+    tag_el_css_classes_map: &IndexMap<&TagId, ElCssClasses>,
     theme: &GraphvizDotTheme,
     node_id: &NodeId,
     node_hierarchy: &NodeHierarchy,
@@ -438,7 +445,12 @@ fn node_cluster_internal(
             tag_ids
                 .iter()
                 .filter_map(|tag_id| tag_el_css_classes_map.get(tag_id))
-                .map(TagElCssClasses::node_css_classes)
+                .map(|el_css_classes| {
+                    el_css_classes
+                        .get(&AnyId::from(node_id.clone()))
+                        .map(AsRef::<str>::as_ref)
+                        .unwrap_or_default()
+                })
                 .collect::<String>()
         })
         .unwrap_or_default();
@@ -574,7 +586,7 @@ fn node_cluster_internal(
 
 struct EdgeArgs<'args> {
     el_css_classes: &'args ElCssClasses,
-    tag_el_css_classes_map: &'args IndexMap<&'args TagId, TagElCssClasses>,
+    tag_el_css_classes_map: &'args IndexMap<&'args TagId, ElCssClasses>,
     edge_id: &'args EdgeId,
     edge_desc: Option<&'args str>,
     edge_constraint: Option<bool>,
@@ -671,10 +683,15 @@ fn edge(edge_args: EdgeArgs<'_>) -> String {
             tag_ids
                 .iter()
                 .filter_map(|tag_id| tag_el_css_classes_map.get(tag_id))
-                .map(TagElCssClasses::edge_css_classes)
+                .map(|el_css_classes| {
+                    el_css_classes
+                        .get(&AnyId::from(edge_id.clone()))
+                        .map(AsRef::<str>::as_ref)
+                        .unwrap_or_default()
+                })
                 .collect::<String>()
         })
-        .unwrap_or_else(String::new);
+        .unwrap_or_default();
     let edge_constraint = edge_constraint
         .map(|edge_constraint| Cow::Owned(format!("constraint = {edge_constraint}")))
         .unwrap_or(Cow::Borrowed(""));
@@ -685,6 +702,9 @@ fn edge(edge_args: EdgeArgs<'_>) -> String {
         .map(|edge_minlen| Cow::Owned(format!("minlen = {edge_minlen}")))
         .unwrap_or(Cow::Borrowed(""));
 
+    // Note: There's no space between `{edge_tailwind_classes}{edge_tag_classes}`
+    // because for some reason spaces before `{edge_tag_classes}` are translated
+    // into the `0xa0` byte.
     formatdoc!(
         r#"
         {edge_src_node_id} -> {edge_target_node_id} [
@@ -693,7 +713,7 @@ fn edge(edge_args: EdgeArgs<'_>) -> String {
             {edge_constraint}
             {edge_dir}
             {edge_minlen}
-            class = "{edge_tailwind_classes} {edge_tag_classes}"
+            class = "{edge_tailwind_classes}{edge_tag_classes}"
             {ltail}
             {lhead}
         ]"#

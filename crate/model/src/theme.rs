@@ -3,18 +3,16 @@ use std::{
     ops::{Deref, DerefMut},
 };
 
-use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 
-use crate::common::{AnyId, EdgeId, NodeId};
+use crate::common::{AnyId, EdgeId, NodeId, TagId};
 
 pub use self::{
     any_id_or_defaults::AnyIdOrDefaults, color_params::ColorParams,
     css_class_merger::CssClassMerger, css_class_partials::CssClassPartials,
     css_classes::CssClasses, css_classes_builder::CssClassesBuilder, el_css_classes::ElCssClasses,
     highlight_state::HighlightState, stroke_params::StrokeParams, style_for::StyleFor,
-    tag_el_css_classes::TagElCssClasses, tag_theme::TagTheme, theme_attr::ThemeAttr,
-    themeable::Themeable,
+    theme_attr::ThemeAttr, theme_styles::ThemeStyles, themeable::Themeable,
 };
 
 mod any_id_or_defaults;
@@ -27,9 +25,8 @@ mod el_css_classes;
 mod highlight_state;
 mod stroke_params;
 mod style_for;
-mod tag_el_css_classes;
-mod tag_theme;
 mod theme_attr;
+mod theme_styles;
 mod themeable;
 
 /// Theme to style the generated diagram.
@@ -63,9 +60,9 @@ mod themeable;
 #[serde(default)]
 pub struct Theme {
     /// Whether to merge with the base styles.
-    merge_with_base: bool,
+    pub merge_with_base: bool,
     /// CSS utility class partials for each element.
-    styles: IndexMap<AnyIdOrDefaults, CssClassPartials>,
+    pub styles: ThemeStyles,
 }
 
 impl Default for Theme {
@@ -149,16 +146,52 @@ impl Theme {
         theme
     }
 
+    /// Returns the base `Theme` for a tag.
+    ///
+    /// These will be merged over the user's specified theme.
+    pub fn tag_base() -> Self {
+        let mut theme = Self::default();
+
+        theme.insert(AnyIdOrDefaults::NodeDefaults, {
+            let mut node_defaults = CssClassPartials::new();
+
+            node_defaults.insert(ThemeAttr::ShapeColor, "lime".into());
+            node_defaults.insert(ThemeAttr::StrokeShade, "500".into());
+            node_defaults.insert(ThemeAttr::StrokeWidth, "2".into());
+            // TODO: pass in the normal `Theme` and use the stroke style from that?
+            node_defaults.insert(ThemeAttr::StrokeStyle, "solid".into());
+            node_defaults.insert(ThemeAttr::FillShade, "200".into());
+
+            node_defaults
+        });
+        let mut theme = Self::default();
+
+        theme.insert(AnyIdOrDefaults::EdgeDefaults, {
+            let mut edge_defaults = CssClassPartials::new();
+
+            edge_defaults.insert(ThemeAttr::ShapeColor, "lime".into());
+            edge_defaults.insert(ThemeAttr::StrokeShade, "600".into());
+            edge_defaults.insert(ThemeAttr::StrokeWidth, "2".into());
+            // TODO: pass in the normal `Theme` and use the stroke style from that?
+            edge_defaults.insert(ThemeAttr::StrokeStyle, "solid".into());
+            edge_defaults.insert(ThemeAttr::FillShade, "300".into());
+
+            edge_defaults
+        });
+
+        theme
+    }
+
     /// Returns a new `Theme` with the given preallocated capacity.
     pub fn with_capacity(capacity: usize) -> Self {
         Self {
             merge_with_base: true,
-            styles: IndexMap::with_capacity(capacity),
+            styles: ThemeStyles::with_capacity(capacity),
         }
     }
 
     /// Returns the underlying map.
-    pub fn into_inner(self) -> IndexMap<AnyIdOrDefaults, CssClassPartials> {
+    pub fn into_inner(self) -> ThemeStyles {
         self.styles
     }
 
@@ -274,10 +307,93 @@ impl Theme {
                     .map(|_| css_class_partials)
             })
     }
+
+    /// Computes the CSS utility classes for nodes and edges.
+    pub fn tag_el_css_classes<T>(
+        &self,
+        themeable: &T,
+        diagram_theme: &Theme,
+        tag_id: &TagId,
+    ) -> ElCssClasses
+    where
+        T: Themeable,
+    {
+        // Note: The order of whether `diagram_theme` should be merged over the
+        // `tag_base` can be debated:
+        //
+        // * If we merge the `tag_base` over `diagram_theme`, we may override desired
+        //   stroke styling.
+        // * If we merge the `diagram_theme` over `tag_base`, we miss the fill colouring
+        //   of the theme.
+        let tag_theme = if self.merge_with_base {
+            Cow::<Theme>::Owned(
+                // diagram_theme
+                //     .clone()
+                //     .merge_overlay(&Theme::tag_base().merge_overlay(self)),
+                Theme::tag_base().merge_overlay(self),
+            )
+        } else {
+            Cow::Owned(diagram_theme.clone().merge_overlay(self))
+        };
+
+        tag_theme
+            .node_tag_el_css_classes(themeable, tag_id)
+            .chain(tag_theme.edge_tag_el_css_classes(themeable, tag_id))
+            .collect()
+    }
+
+    fn node_tag_el_css_classes<'f, T>(
+        &'f self,
+        themeable: &'f T,
+        tag_id: &'f TagId,
+    ) -> impl Iterator<Item = (AnyId, CssClasses)> + 'f
+    where
+        T: Themeable,
+    {
+        let node_class_partials_defaults = self.get(&AnyIdOrDefaults::NodeDefaults);
+        themeable.node_ids().filter_map(move |node_id| {
+            let node_class_partials_specified = self.node_class_partials_specified(node_id);
+
+            let any_id = Some(AnyId::from(node_id.clone()));
+            let node_classes = CssClassMerger::node_tag_classes(
+                node_class_partials_defaults,
+                node_class_partials_specified,
+                themeable,
+                tag_id,
+            );
+
+            any_id.map(|any_id| (any_id, node_classes))
+        })
+    }
+
+    fn edge_tag_el_css_classes<'f, T>(
+        &'f self,
+        themeable: &'f T,
+        tag_id: &'f TagId,
+    ) -> impl Iterator<Item = (AnyId, CssClasses)> + 'f
+    where
+        T: Themeable,
+    {
+        let edge_class_partials_defaults = self.get(&AnyIdOrDefaults::EdgeDefaults);
+
+        themeable.edge_ids().filter_map(move |edge_id| {
+            let edge_class_partials_specified = self.edge_class_partials_specified(edge_id);
+
+            let any_id = Some(AnyId::from(edge_id.clone()));
+            let edge_classes = CssClassMerger::edge_tag_classes(
+                edge_class_partials_defaults,
+                edge_class_partials_specified,
+                themeable,
+                tag_id,
+            );
+
+            any_id.map(|any_id| (any_id, edge_classes))
+        })
+    }
 }
 
 impl Deref for Theme {
-    type Target = IndexMap<AnyIdOrDefaults, CssClassPartials>;
+    type Target = ThemeStyles;
 
     fn deref(&self) -> &Self::Target {
         &self.styles
@@ -290,8 +406,8 @@ impl DerefMut for Theme {
     }
 }
 
-impl From<IndexMap<AnyIdOrDefaults, CssClassPartials>> for Theme {
-    fn from(styles: IndexMap<AnyIdOrDefaults, CssClassPartials>) -> Self {
+impl From<ThemeStyles> for Theme {
+    fn from(styles: ThemeStyles) -> Self {
         Self {
             merge_with_base: true,
             styles,

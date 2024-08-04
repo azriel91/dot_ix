@@ -3,12 +3,12 @@ use std::ops::{Deref, DerefMut};
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 
-use crate::{common::TagId, theme::TagTheme};
+use crate::{common::TagId, theme::ThemeStyles};
 
-/// Each tag and the items associated with it. `IndexMap<TagId, TagTheme>`
-/// newtype.
+/// Each tag and styles for the items associated with it. `IndexMap<TagId,
+/// ThemeStyles>` newtype.
 #[derive(Clone, Debug, Default, PartialEq, Eq, Deserialize, Serialize)]
-pub struct TagStyles(IndexMap<TagId, TagTheme>);
+pub struct TagStyles(IndexMap<TagId, ThemeStyles>);
 
 impl TagStyles {
     /// Returns a new `TagStyles` map.
@@ -23,13 +23,13 @@ impl TagStyles {
     }
 
     /// Returns the underlying map.
-    pub fn into_inner(self) -> IndexMap<TagId, TagTheme> {
+    pub fn into_inner(self) -> IndexMap<TagId, ThemeStyles> {
         self.0
     }
 }
 
 impl Deref for TagStyles {
-    type Target = IndexMap<TagId, TagTheme>;
+    type Target = IndexMap<TagId, ThemeStyles>;
 
     fn deref(&self) -> &Self::Target {
         &self.0
@@ -42,14 +42,14 @@ impl DerefMut for TagStyles {
     }
 }
 
-impl From<IndexMap<TagId, TagTheme>> for TagStyles {
-    fn from(inner: IndexMap<TagId, TagTheme>) -> Self {
+impl From<IndexMap<TagId, ThemeStyles>> for TagStyles {
+    fn from(inner: IndexMap<TagId, ThemeStyles>) -> Self {
         Self(inner)
     }
 }
 
-impl FromIterator<(TagId, TagTheme)> for TagStyles {
-    fn from_iter<I: IntoIterator<Item = (TagId, TagTheme)>>(iter: I) -> Self {
+impl FromIterator<(TagId, ThemeStyles)> for TagStyles {
+    fn from_iter<I: IntoIterator<Item = (TagId, ThemeStyles)>>(iter: I) -> Self {
         Self(IndexMap::from_iter(iter))
     }
 }

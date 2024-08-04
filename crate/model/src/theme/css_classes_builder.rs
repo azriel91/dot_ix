@@ -42,6 +42,6 @@ impl<'tag_id> CssClassesBuilder<'tag_id> {
             css_classes,
         } = self;
 
-        CssClasses::from(css_classes.into_inner().trim().to_owned())
+        CssClasses::from(css_classes.into_inner().to_owned())
     }
 }

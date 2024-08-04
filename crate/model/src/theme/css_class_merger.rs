@@ -26,14 +26,15 @@ impl CssClassMerger {
 
     /// Returns the CSS classes for a node associated with a tag.
     pub fn node_tag_classes<T>(
-        specified: &CssClassPartials,
+        defaults: Option<&CssClassPartials>,
+        specified: Option<&CssClassPartials>,
         themeable: &T,
         tag_id: &TagId,
     ) -> CssClasses
     where
         T: Themeable,
     {
-        Self::node_classes_calculate(None, Some(specified), themeable, StyleFor::TagFocus(tag_id))
+        Self::node_classes_calculate(defaults, specified, themeable, StyleFor::TagFocus(tag_id))
     }
 
     /// Returns the CSS classes for a node in a particular themeable rendering.
@@ -134,14 +135,15 @@ impl CssClassMerger {
 
     /// Returns the CSS classes for an edge associated with a tag.
     pub fn edge_tag_classes<T>(
-        specified: &CssClassPartials,
+        defaults: Option<&CssClassPartials>,
+        specified: Option<&CssClassPartials>,
         themeable: &T,
         tag_id: &TagId,
     ) -> CssClasses
     where
         T: Themeable,
     {
-        Self::edge_classes_calculate(None, Some(specified), themeable, StyleFor::TagFocus(tag_id))
+        Self::edge_classes_calculate(defaults, specified, themeable, StyleFor::TagFocus(tag_id))
     }
 
     /// Returns the CSS classes for an edge in a particular themeable rendering.
@@ -397,7 +399,11 @@ impl CssClassMerger {
         specified
             .and_then(|partials| partials.get(&ThemeAttr::Extra))
             .or_else(|| defaults.and_then(|partials| partials.get(&ThemeAttr::Extra)))
-            .map(|extra| css_classes_builder.append(extra));
+            .map(|extra| {
+                extra.split_whitespace().for_each(|extra_class| {
+                    css_classes_builder.append(extra_class);
+                });
+            });
     }
 }
 

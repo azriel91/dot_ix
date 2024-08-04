@@ -130,7 +130,7 @@
 //! ```
 
 // Re-exports
-pub use dot_ix_static_check_macros::{edge_id, node_id};
+pub use dot_ix_static_check_macros::{edge_id, node_id, tag_id};
 pub use indexmap::IndexMap;
 
 pub mod common;
