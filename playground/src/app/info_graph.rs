@@ -323,35 +323,6 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
                                 text-xs \
                             "
                         />
-                        <br />
-                        <div
-                            class={
-                                move || {
-                                    let error_text = error_text.get();
-                                    let error_text_empty = error_text
-                                        .as_deref()
-                                        .map(str::is_empty)
-                                        .unwrap_or(true);
-                                    if error_text_empty {
-                                        "hidden"
-                                    } else {
-                                        "
-                                        border
-                                        border-amber-300
-                                        bg-gradient-to-b from-amber-100 to-amber-200
-                                        rounded
-                                        "
-                                    }
-                                }
-                            }
-                            >{
-                                move || {
-                                    let error_text = error_text.get();
-                                    error_text.as_deref()
-                                        .unwrap_or("")
-                                        .to_string()
-                                }
-                            }</div>
                     </div>
 
                     // tab content
@@ -462,8 +433,40 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
                     </div>
                 </div>
             </div>
+            <ErrorText error_text />
             <Disclaimer diagram_only />
         </div>
+    }
+}
+
+#[component]
+pub fn ErrorText(error_text: ReadSignal<Option<String>>) -> impl IntoView {
+    let error_text_classes = move || {
+        let error_text = error_text.get();
+        let error_text_empty = error_text.as_deref().map(str::is_empty).unwrap_or(true);
+        if error_text_empty {
+            "hidden"
+        } else {
+            "
+            border
+            border-amber-300
+            bg-gradient-to-b from-amber-100 to-amber-200
+            rounded
+            "
+        }
+    };
+
+    view! {
+        <div
+            class=error_text_classes
+            >{
+                move || {
+                    let error_text = error_text.get();
+                    error_text.as_deref()
+                        .unwrap_or("")
+                        .to_string()
+                }
+            }</div>
     }
 }
 
