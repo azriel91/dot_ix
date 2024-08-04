@@ -142,6 +142,43 @@ tag_items:
   tag_step_4: [iam_policy, iam_role, instance_profile, github_app_zip, app_download, app_download__s3_object, s3_object, app_extract, app_download__app_extract]
   tag_step_5: [iam_policy, iam_role, instance_profile, github_app_zip, app_download, app_download__s3_object, s3_object, app_extract]
 
+common_styles: # not part of `info_graph`, but it ignores unknown keys
+  selected_outline: &selected_outline
+    outline_color: red
+    outline_style: dashed
+    outline_width: '1'
+    outline_shade: '600'
+
+  node_blue_progress: &node_blue_progress
+    <<: *selected_outline
+    shape_color: blue
+    stroke_shade: '600'
+    stroke_style: "dasharray:0.5,3,0.5,3,0.5,3,0.5,3,6,3,12,30"
+    stroke_width: '[2px]'
+    fill_shade: '200'
+    extra: |-
+      [&>ellipse]:[stroke-linecap:round]
+      [&>ellipse]:animate-[ellipse-spin_1.5s_linear_infinite]
+
+  node_completed: &node_completed
+    shape_color: green
+    stroke_shade: '600'
+    stroke_style: 'solid'
+    stroke_width: '[2px]'
+    fill_shade: '200'
+
+  edge_blue_animated: &edge_blue_animated
+    shape_color: blue
+    stroke_style: dashed  # shorthand for [&>path]:[stroke-dasharray:3]
+    stroke_width: '[2px]'
+    stroke_shade_normal: '600'
+    fill_shade_normal: '500'
+    extra: >-
+      [&>path]:animate-[stroke-dashoffset-move_2s_linear_infinite]
+      [&>path]:visible
+      [&>polygon]:visible
+
+
 # We always use the `focus` pseudo class.
 #
 # There are other pseudo classes, but it doesn't appear useful enough for most of those to be
@@ -225,39 +262,3 @@ css: >-
     0%   { stroke-dashoffset: 0; }
     100% { stroke-dashoffset: -248; }
   }
-
-common_styles: # not part of `info_graph`, but it ignores unknown keys
-  selected_outline: &selected_outline
-    outline_color: red
-    outline_style: dashed
-    outline_width: '1'
-    outline_shade: '600'
-
-  node_blue_progress: &node_blue_progress
-    <<: *selected_outline
-    shape_color: blue
-    stroke_shade: '600'
-    stroke_style: "dasharray:0.5,3,0.5,3,0.5,3,0.5,3,6,3,12,30"
-    stroke_width: '[2px]'
-    fill_shade: '200'
-    extra: |-
-      [&>ellipse]:[stroke-linecap:round]
-      [&>ellipse]:animate-[ellipse-spin_1.5s_linear_infinite]
-
-  node_completed: &node_completed
-    shape_color: green
-    stroke_shade: '600'
-    stroke_style: 'solid'
-    stroke_width: '[2px]'
-    fill_shade: '200'
-
-  edge_blue_animated: &edge_blue_animated
-    shape_color: blue
-    stroke_style: dashed  # shorthand for [&>path]:[stroke-dasharray:3]
-    stroke_width: '[2px]'
-    stroke_shade_normal: '600'
-    fill_shade_normal: '500'
-    extra: >-
-      [&>path]:animate-[stroke-dashoffset-move_2s_linear_infinite]
-      [&>path]:visible
-      [&>polygon]:visible

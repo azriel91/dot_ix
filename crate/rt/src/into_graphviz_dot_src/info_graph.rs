@@ -455,6 +455,11 @@ fn node_cluster_internal(
         })
         .unwrap_or_default();
 
+    // Note: There's no space between `{node_tailwind_classes}{node_tag_classes}`
+    // because for some reason spaces before `{node_tag_classes}` are translated
+    // into the `0xa0` byte.
+    //
+    // Same thing happens for `{edge_tag_classes}`
     if node_hierarchy.is_empty() {
         match graph_style {
             GraphStyle::Box => writedoc!(
@@ -472,7 +477,7 @@ fn node_cluster_internal(
                             </tr>
                             {node_desc}
                         </table>>
-                        class = "{node_tailwind_classes} {node_tag_classes}"
+                        class = "{node_tailwind_classes}{node_tag_classes}"
                     ]
                 "#
             )?,
@@ -498,7 +503,7 @@ fn node_cluster_internal(
 
                             {node_id} [
                                 label = ""
-                                class = "{node_tailwind_classes} {node_tag_classes}"
+                                class = "{node_tailwind_classes}{node_tag_classes}"
                                 {margin}
                             ]
                             {node_id}_text [
@@ -540,7 +545,7 @@ fn node_cluster_internal(
                         {node_desc}
                     </table>>
                     style = "filled,rounded"
-                    class = "{node_tailwind_classes} {node_tag_classes}"
+                    class = "{node_tailwind_classes}{node_tag_classes}"
             "#
         )?;
 
@@ -705,6 +710,8 @@ fn edge(edge_args: EdgeArgs<'_>) -> String {
     // Note: There's no space between `{edge_tailwind_classes}{edge_tag_classes}`
     // because for some reason spaces before `{edge_tag_classes}` are translated
     // into the `0xa0` byte.
+    //
+    // Same thing happens for `{node_tag_classes}`
     formatdoc!(
         r#"
         {edge_src_node_id} -> {edge_target_node_id} [
