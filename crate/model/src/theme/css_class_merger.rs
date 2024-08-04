@@ -396,14 +396,14 @@ impl CssClassMerger {
         defaults: Option<&CssClassPartials>,
         css_classes_builder: &mut CssClassesBuilder,
     ) {
-        specified
+        if let Some(extra) = specified
             .and_then(|partials| partials.get(&ThemeAttr::Extra))
             .or_else(|| defaults.and_then(|partials| partials.get(&ThemeAttr::Extra)))
-            .map(|extra| {
-                extra.split_whitespace().for_each(|extra_class| {
-                    css_classes_builder.append(extra_class);
-                });
+        {
+            extra.split_whitespace().for_each(|extra_class| {
+                css_classes_builder.append(extra_class);
             });
+        }
     }
 }
 
