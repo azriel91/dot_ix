@@ -156,6 +156,7 @@ impl EditorState {
     }
 
     #[cfg(target_arch = "wasm32")]
+    #[allow(dead_code)] // Not used currently, but was attempted in `create_effect` above.
     pub fn set_value(&self, value: &str) {
         if let Some(text_model) = self
             .code_editor
