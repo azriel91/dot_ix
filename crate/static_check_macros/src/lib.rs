@@ -106,6 +106,56 @@ pub fn edge_id(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     ensure_valid_id(&parse_macro_input!(input as LitStrMaybe), "EdgeId", None).into()
 }
 
+/// Returns a `const TagId` validated at compile time.
+///
+/// # Examples
+///
+/// Instantiate a valid `TagId` at compile time:
+///
+/// ```rust,ignore
+/// # use dot_ix_static_check_macros::tag_id;
+/// #
+/// let _my_flow: dot_ix::model::common::TagId = tag_id!("valid_id"); // Ok!
+/// //
+/// #
+/// # pub mod dot_ix {
+/// #     pub mod model {
+/// #         pub mod common {
+/// #             pub struct TagId(&'static str);
+/// #             impl TagId {
+/// #                 pub fn new_unchecked(s: &'static str) -> Self { Self(s) }
+/// #             }
+/// #         }
+/// #     }
+/// # }
+/// ```
+///
+/// If the ID is invalid, a compilation error is produced:
+///
+/// ```rust,ignore
+/// # use dot_ix_static_check_macros::tag_id;
+///
+/// let _my_flow: dot_ix::model::common::TagId = tag_id!("-invalid_id"); // Compile error
+/// //                                           ^^^^^^^^^^^^^^^^^^^^^^^
+/// // error: "-invalid_id" is not a valid `TagId`.
+/// //        `TagId`s must begin with a letter or underscore, and contain only letters, numbers, or underscores.
+/// #
+/// # pub mod dot_ix {
+/// #     pub mod model {
+/// #         pub mod common {
+/// #             pub struct TagId(&'static str);
+/// #             impl TagId {
+/// #                 pub fn new_unchecked(s: &'static str) -> Self { Self(s) }
+/// #             }
+/// #         }
+/// #     }
+/// # }
+/// ```
+#[proc_macro]
+pub fn tag_id(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    ensure_valid_id(&parse_macro_input!(input as LitStrMaybe), "TagId", None).into()
+}
+
 fn ensure_valid_id(
     proposed_id: &LitStrMaybe,
     ty_name: &str,

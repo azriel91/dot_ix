@@ -11,6 +11,9 @@
 * Reimplement playground for better responsive layout.
 * Take in `svg_extra` elements and insert into generated SVG.
 * Allow cluster edge ports to work correctly.
+* Take in `tags` which only include tag names.
+* Take in `tag_items` for nodes and edges instead of tags per node.
+* Support theming nodes based on tag focus.
 
 [monaco]: https://github.com/microsoft/monaco-editor
 [rust-monaco]: https://github.com/siku2/rust-monaco
