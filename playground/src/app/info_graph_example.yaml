@@ -88,14 +88,6 @@ graphviz_attrs:
   # - r: align clusters right (vertical graphs)
   pack_mode: "array_t"
 
-tags:
-  tag_ready: "Ready"
-  tag_waiting: "Waiting"
-
-tag_items:
-  tag_ready: [iam_policy, iam_role]
-  tag_waiting: [instance_profile, app_extract, github_app_zip__app_download_response]
-
 theme:
   merge_with_base: true
   styles:
@@ -103,45 +95,7 @@ theme:
       stroke_width: '1'
       extra: 'rounded-lg'
     edge_defaults:
-      extra: hidden
-    github_app_zip__app_extract:
-      cursor: 'progress' # https://tailwindcss.com/docs/cursor
-      extra: ''
-    blue_animated: &blue_animated
-      shape_color: blue
-      stroke_style: dashed  # shorthand for [&>path]:[stroke-dasharray:3]
-      stroke_width: '[2px]'
-      stroke_shade_normal: '600'
-      fill_shade_normal: '500'
-      extra: >-
-        [&>path]:animate-[stroke-dashoffset-move_2s_linear_infinite]
-    app_download__s3_object:
-      <<: *blue_animated
-    github_app_zip__app_download_request:
-      <<: *blue_animated
-      shape_color: violet
-      stroke_style: "dasharray:0,80,12,2,4,2,2,2,1,2,1,120"
-      stroke_width: '[1px]'
-      extra: >-
-        [&>path]:animate-[stroke-dashoffset-move-request_2s_linear_infinite]
-    github_app_zip__app_download_response:
-      <<: *blue_animated
-      shape_color: purple
-      stroke_style: "dasharray:0,120,1,2,1,2,2,2,4,2,8,2,20,80"
-      stroke_width: '[2px]'
-      extra: >-
-        [&>path]:animate-[stroke-dashoffset-move-response_2s_linear_infinite]
-    github_app_zip:
-      shape_color: green
-    app_download:
-      shape_color: green
-    s3_object:
-      shape_color: blue
-      stroke_style: "dasharray:0.5,3,0.5,3,0.5,3,0.5,3,6,3,12,30"
-      stroke_width: '[2px]'
-      extra: |-
-        [&>ellipse]:[stroke-linecap:round]
-        [&>ellipse]:animate-[ellipse-spin_1.5s_linear_infinite]
+      extra: invisible
     light: &light
       fill_shade_normal: '100'
       fill_shade_hover: '50'
@@ -174,6 +128,55 @@ theme:
       padding: '3'
       shape_color: amber
 
+selected_outline: &selected_outline
+  outline_color: red
+  outline_style: dashed
+  outline_width: '1'
+  outline_shade: '600'
+
+node_blue_progress: &node_blue_progress
+  <<: *selected_outline
+  shape_color: blue
+  stroke_shade: '600'
+  stroke_style: "dasharray:0.5,3,0.5,3,0.5,3,0.5,3,6,3,12,30"
+  stroke_width: '[2px]'
+  fill_shade: '200'
+  extra: |-
+    [&>ellipse]:[stroke-linecap:round]
+    [&>ellipse]:animate-[ellipse-spin_1.5s_linear_infinite]
+
+node_completed: &node_completed
+  shape_color: green
+  stroke_shade: '600'
+  stroke_style: 'solid'
+  stroke_width: '[2px]'
+  fill_shade: '200'
+
+edge_blue_animated: &edge_blue_animated
+  shape_color: blue
+  stroke_style: dashed  # shorthand for [&>path]:[stroke-dasharray:3]
+  stroke_width: '[2px]'
+  stroke_shade_normal: '600'
+  fill_shade_normal: '500'
+  extra: >-
+    [&>path]:animate-[stroke-dashoffset-move_2s_linear_infinite]
+    [&>path]:visible
+    [&>polygon]:visible
+
+tags:
+  tag_step_1: "Step 1"
+  tag_step_2: "Step 2"
+  tag_step_3: "Step 3"
+  tag_step_4: "Step 4"
+  tag_step_5: "Finish"
+
+tag_items:
+  tag_step_1: [iam_policy, iam_role, instance_profile]
+  tag_step_2: [iam_policy, iam_role, instance_profile, github_app_zip, app_download, github_app_zip__app_download_request, github_app_zip__app_download_response]
+  tag_step_3: [iam_policy, iam_role, instance_profile, github_app_zip, app_download, app_download__s3_object, s3_object]
+  tag_step_4: [iam_policy, iam_role, instance_profile, github_app_zip, app_download, app_download__s3_object, s3_object, app_extract, app_download__app_extract]
+  tag_step_5: [iam_policy, iam_role, instance_profile, github_app_zip, app_download, app_download__s3_object, s3_object, app_extract]
+
 # We always use the `focus` pseudo class.
 #
 # There are other pseudo classes, but it doesn't appear useful enough for most of those to be
@@ -181,65 +184,64 @@ theme:
 #
 # See <https://tailwindcss.com/docs/hover-focus-and-other-states#pseudo-class-reference>
 tag_styles_focus:
-  tag_ready:
-    # Attaches the following to nodes:
-    #
-    # From defaults:
-    #
-    # ```text
-    # peer-focus/{tag_id}:[&>path]:fill-lime-200
-    # peer-focus/{tag_id}:[&>ellipse]:fill-lime-200
-    # ```
-    #
-    # Specified:
-    #
-    # ```text
-    # peer-focus/tag_ready:[&>path]:focus:outline-red-600
-    # peer-focus/tag_ready:[&>path]:focus:outline-[2px]
-    # peer-focus/tag_ready:[&>path]:focus:outline-dashed
-    # peer-focus/tag_ready:[&>ellipse]:focus:outline-red-600
-    # peer-focus/tag_ready:[&>ellipse]:focus:outline-[2px]
-    # peer-focus/tag_ready:[&>ellipse]:focus:outline-dashed
-    # ```
-    node_styles:
-      outline_color: red
-      outline_style: dashed
-      outline_width: '[2px]'
-      outline_shade: '600'
+  tag_step_1:
+    iam_policy: *node_blue_progress
+    iam_role: *node_blue_progress
+    instance_profile: *node_blue_progress
+    node_defaults:
+      <<: *selected_outline
+    edge_defaults:
+      <<: *selected_outline
+      extra: >-
+        [&>path]:visible
+        [&>polygon]:visible
 
-    # Attaches the following to edges:
-    #
-    # From defaults:
-    #
-    # ```text
-    # peer-focus/{tag_id}:[&>path]:stroke-lime-200
-    # ```
-    #
-    # Specified:
-    #
-    # ```text
-    # peer-focus/tag_ready:[&>path]:focus:outline-red-600
-    # peer-focus/tag_ready:[&>path]:focus:outline-[2px]
-    # peer-focus/tag_ready:[&>path]:focus:outline-dashed
-    # ```
-    edge_styles:
-      outline_color: red
-      outline_style: dashed
-      outline_width: '[2px]'
-      outline_shade: '600'
-      extra: 'stroke-lime-200'
-  tag_waiting:
-    node_styles:
-      outline_color: red
-      outline_style: dashed
-      outline_width: '[2px]'
-      outline_shade: '600'
-    edge_styles:
-      outline_color: red
-      outline_style: dashed
-      outline_width: '[2px]'
-      outline_shade: '600'
-      shape_color: lime
+  tag_step_2:
+    edge_defaults:
+      <<: *selected_outline
+    iam_policy: *node_completed
+    iam_role: *node_completed
+    instance_profile: *node_completed
+
+    github_app_zip: *node_blue_progress
+    app_download: *node_blue_progress
+
+    github_app_zip__app_download_request:
+      <<: *edge_blue_animated
+      shape_color: violet
+      stroke_style: "dasharray:0,80,12,2,4,2,2,2,1,2,1,120"
+      stroke_width: '[1px]'
+      extra: >-
+        [&>path]:animate-[stroke-dashoffset-move-request_2s_linear_infinite]
+        [&>path]:visible
+        [&>polygon]:visible
+    github_app_zip__app_download_response:
+      <<: *edge_blue_animated
+      shape_color: purple
+      stroke_style: "dasharray:0,120,1,2,1,2,2,2,4,2,8,2,20,80"
+      stroke_width: '[2px]'
+      extra: >-
+        [&>path]:animate-[stroke-dashoffset-move-response_2s_linear_infinite]
+        [&>path]:visible
+        [&>polygon]:visible
+
+  tag_step_3:
+    node_defaults: *node_completed
+    s3_object: *node_blue_progress
+    github_app_zip__app_extract:
+      cursor: 'progress' # https://tailwindcss.com/docs/cursor
+
+    app_download__s3_object:
+      <<: *edge_blue_animated
+
+  tag_step_4:
+    node_defaults: *node_completed
+    app_extract: *node_blue_progress
+    app_download__app_extract:
+      <<: *edge_blue_animated
+
+  tag_step_5:
+    node_defaults: *node_completed
 
 css: >-
   @keyframes ellipse-spin {
