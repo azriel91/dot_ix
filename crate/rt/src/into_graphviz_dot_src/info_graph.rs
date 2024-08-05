@@ -16,6 +16,9 @@ use indoc::{formatdoc, writedoc};
 
 use crate::{InfoGraphDot, IntoGraphvizDotSrc};
 
+/// Hack to get Chrome/Edge to not display black box around focused nodes.
+const OUTLINE_NONE: &'static str = "outline-none";
+
 /// Renders a GraphViz Dot diagram with interactive styling.
 ///
 /// This is currently a mashed together implementation. A proper implementation
@@ -486,7 +489,7 @@ fn node_cluster_internal(
                             </tr>
                             {node_desc}
                         </table>>
-                        class = "{node_tailwind_classes}{node_tag_classes}"
+                        class = "{OUTLINE_NONE} {node_tailwind_classes}{node_tag_classes}"
                     ]
                 "#
             )?,
@@ -508,11 +511,11 @@ fn node_cluster_internal(
                         subgraph cluster_{node_id} {{
                             label = <>
                             margin = 0.0
-                            class = ""
+                            class = "{OUTLINE_NONE}"
 
                             {node_id} [
                                 label = ""
-                                class = "{node_tailwind_classes}{node_tag_classes}"
+                                class = "{OUTLINE_NONE} {node_tailwind_classes}{node_tag_classes}"
                                 {margin}
                             ]
                             {node_id}_text [
@@ -554,7 +557,7 @@ fn node_cluster_internal(
                         {node_desc}
                     </table>>
                     style = "filled,rounded"
-                    class = "{node_tailwind_classes}{node_tag_classes}"
+                    class = "{OUTLINE_NONE} {node_tailwind_classes}{node_tag_classes}"
             "#
         )?;
 
