@@ -10,7 +10,7 @@ pub struct CssClassesAndWarnings {
     pub theme_warnings: ThemeWarnings,
 }
 
-impl<'params> CssClassesAndWarnings {
+impl CssClassesAndWarnings {
     /// Returns a new `CssClassesAndWarnings`.
     pub fn new(css_classes: CssClasses, theme_warnings: ThemeWarnings) -> Self {
         Self {

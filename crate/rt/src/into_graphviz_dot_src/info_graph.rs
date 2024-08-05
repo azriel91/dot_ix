@@ -17,7 +17,7 @@ use indoc::{formatdoc, writedoc};
 use crate::{InfoGraphDot, IntoGraphvizDotSrc};
 
 /// Hack to get Chrome/Edge to not display black box around focused nodes.
-const OUTLINE_NONE: &'static str = "outline-none";
+const OUTLINE_NONE: &str = "outline-none";
 
 /// Renders a GraphViz Dot diagram with interactive styling.
 ///

@@ -68,7 +68,7 @@ fn tag_theme_merge_resolves_node_outline() {
     };
     let themeable = &info_graph_dot;
 
-    let tag_el_css_classes =
+    let (tag_el_css_classes, _theme_warnings) =
         tag_theme.tag_el_css_classes(themeable, &diagram_theme, &tag_id!("tag_step_1"));
 
     let css_classes = tag_el_css_classes.get(test_node_id.as_str());
