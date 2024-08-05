@@ -77,24 +77,24 @@ impl CssClassMerger {
             &mut css_classes_builder,
             &mut warnings,
             themeable_node_outline_classes,
-            specified,
             defaults,
+            specified,
             themeable,
         );
         Self::stroke_classes_append(
             &mut css_classes_builder,
             &mut warnings,
             themeable_node_stroke_classes,
-            specified,
             defaults,
+            specified,
             themeable,
         );
         Self::fill_classes_append(
             &mut css_classes_builder,
             &mut warnings,
             themeable_node_fill_classes,
-            specified,
             defaults,
+            specified,
             themeable,
         );
 
@@ -111,14 +111,14 @@ impl CssClassMerger {
                 spacing_keys,
             } = css_classes_param_groupings;
 
-            let spacing = attr_value_find(spacing_keys, specified, defaults);
+            let spacing = attr_value_find(spacing_keys, defaults, specified);
 
             spacing
                 .map(|spacing| css_classes_builder.append(&format!("{spacing_prefix}-{spacing}")));
         });
 
-        Self::cursor_classes(specified, defaults, &mut css_classes_builder);
-        Self::extra_classes(specified, defaults, &mut css_classes_builder);
+        Self::cursor_classes(defaults, specified, &mut css_classes_builder);
+        Self::extra_classes(defaults, specified, &mut css_classes_builder);
 
         let css_classes = css_classes_builder.build();
 
@@ -192,29 +192,29 @@ impl CssClassMerger {
             &mut css_classes_builder,
             &mut warnings,
             themeable_edge_outline_classes,
-            specified,
             defaults,
+            specified,
             themeable,
         );
         Self::stroke_classes_append(
             &mut css_classes_builder,
             &mut warnings,
             themeable_edge_stroke_classes,
-            specified,
             defaults,
+            specified,
             themeable,
         );
         Self::fill_classes_append(
             &mut css_classes_builder,
             &mut warnings,
             themeable_edge_fill_classes,
-            specified,
             defaults,
+            specified,
             themeable,
         );
 
-        Self::cursor_classes(specified, defaults, &mut css_classes_builder);
-        Self::extra_classes(specified, defaults, &mut css_classes_builder);
+        Self::cursor_classes(defaults, specified, &mut css_classes_builder);
+        Self::extra_classes(defaults, specified, &mut css_classes_builder);
 
         let css_classes = css_classes_builder.build();
 
@@ -225,8 +225,8 @@ impl CssClassMerger {
         css_classes_builder: &mut CssClassesBuilder,
         warnings: &mut ThemeWarnings,
         fn_outline_classes: fn(&dyn Themeable, &mut CssClassesBuilder, StrokeParams<'_>),
-        specified: Option<&CssClassPartials>,
         defaults: Option<&CssClassPartials>,
+        specified: Option<&CssClassPartials>,
         themeable: &dyn Themeable,
     ) {
         [
@@ -245,9 +245,9 @@ impl CssClassMerger {
                 fn_css_classes,
             } = css_classes_param_groupings;
 
-            let color = attr_value_find(color_keys, specified, defaults);
-            let shade = attr_value_find(shade_keys, specified, defaults);
-            let outline_style = attr_value_find(stroke_style_keys, specified, defaults);
+            let color = attr_value_find(color_keys, defaults, specified);
+            let shade = attr_value_find(shade_keys, defaults, specified);
+            let outline_style = attr_value_find(stroke_style_keys, defaults, specified);
 
             let outline_width = specified
                 .and_then(|partials| partials.get(&ThemeAttr::OutlineWidth))
@@ -298,8 +298,8 @@ impl CssClassMerger {
         css_classes_builder: &mut CssClassesBuilder,
         warnings: &mut ThemeWarnings,
         fn_stroke_classes: fn(&dyn Themeable, &mut CssClassesBuilder, StrokeParams<'_>),
-        specified: Option<&CssClassPartials>,
         defaults: Option<&CssClassPartials>,
+        specified: Option<&CssClassPartials>,
         themeable: &dyn Themeable,
     ) {
         [
@@ -315,8 +315,8 @@ impl CssClassMerger {
                 css_classes_builder,
                 warnings,
                 &css_classes_param_groupings,
-                specified,
                 defaults,
+                specified,
                 themeable,
             );
         });
@@ -328,8 +328,8 @@ impl CssClassMerger {
         css_classes_builder: &mut CssClassesBuilder,
         warnings: &mut ThemeWarnings,
         css_classes_param_groupings: &StrokeParamGroupings<StrokeParams<'f1>>,
-        specified: Option<&'f2 CssClassPartials>,
         defaults: Option<&'f2 CssClassPartials>,
+        specified: Option<&'f2 CssClassPartials>,
         themeable: &dyn Themeable,
     ) {
         let StrokeParamGroupings {
@@ -340,9 +340,9 @@ impl CssClassMerger {
             fn_css_classes,
         } = css_classes_param_groupings;
 
-        let color = attr_value_find(color_keys, specified, defaults);
-        let shade = attr_value_find(shade_keys, specified, defaults);
-        let stroke_style = attr_value_find(stroke_style_keys, specified, defaults);
+        let color = attr_value_find(color_keys, defaults, specified);
+        let shade = attr_value_find(shade_keys, defaults, specified);
+        let stroke_style = attr_value_find(stroke_style_keys, defaults, specified);
 
         let stroke_width = specified
             .and_then(|partials| partials.get(&ThemeAttr::StrokeWidth))
@@ -392,8 +392,8 @@ impl CssClassMerger {
         css_classes_builder: &mut CssClassesBuilder,
         warnings: &mut ThemeWarnings,
         fn_fill_classes: fn(&dyn Themeable, &mut CssClassesBuilder, ColorParams<'_>),
-        specified: Option<&CssClassPartials>,
         defaults: Option<&CssClassPartials>,
+        specified: Option<&CssClassPartials>,
         themeable: &dyn Themeable,
     ) {
         [
@@ -408,8 +408,8 @@ impl CssClassMerger {
             Self::fill_classes_highlight_state_append(
                 css_classes_param_groupings,
                 warnings,
-                specified,
                 defaults,
+                specified,
                 themeable,
                 css_classes_builder,
             );
@@ -421,8 +421,8 @@ impl CssClassMerger {
     fn fill_classes_highlight_state_append<'f1, 'f2: 'f1>(
         css_classes_param_groupings: ColorParamGroupings<ColorParams<'f1>>,
         warnings: &mut ThemeWarnings,
-        specified: Option<&'f2 CssClassPartials>,
         defaults: Option<&'f2 CssClassPartials>,
+        specified: Option<&'f2 CssClassPartials>,
         themeable: &dyn Themeable,
         css_classes_builder: &mut CssClassesBuilder,
     ) {
@@ -433,8 +433,8 @@ impl CssClassMerger {
             fn_css_classes,
         } = css_classes_param_groupings;
 
-        let color = attr_value_find(color_keys, specified, defaults);
-        let shade = attr_value_find(shade_keys, specified, defaults);
+        let color = attr_value_find(color_keys, defaults, specified);
+        let shade = attr_value_find(shade_keys, defaults, specified);
 
         if let Some(params) = color.zip(shade).map(|(color, shade)| ColorParams {
             highlight_state,
@@ -460,8 +460,8 @@ impl CssClassMerger {
     }
 
     fn cursor_classes(
-        specified: Option<&CssClassPartials>,
         defaults: Option<&CssClassPartials>,
+        specified: Option<&CssClassPartials>,
         css_classes_builder: &mut CssClassesBuilder,
     ) {
         specified
@@ -471,8 +471,8 @@ impl CssClassMerger {
     }
 
     fn extra_classes(
-        specified: Option<&CssClassPartials>,
         defaults: Option<&CssClassPartials>,
+        specified: Option<&CssClassPartials>,
         css_classes_builder: &mut CssClassesBuilder,
     ) {
         if let Some(extra) = specified
@@ -500,13 +500,13 @@ impl CssClassMerger {
 /// more specific default is used.
 fn attr_value_find<'attr>(
     attr_keys: &'attr [ThemeAttr],
-    el_class_partials: Option<&'attr CssClassPartials>,
     defaults: Option<&'attr CssClassPartials>,
+    specified: Option<&'attr CssClassPartials>,
 ) -> Option<&'attr str> {
     attr_keys
         .iter()
         .find_map(|attr_key| {
-            el_class_partials
+            specified
                 .and_then(|partials| partials.get(attr_key))
                 .or_else(|| defaults.and_then(|partials| partials.get(attr_key)))
         })
