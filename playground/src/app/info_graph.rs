@@ -230,7 +230,25 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
                     set_error_text.set(None);
                 } else {
                     // TODO: format into a list.
-                    set_error_text.set(Some(theme_warnings.join("\n")));
+                    let theme_warnings_string = {
+                        let capacity = theme_warnings
+                            .iter()
+                            .map(|theme_warning| theme_warning.len())
+                            .sum::<usize>()
+                            + theme_warnings.len();
+                        let mut theme_warnings_string = String::with_capacity(capacity);
+                        let mut theme_warnings_iter = theme_warnings.iter();
+                        if let Some(theme_warning_first) = theme_warnings_iter.next() {
+                            theme_warnings_string.push_str(theme_warning_first);
+                        }
+                        theme_warnings.iter().for_each(|theme_warning| {
+                            theme_warnings_string.push('\n');
+                            theme_warnings_string.push_str(theme_warning);
+                        });
+
+                        theme_warnings_string
+                    };
+                    set_error_text.set(Some(theme_warnings_string));
                 }
                 #[cfg(target_arch = "wasm32")]
                 {
