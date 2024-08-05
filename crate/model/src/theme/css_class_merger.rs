@@ -118,6 +118,7 @@ impl CssClassMerger {
             });
         });
 
+        Self::animation_classes(&mut css_classes_builder, defaults, specified);
         Self::visibility_classes(&mut css_classes_builder, defaults, specified);
         Self::cursor_classes(&mut css_classes_builder, defaults, specified);
         Self::extra_classes(&mut css_classes_builder, defaults, specified);
@@ -215,6 +216,7 @@ impl CssClassMerger {
             themeable,
         );
 
+        Self::animation_classes(&mut css_classes_builder, defaults, specified);
         Self::visibility_classes(&mut css_classes_builder, defaults, specified);
         Self::cursor_classes(&mut css_classes_builder, defaults, specified);
         Self::extra_classes(&mut css_classes_builder, defaults, specified);
@@ -527,6 +529,17 @@ impl CssClassMerger {
             }
             (color, shade) => FillClassAppendResult::NoChange { color, shade },
         }
+    }
+
+    fn animation_classes(
+        css_classes_builder: &mut CssClassesBuilder,
+        defaults: Option<&CssClassPartials>,
+        specified: Option<&CssClassPartials>,
+    ) {
+        specified
+            .and_then(|partials| partials.get(&ThemeAttr::Animate))
+            .or_else(|| defaults.and_then(|partials| partials.get(&ThemeAttr::Animate)))
+            .map(|visibility| css_classes_builder.append(&format!("animate-{visibility}")));
     }
 
     fn visibility_classes(

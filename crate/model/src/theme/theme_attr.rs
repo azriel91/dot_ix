@@ -308,6 +308,35 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Deserialize, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum ThemeAttr {
+    /// Animation to apply to the item.
+    ///
+    /// This sets the [`animate-*`] class, valid values are `'none'`,
+    /// `'spin'`, `'ping'`, `'pulse'`, `'bounce'`.
+    ///
+    /// Arbitrary values such as `'[stroke-dashoffset-move_2s_linear_infinite]'`
+    /// can be used if an animation such as the following is provided in the
+    /// `InfoGraph::css` key:
+    ///
+    /// ```yaml
+    /// theme:
+    ///   styles:
+    ///     edge_defaults:
+    ///       animate: '[stroke-dashoffset-move_2s_linear_infinite]'
+    ///       shape_color: blue
+    ///       stroke_style: dashed  # shorthand for [&>path]:[stroke-dasharray:3]
+    ///       stroke_width: '[2px]'
+    ///       stroke_shade_normal: '600'
+    ///       fill_shade_normal: '500'
+    ///
+    /// css: >-
+    ///   @keyframes stroke-dashoffset-move {
+    ///     0%   { stroke-dashoffset: 30; }
+    ///     100% { stroke-dashoffset: 0; }
+    ///   }
+    /// ```
+    ///
+    /// [`animate-*`] https://tailwindcss.com/docs/animation
+    Animate,
     /// The [cursor style], e.g. `"pointer"`.
     ///
     /// [cursor style]: https://tailwindcss.com/docs/cursor
