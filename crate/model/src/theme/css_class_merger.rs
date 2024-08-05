@@ -117,8 +117,8 @@ impl CssClassMerger {
                 .map(|spacing| css_classes_builder.append(&format!("{spacing_prefix}-{spacing}")));
         });
 
-        Self::cursor_classes(defaults, specified, &mut css_classes_builder);
-        Self::extra_classes(defaults, specified, &mut css_classes_builder);
+        Self::cursor_classes(&mut css_classes_builder, defaults, specified);
+        Self::extra_classes(&mut css_classes_builder, defaults, specified);
 
         let css_classes = css_classes_builder.build();
 
@@ -213,8 +213,8 @@ impl CssClassMerger {
             themeable,
         );
 
-        Self::cursor_classes(defaults, specified, &mut css_classes_builder);
-        Self::extra_classes(defaults, specified, &mut css_classes_builder);
+        Self::cursor_classes(&mut css_classes_builder, defaults, specified);
+        Self::extra_classes(&mut css_classes_builder, defaults, specified);
 
         let css_classes = css_classes_builder.build();
 
@@ -460,9 +460,9 @@ impl CssClassMerger {
     }
 
     fn cursor_classes(
+        css_classes_builder: &mut CssClassesBuilder,
         defaults: Option<&CssClassPartials>,
         specified: Option<&CssClassPartials>,
-        css_classes_builder: &mut CssClassesBuilder,
     ) {
         specified
             .and_then(|partials| partials.get(&ThemeAttr::Cursor))
@@ -471,9 +471,9 @@ impl CssClassMerger {
     }
 
     fn extra_classes(
+        css_classes_builder: &mut CssClassesBuilder,
         defaults: Option<&CssClassPartials>,
         specified: Option<&CssClassPartials>,
-        css_classes_builder: &mut CssClassesBuilder,
     ) {
         if let Some(extra) = specified
             .and_then(|partials| partials.get(&ThemeAttr::Extra))
