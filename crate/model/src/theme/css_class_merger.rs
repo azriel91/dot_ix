@@ -1,8 +1,8 @@
 use crate::{
     common::TagId,
     theme::{
-        ColorParams, CssClassPartials, CssClasses, CssClassesBuilder, HighlightState, StrokeParams,
-        StyleFor, ThemeAttr, Themeable,
+        ColorParams, CssClassPartials, CssClassesAndWarnings, CssClassesBuilder, HighlightState,
+        StrokeParams, StyleFor, ThemeAttr, ThemeWarnings, Themeable,
     },
 };
 
@@ -17,7 +17,7 @@ impl CssClassMerger {
         defaults: Option<&CssClassPartials>,
         specified: Option<&CssClassPartials>,
         themeable: &T,
-    ) -> CssClasses
+    ) -> CssClassesAndWarnings
     where
         T: Themeable,
     {
@@ -30,7 +30,7 @@ impl CssClassMerger {
         specified: Option<&CssClassPartials>,
         themeable: &T,
         tag_id: &TagId,
-    ) -> CssClasses
+    ) -> CssClassesAndWarnings
     where
         T: Themeable,
     {
@@ -45,11 +45,12 @@ impl CssClassMerger {
         specified: Option<&CssClassPartials>,
         themeable: &T,
         style_for: StyleFor<'_>,
-    ) -> CssClasses
+    ) -> CssClassesAndWarnings
     where
         T: Themeable,
     {
         let mut css_classes_builder = CssClassesBuilder::new(style_for);
+        let mut warnings = ThemeWarnings::new();
 
         let themeable_node_outline_classes =
             |themeable: &dyn Themeable,
@@ -72,8 +73,9 @@ impl CssClassMerger {
                 themeable.node_fill_classes(css_classes_builder, params);
             };
 
-        Self::outline_classes(
+        Self::outline_classes_append(
             &mut css_classes_builder,
+            &mut warnings,
             themeable_node_outline_classes,
             specified,
             defaults,
@@ -81,6 +83,7 @@ impl CssClassMerger {
         );
         Self::stroke_classes_append(
             &mut css_classes_builder,
+            &mut warnings,
             themeable_node_stroke_classes,
             specified,
             defaults,
@@ -88,6 +91,7 @@ impl CssClassMerger {
         );
         Self::fill_classes_append(
             &mut css_classes_builder,
+            &mut warnings,
             themeable_node_fill_classes,
             specified,
             defaults,
@@ -116,7 +120,9 @@ impl CssClassMerger {
         Self::cursor_classes(specified, defaults, &mut css_classes_builder);
         Self::extra_classes(specified, defaults, &mut css_classes_builder);
 
-        css_classes_builder.build()
+        let css_classes = css_classes_builder.build();
+
+        CssClassesAndWarnings::new(css_classes, warnings)
     }
 
     /// Returns the CSS classes for an edge in a particular themeable rendering.
@@ -126,7 +132,7 @@ impl CssClassMerger {
         defaults: Option<&CssClassPartials>,
         specified: Option<&CssClassPartials>,
         themeable: &T,
-    ) -> CssClasses
+    ) -> CssClassesAndWarnings
     where
         T: Themeable,
     {
@@ -139,7 +145,7 @@ impl CssClassMerger {
         specified: Option<&CssClassPartials>,
         themeable: &T,
         tag_id: &TagId,
-    ) -> CssClasses
+    ) -> CssClassesAndWarnings
     where
         T: Themeable,
     {
@@ -154,11 +160,12 @@ impl CssClassMerger {
         specified: Option<&CssClassPartials>,
         themeable: &T,
         style_for: StyleFor<'_>,
-    ) -> CssClasses
+    ) -> CssClassesAndWarnings
     where
         T: Themeable,
     {
         let mut css_classes_builder = CssClassesBuilder::new(style_for);
+        let mut warnings = ThemeWarnings::new();
 
         let themeable_edge_outline_classes =
             |themeable: &dyn Themeable,
@@ -181,8 +188,9 @@ impl CssClassMerger {
                 themeable.edge_fill_classes(css_classes_builder, params);
             };
 
-        Self::outline_classes(
+        Self::outline_classes_append(
             &mut css_classes_builder,
+            &mut warnings,
             themeable_edge_outline_classes,
             specified,
             defaults,
@@ -190,6 +198,7 @@ impl CssClassMerger {
         );
         Self::stroke_classes_append(
             &mut css_classes_builder,
+            &mut warnings,
             themeable_edge_stroke_classes,
             specified,
             defaults,
@@ -197,6 +206,7 @@ impl CssClassMerger {
         );
         Self::fill_classes_append(
             &mut css_classes_builder,
+            &mut warnings,
             themeable_edge_fill_classes,
             specified,
             defaults,
@@ -206,11 +216,14 @@ impl CssClassMerger {
         Self::cursor_classes(specified, defaults, &mut css_classes_builder);
         Self::extra_classes(specified, defaults, &mut css_classes_builder);
 
-        css_classes_builder.build()
+        let css_classes = css_classes_builder.build();
+
+        CssClassesAndWarnings::new(css_classes, warnings)
     }
 
-    fn outline_classes(
+    fn outline_classes_append(
         css_classes_builder: &mut CssClassesBuilder,
+        warnings: &mut ThemeWarnings,
         fn_outline_classes: fn(&dyn Themeable, &mut CssClassesBuilder, StrokeParams<'_>),
         specified: Option<&CssClassPartials>,
         defaults: Option<&CssClassPartials>,
@@ -252,6 +265,29 @@ impl CssClassMerger {
                 },
             ) {
                 fn_css_classes(themeable, css_classes_builder, params)
+            } else {
+                warnings.push(format!(
+                    "Outline attributes partially specified, \
+                    so outline classes will not be applied. \
+                    outline_width: `{outline_width}`, outline_style: `{outline_style}`, \
+                    outline_color: `{color}`, outline_shade: `{shade}`",
+                    outline_width = outline_width
+                        .map(ToString::to_string)
+                        .as_deref()
+                        .unwrap_or("<none>"),
+                    outline_style = outline_style
+                        .map(ToString::to_string)
+                        .as_deref()
+                        .unwrap_or("<none>"),
+                    color = color
+                        .map(ToString::to_string)
+                        .as_deref()
+                        .unwrap_or("<none>"),
+                    shade = shade
+                        .map(ToString::to_string)
+                        .as_deref()
+                        .unwrap_or("<none>"),
+                ))
             }
         });
     }
@@ -260,6 +296,7 @@ impl CssClassMerger {
     /// the CSS classes builder.
     fn stroke_classes_append(
         css_classes_builder: &mut CssClassesBuilder,
+        warnings: &mut ThemeWarnings,
         fn_stroke_classes: fn(&dyn Themeable, &mut CssClassesBuilder, StrokeParams<'_>),
         specified: Option<&CssClassPartials>,
         defaults: Option<&CssClassPartials>,
@@ -276,6 +313,7 @@ impl CssClassMerger {
         .for_each(|css_classes_param_groupings| {
             Self::stroke_classes_highlight_state_append(
                 css_classes_builder,
+                warnings,
                 &css_classes_param_groupings,
                 specified,
                 defaults,
@@ -288,6 +326,7 @@ impl CssClassMerger {
     /// the CSS classes builder.
     fn stroke_classes_highlight_state_append<'f1, 'f2: 'f1>(
         css_classes_builder: &mut CssClassesBuilder,
+        warnings: &mut ThemeWarnings,
         css_classes_param_groupings: &StrokeParamGroupings<StrokeParams<'f1>>,
         specified: Option<&'f2 CssClassPartials>,
         defaults: Option<&'f2 CssClassPartials>,
@@ -321,6 +360,29 @@ impl CssClassMerger {
             },
         ) {
             fn_css_classes(themeable, css_classes_builder, params)
+        } else {
+            warnings.push(format!(
+                "Stroke attributes partially specified, \
+                    so stroke classes will not be applied. \
+                    stroke_style: `{stroke_style}`, stroke_width: `{stroke_width}`, \
+                    stroke_color: `{color}`, stroke_shade: `{shade}`",
+                stroke_style = stroke_style
+                    .map(ToString::to_string)
+                    .as_deref()
+                    .unwrap_or("<none>"),
+                stroke_width = stroke_width
+                    .map(ToString::to_string)
+                    .as_deref()
+                    .unwrap_or("<none>"),
+                color = color
+                    .map(ToString::to_string)
+                    .as_deref()
+                    .unwrap_or("<none>"),
+                shade = shade
+                    .map(ToString::to_string)
+                    .as_deref()
+                    .unwrap_or("<none>"),
+            ))
         }
     }
 
@@ -328,6 +390,7 @@ impl CssClassMerger {
     /// the CSS classes builder.
     fn fill_classes_append(
         css_classes_builder: &mut CssClassesBuilder,
+        warnings: &mut ThemeWarnings,
         fn_fill_classes: fn(&dyn Themeable, &mut CssClassesBuilder, ColorParams<'_>),
         specified: Option<&CssClassPartials>,
         defaults: Option<&CssClassPartials>,
@@ -344,6 +407,7 @@ impl CssClassMerger {
         .for_each(|css_classes_param_groupings| {
             Self::fill_classes_highlight_state_append(
                 css_classes_param_groupings,
+                warnings,
                 specified,
                 defaults,
                 themeable,
@@ -356,6 +420,7 @@ impl CssClassMerger {
     /// the CSS classes builder.
     fn fill_classes_highlight_state_append<'f1, 'f2: 'f1>(
         css_classes_param_groupings: ColorParamGroupings<ColorParams<'f1>>,
+        warnings: &mut ThemeWarnings,
         specified: Option<&'f2 CssClassPartials>,
         defaults: Option<&'f2 CssClassPartials>,
         themeable: &dyn Themeable,
@@ -377,6 +442,20 @@ impl CssClassMerger {
             shade,
         }) {
             fn_css_classes(themeable, css_classes_builder, params)
+        } else {
+            warnings.push(format!(
+                "Fill attributes partially specified, \
+                    so fill classes will not be applied. \
+                    fill_color: `{color}`, fill_shade: `{shade}`",
+                color = color
+                    .map(ToString::to_string)
+                    .as_deref()
+                    .unwrap_or("<none>"),
+                shade = shade
+                    .map(ToString::to_string)
+                    .as_deref()
+                    .unwrap_or("<none>"),
+            ))
         }
     }
 
