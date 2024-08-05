@@ -95,7 +95,7 @@ theme:
       stroke_width: '1'
       extra: 'rounded-lg'
     edge_defaults:
-      extra: invisible
+      visibility: invisible
     light: &light
       fill_shade_normal: '100'
       fill_shade_hover: '50'
@@ -173,10 +173,9 @@ common_styles: # not part of `info_graph`, but it ignores unknown keys
     stroke_width: '[2px]'
     stroke_shade_normal: '600'
     fill_shade_normal: '500'
+    visibility: visible
     extra: >-
       [&>path]:animate-[stroke-dashoffset-move_2s_linear_infinite]
-      [&>path]:visible
-      [&>polygon]:visible
 
 
 # We always use the `focus` pseudo class.
@@ -194,9 +193,7 @@ tag_styles_focus:
       <<: *selected_outline
     edge_defaults:
       <<: *selected_outline
-      extra: >-
-        [&>path]:visible
-        [&>polygon]:visible
+      visibility: visible
 
   tag_step_2:
     edge_defaults:
@@ -213,19 +210,17 @@ tag_styles_focus:
       shape_color: violet
       stroke_style: "dasharray:0,80,12,2,4,2,2,2,1,2,1,120"
       stroke_width: '[1px]'
+      visibility: visible
       extra: >-
         [&>path]:animate-[stroke-dashoffset-move-request_2s_linear_infinite]
-        [&>path]:visible
-        [&>polygon]:visible
     github_app_zip__app_download_response:
       <<: *edge_blue_animated
       shape_color: purple
       stroke_style: "dasharray:0,120,1,2,1,2,2,2,4,2,8,2,20,80"
       stroke_width: '[2px]'
+      visibility: visible
       extra: >-
         [&>path]:animate-[stroke-dashoffset-move-response_2s_linear_infinite]
-        [&>path]:visible
-        [&>polygon]:visible
 
   tag_step_3:
     node_defaults: *node_completed

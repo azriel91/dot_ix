@@ -478,4 +478,11 @@ pub enum ThemeAttr {
     /// Line/border style when an element is being clicked / pressed, e.g.
     /// `"none"`, `"solid"`, `"dashed"`, `"dotted"`.
     StrokeStyleActive,
+    /// Whether an element is visible.
+    ///
+    /// This sets the [`visibility`] class, valid values are `'visible'`,
+    /// `'invisible'`, `'collapse'`.
+    ///
+    /// [`visibility`] https://tailwindcss.com/docs/visibility
+    Visibility,
 }

@@ -118,6 +118,7 @@ impl CssClassMerger {
             });
         });
 
+        Self::visibility_classes(&mut css_classes_builder, defaults, specified);
         Self::cursor_classes(&mut css_classes_builder, defaults, specified);
         Self::extra_classes(&mut css_classes_builder, defaults, specified);
 
@@ -214,6 +215,7 @@ impl CssClassMerger {
             themeable,
         );
 
+        Self::visibility_classes(&mut css_classes_builder, defaults, specified);
         Self::cursor_classes(&mut css_classes_builder, defaults, specified);
         Self::extra_classes(&mut css_classes_builder, defaults, specified);
 
@@ -525,6 +527,17 @@ impl CssClassMerger {
             }
             (color, shade) => FillClassAppendResult::NoChange { color, shade },
         }
+    }
+
+    fn visibility_classes(
+        css_classes_builder: &mut CssClassesBuilder,
+        defaults: Option<&CssClassPartials>,
+        specified: Option<&CssClassPartials>,
+    ) {
+        specified
+            .and_then(|partials| partials.get(&ThemeAttr::Visibility))
+            .or_else(|| defaults.and_then(|partials| partials.get(&ThemeAttr::Visibility)))
+            .map(|visibility| css_classes_builder.append(visibility));
     }
 
     fn cursor_classes(
