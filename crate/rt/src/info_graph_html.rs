@@ -23,15 +23,15 @@ impl<'graph> Themeable for InfoGraphHtml<'graph> {
         let LineParams {
             color_params,
             line_width,
-            stroke_style,
+            line_style,
         } = line_params;
 
         el_color_classes(builder, color_params, "outline");
-        stroke_style_classes(
+        line_style_classes(
             builder,
             color_params.highlight_state,
             line_width,
-            stroke_style,
+            line_style,
             "outline",
         );
     }
@@ -40,15 +40,15 @@ impl<'graph> Themeable for InfoGraphHtml<'graph> {
         let LineParams {
             color_params,
             line_width,
-            stroke_style,
+            line_style,
         } = line_params;
 
         el_color_classes(builder, color_params, "border");
-        stroke_style_classes(
+        line_style_classes(
             builder,
             color_params.highlight_state,
             line_width,
-            stroke_style,
+            line_style,
             "border",
         );
     }
@@ -68,15 +68,15 @@ impl<'graph> Themeable for InfoGraphHtml<'graph> {
         let LineParams {
             color_params,
             line_width,
-            stroke_style,
+            line_style,
         } = line_params;
 
         el_color_classes(builder, color_params, "outline");
-        stroke_style_classes(
+        line_style_classes(
             builder,
             color_params.highlight_state,
             line_width,
-            stroke_style,
+            line_style,
             "outline",
         );
     }
@@ -85,15 +85,15 @@ impl<'graph> Themeable for InfoGraphHtml<'graph> {
         let LineParams {
             color_params,
             line_width,
-            stroke_style,
+            line_style,
         } = line_params;
 
         el_color_classes(builder, color_params, "border");
-        stroke_style_classes(
+        line_style_classes(
             builder,
             color_params.highlight_state,
             line_width,
-            stroke_style,
+            line_style,
             "border",
         );
     }
@@ -103,15 +103,15 @@ impl<'graph> Themeable for InfoGraphHtml<'graph> {
     }
 }
 
-fn stroke_style_classes(
+fn line_style_classes(
     builder: &mut CssClassesBuilder,
     highlight_state: HighlightState,
     line_width: &str,
-    stroke_style: &str,
+    line_style: &str,
     stroke_prefix: &str,
 ) {
     let highlight_prefix = highlight_prefix(highlight_state);
-    let line_width = if stroke_style == "dotted" {
+    let line_width = if line_style == "dotted" {
         line_width_increment(line_width)
     } else {
         Cow::Borrowed(line_width)
@@ -121,7 +121,7 @@ fn stroke_style_classes(
         .append(&format!(
             "{highlight_prefix}{stroke_prefix}-[{line_width}px]"
         ))
-        .append(&format!("{highlight_prefix}{stroke_prefix}-{stroke_style}"));
+        .append(&format!("{highlight_prefix}{stroke_prefix}-{line_style}"));
 }
 
 /// Increments 1 to the stroke width if parseable.
