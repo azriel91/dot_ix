@@ -80,6 +80,7 @@ impl CssClassMerger {
             defaults,
             specified,
             themeable,
+            style_for,
         );
         Self::stroke_classes_append(
             &mut css_classes_builder,
@@ -88,6 +89,7 @@ impl CssClassMerger {
             defaults,
             specified,
             themeable,
+            style_for,
         );
         Self::fill_classes_append(
             &mut css_classes_builder,
@@ -96,6 +98,7 @@ impl CssClassMerger {
             defaults,
             specified,
             themeable,
+            style_for,
         );
 
         [
@@ -198,6 +201,7 @@ impl CssClassMerger {
             defaults,
             specified,
             themeable,
+            style_for,
         );
         Self::stroke_classes_append(
             &mut css_classes_builder,
@@ -206,6 +210,7 @@ impl CssClassMerger {
             defaults,
             specified,
             themeable,
+            style_for,
         );
         Self::fill_classes_append(
             &mut css_classes_builder,
@@ -214,6 +219,7 @@ impl CssClassMerger {
             defaults,
             specified,
             themeable,
+            style_for,
         );
 
         Self::animation_classes(&mut css_classes_builder, defaults, specified);
@@ -233,30 +239,39 @@ impl CssClassMerger {
         defaults: Option<&CssClassPartials>,
         specified: Option<&CssClassPartials>,
         themeable: &dyn Themeable,
+        style_for: StyleFor<'_>,
     ) {
-        let stroke_class_append_result = [
-            StrokeParamGroupings::new_outline_normal(fn_outline_classes),
-            StrokeParamGroupings::new_outline_focus(fn_outline_classes),
-            StrokeParamGroupings::new_outline_hover(fn_outline_classes),
-            StrokeParamGroupings::new_outline_active(fn_outline_classes),
-        ]
-        .into_iter()
-        .fold(
-            Vec::new(),
-            |mut stroke_class_append_result_acc, css_classes_param_groupings| {
-                let stroke_class_append_result = Self::stroke_classes_highlight_state_append(
+        let stroke_class_append_result = match style_for {
+            StyleFor::Regular => {
+                let param_groupings = [
+                    StrokeParamGroupings::new_outline_normal(fn_outline_classes),
+                    StrokeParamGroupings::new_outline_focus(fn_outline_classes),
+                    StrokeParamGroupings::new_outline_hover(fn_outline_classes),
+                    StrokeParamGroupings::new_outline_active(fn_outline_classes),
+                ]
+                .into_iter();
+                Self::line_classes_fold(
                     css_classes_builder,
-                    &css_classes_param_groupings,
                     defaults,
                     specified,
                     themeable,
-                );
+                    param_groupings,
+                )
+            }
 
-                stroke_class_append_result_acc.push(stroke_class_append_result);
+            StyleFor::TagFocus(_) => {
+                let param_groupings =
+                    [StrokeParamGroupings::new_outline_normal(fn_outline_classes)].into_iter();
 
-                stroke_class_append_result_acc
-            },
-        );
+                Self::line_classes_fold(
+                    css_classes_builder,
+                    defaults,
+                    specified,
+                    themeable,
+                    param_groupings,
+                )
+            }
+        };
 
         if !stroke_class_append_result
             .iter()
@@ -310,31 +325,40 @@ impl CssClassMerger {
         defaults: Option<&CssClassPartials>,
         specified: Option<&CssClassPartials>,
         themeable: &dyn Themeable,
+        style_for: StyleFor<'_>,
     ) {
-        let stroke_class_append_result = [
-            StrokeParamGroupings::new_stroke_normal(fn_stroke_classes),
-            StrokeParamGroupings::new_stroke_focus(fn_stroke_classes),
-            StrokeParamGroupings::new_stroke_focus_hover(fn_stroke_classes),
-            StrokeParamGroupings::new_stroke_hover(fn_stroke_classes),
-            StrokeParamGroupings::new_stroke_active(fn_stroke_classes),
-        ]
-        .into_iter()
-        .fold(
-            Vec::new(),
-            |mut stroke_class_append_result_acc, css_classes_param_groupings| {
-                let stroke_class_append_result = Self::stroke_classes_highlight_state_append(
+        let stroke_class_append_result = match style_for {
+            StyleFor::Regular => {
+                let param_groupings = [
+                    StrokeParamGroupings::new_stroke_normal(fn_stroke_classes),
+                    StrokeParamGroupings::new_stroke_focus(fn_stroke_classes),
+                    StrokeParamGroupings::new_stroke_focus_hover(fn_stroke_classes),
+                    StrokeParamGroupings::new_stroke_hover(fn_stroke_classes),
+                    StrokeParamGroupings::new_stroke_active(fn_stroke_classes),
+                ]
+                .into_iter();
+                Self::line_classes_fold(
                     css_classes_builder,
-                    &css_classes_param_groupings,
                     defaults,
                     specified,
                     themeable,
-                );
+                    param_groupings,
+                )
+            }
 
-                stroke_class_append_result_acc.push(stroke_class_append_result);
+            StyleFor::TagFocus(_) => {
+                let param_groupings =
+                    [StrokeParamGroupings::new_stroke_normal(fn_stroke_classes)].into_iter();
 
-                stroke_class_append_result_acc
-            },
-        );
+                Self::line_classes_fold(
+                    css_classes_builder,
+                    defaults,
+                    specified,
+                    themeable,
+                    param_groupings,
+                )
+            }
+        };
 
         if !stroke_class_append_result
             .iter()
@@ -441,31 +465,40 @@ impl CssClassMerger {
         defaults: Option<&CssClassPartials>,
         specified: Option<&CssClassPartials>,
         themeable: &dyn Themeable,
+        style_for: StyleFor<'_>,
     ) {
-        let fill_class_append_result = [
-            ColorParamGroupings::new_fill_normal(fn_fill_classes),
-            ColorParamGroupings::new_fill_focus(fn_fill_classes),
-            ColorParamGroupings::new_fill_focus_hover(fn_fill_classes),
-            ColorParamGroupings::new_fill_hover(fn_fill_classes),
-            ColorParamGroupings::new_fill_active(fn_fill_classes),
-        ]
-        .into_iter()
-        .fold(
-            Vec::new(),
-            |mut fill_class_append_result_acc, css_classes_param_groupings| {
-                let fill_class_append_result = Self::fill_classes_highlight_state_append(
-                    css_classes_param_groupings,
+        let fill_class_append_result = match style_for {
+            StyleFor::Regular => {
+                let param_groupings = [
+                    ColorParamGroupings::new_fill_normal(fn_fill_classes),
+                    ColorParamGroupings::new_fill_focus(fn_fill_classes),
+                    ColorParamGroupings::new_fill_focus_hover(fn_fill_classes),
+                    ColorParamGroupings::new_fill_hover(fn_fill_classes),
+                    ColorParamGroupings::new_fill_active(fn_fill_classes),
+                ]
+                .into_iter();
+                Self::fill_classes_fold(
+                    css_classes_builder,
                     defaults,
                     specified,
                     themeable,
+                    param_groupings,
+                )
+            }
+
+            StyleFor::TagFocus(_) => {
+                let param_groupings =
+                    [ColorParamGroupings::new_fill_normal(fn_fill_classes)].into_iter();
+
+                Self::fill_classes_fold(
                     css_classes_builder,
-                );
-
-                fill_class_append_result_acc.push(fill_class_append_result);
-
-                fill_class_append_result_acc
-            },
-        );
+                    defaults,
+                    specified,
+                    themeable,
+                    param_groupings,
+                )
+            }
+        };
 
         if !fill_class_append_result
             .iter()
@@ -577,6 +610,66 @@ impl CssClassMerger {
                 css_classes_builder.append(extra_class);
             });
         }
+    }
+
+    /// Since the param groupings are arrays of different sizes, we need to have
+    /// a generic function to cater for different concrete types.
+    fn line_classes_fold<'f, I>(
+        css_classes_builder: &mut CssClassesBuilder,
+        defaults: Option<&'f CssClassPartials>,
+        specified: Option<&'f CssClassPartials>,
+        themeable: &dyn Themeable,
+        param_groupings: I,
+    ) -> Vec<StrokeClassAppendResult<'f>>
+    where
+        I: Iterator<Item = StrokeParamGroupings<StrokeParams<'f>>> + 'f,
+    {
+        param_groupings.fold(
+            Vec::new(),
+            |mut stroke_class_append_result_acc, css_classes_param_groupings| {
+                let stroke_class_append_result = Self::stroke_classes_highlight_state_append(
+                    css_classes_builder,
+                    &css_classes_param_groupings,
+                    defaults,
+                    specified,
+                    themeable,
+                );
+
+                stroke_class_append_result_acc.push(stroke_class_append_result);
+
+                stroke_class_append_result_acc
+            },
+        )
+    }
+
+    /// Since the param groupings are arrays of different sizes, we need to have
+    /// a generic function to cater for different concrete types.
+    fn fill_classes_fold<'f, I>(
+        css_classes_builder: &mut CssClassesBuilder,
+        defaults: Option<&'f CssClassPartials>,
+        specified: Option<&'f CssClassPartials>,
+        themeable: &dyn Themeable,
+        param_groupings: I,
+    ) -> Vec<FillClassAppendResult<'f>>
+    where
+        I: Iterator<Item = ColorParamGroupings<ColorParams<'f>>> + 'f,
+    {
+        param_groupings.fold(
+            Vec::new(),
+            |mut fill_class_append_result_acc, css_classes_param_groupings| {
+                let fill_class_append_result = Self::fill_classes_highlight_state_append(
+                    css_classes_param_groupings,
+                    defaults,
+                    specified,
+                    themeable,
+                    css_classes_builder,
+                );
+
+                fill_class_append_result_acc.push(fill_class_append_result);
+
+                fill_class_append_result_acc
+            },
+        )
     }
 }
 
