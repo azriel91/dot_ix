@@ -189,7 +189,11 @@ fn el_css_classes(info_graph: &InfoGraph) -> ElCssClasses {
         node_ids: node_id_to_hierarchy.keys().copied().collect::<Vec<_>>(),
         edge_ids: info_graph.edges().keys().collect::<Vec<_>>(),
     };
-    info_graph.theme().el_css_classes(&info_graph_html)
+
+    // TODO: surface theme warnings
+    let (el_css_classes, _theme_warnings) = info_graph.theme().el_css_classes(&info_graph_html);
+
+    el_css_classes
 }
 
 fn divs(flex_divs_ctx: Rc<FlexDivsCtx>, hierarchy: NodeHierarchy) -> impl IntoView {

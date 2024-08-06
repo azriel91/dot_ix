@@ -10,9 +10,11 @@ use crate::common::{AnyId, EdgeId, NodeId, TagId};
 pub use self::{
     any_id_or_defaults::AnyIdOrDefaults, color_params::ColorParams,
     css_class_merger::CssClassMerger, css_class_partials::CssClassPartials,
-    css_classes::CssClasses, css_classes_builder::CssClassesBuilder, el_css_classes::ElCssClasses,
+    css_classes::CssClasses, css_classes_and_warnings::CssClassesAndWarnings,
+    css_classes_builder::CssClassesBuilder, el_css_classes::ElCssClasses,
     highlight_state::HighlightState, stroke_params::StrokeParams, style_for::StyleFor,
-    theme_attr::ThemeAttr, theme_styles::ThemeStyles, themeable::Themeable,
+    theme_attr::ThemeAttr, theme_styles::ThemeStyles, theme_warnings::ThemeWarnings,
+    themeable::Themeable,
 };
 
 mod any_id_or_defaults;
@@ -20,6 +22,7 @@ mod color_params;
 mod css_class_merger;
 mod css_class_partials;
 mod css_classes;
+mod css_classes_and_warnings;
 mod css_classes_builder;
 mod el_css_classes;
 mod highlight_state;
@@ -27,6 +30,7 @@ mod stroke_params;
 mod style_for;
 mod theme_attr;
 mod theme_styles;
+mod theme_warnings;
 mod themeable;
 
 /// Theme to style the generated diagram.
@@ -227,7 +231,7 @@ impl Theme {
     ///
     /// The [`CssClasses`] produced will contain an entry for each node / edge
     /// ID from the themeable type.
-    pub fn el_css_classes<T>(&self, themeable: &T) -> ElCssClasses
+    pub fn el_css_classes<T>(&self, themeable: &T) -> (ElCssClasses, ThemeWarnings)
     where
         T: Themeable,
     {
@@ -240,13 +244,32 @@ impl Theme {
         theme
             .node_el_css_classes(themeable)
             .chain(theme.edge_el_css_classes(themeable))
-            .collect()
+            .fold(
+                (
+                    ElCssClasses::with_capacity(
+                        themeable.node_ids().count() + themeable.edge_ids().count(),
+                    ),
+                    ThemeWarnings::new(),
+                ),
+                |(mut el_css_classes, mut theme_warnings_acc),
+                 (any_id, css_classes_and_warnings)| {
+                    let CssClassesAndWarnings {
+                        css_classes,
+                        theme_warnings,
+                    } = css_classes_and_warnings;
+
+                    el_css_classes.insert(any_id, css_classes);
+                    theme_warnings_acc.extend(theme_warnings.into_inner());
+
+                    (el_css_classes, theme_warnings_acc)
+                },
+            )
     }
 
     fn node_el_css_classes<'f, T>(
         &'f self,
         themeable: &'f T,
-    ) -> impl Iterator<Item = (AnyId, CssClasses)> + 'f
+    ) -> impl Iterator<Item = (AnyId, CssClassesAndWarnings)> + 'f
     where
         T: Themeable,
     {
@@ -255,13 +278,13 @@ impl Theme {
             let node_class_partials_specified = self.node_class_partials_specified(node_id);
 
             let any_id = Some(AnyId::from(node_id.clone()));
-            let node_classes = CssClassMerger::node_classes(
+            let node_classes_and_warnings = CssClassMerger::node_classes(
                 node_class_partials_defaults,
                 node_class_partials_specified,
                 themeable,
             );
 
-            any_id.map(|any_id| (any_id, node_classes))
+            any_id.map(|any_id| (any_id, node_classes_and_warnings))
         })
     }
 
@@ -278,7 +301,7 @@ impl Theme {
     fn edge_el_css_classes<'f, T>(
         &'f self,
         themeable: &'f T,
-    ) -> impl Iterator<Item = (AnyId, CssClasses)> + 'f
+    ) -> impl Iterator<Item = (AnyId, CssClassesAndWarnings)> + 'f
     where
         T: Themeable,
     {
@@ -288,13 +311,13 @@ impl Theme {
             let edge_class_partials_specified = self.edge_class_partials_specified(edge_id);
 
             let any_id = Some(AnyId::from(edge_id.clone()));
-            let edge_classes = CssClassMerger::edge_classes(
+            let edge_classes_and_warnings = CssClassMerger::edge_classes(
                 edge_class_partials_defaults,
                 edge_class_partials_specified,
                 themeable,
             );
 
-            any_id.map(|any_id| (any_id, edge_classes))
+            any_id.map(|any_id| (any_id, edge_classes_and_warnings))
         })
     }
 
@@ -314,7 +337,7 @@ impl Theme {
         themeable: &T,
         diagram_theme: &Theme,
         tag_id: &TagId,
-    ) -> ElCssClasses
+    ) -> (ElCssClasses, ThemeWarnings)
     where
         T: Themeable,
     {
@@ -339,14 +362,33 @@ impl Theme {
         tag_theme
             .node_tag_el_css_classes(themeable, tag_id)
             .chain(tag_theme.edge_tag_el_css_classes(themeable, tag_id))
-            .collect()
+            .fold(
+                (
+                    ElCssClasses::with_capacity(
+                        themeable.node_ids().count() + themeable.edge_ids().count(),
+                    ),
+                    ThemeWarnings::new(),
+                ),
+                |(mut el_css_classes, mut theme_warnings_acc),
+                 (any_id, css_classes_and_warnings)| {
+                    let CssClassesAndWarnings {
+                        css_classes,
+                        theme_warnings,
+                    } = css_classes_and_warnings;
+
+                    el_css_classes.insert(any_id, css_classes);
+                    theme_warnings_acc.extend(theme_warnings.into_inner());
+
+                    (el_css_classes, theme_warnings_acc)
+                },
+            )
     }
 
     fn node_tag_el_css_classes<'f, T>(
         &'f self,
         themeable: &'f T,
         tag_id: &'f TagId,
-    ) -> impl Iterator<Item = (AnyId, CssClasses)> + 'f
+    ) -> impl Iterator<Item = (AnyId, CssClassesAndWarnings)> + 'f
     where
         T: Themeable,
     {
@@ -355,14 +397,14 @@ impl Theme {
             let node_class_partials_specified = self.node_class_partials_specified(node_id);
 
             let any_id = Some(AnyId::from(node_id.clone()));
-            let node_classes = CssClassMerger::node_tag_classes(
+            let node_classes_and_warnings = CssClassMerger::node_tag_classes(
                 node_class_partials_defaults,
                 node_class_partials_specified,
                 themeable,
                 tag_id,
             );
 
-            any_id.map(|any_id| (any_id, node_classes))
+            any_id.map(|any_id| (any_id, node_classes_and_warnings))
         })
     }
 
@@ -370,7 +412,7 @@ impl Theme {
         &'f self,
         themeable: &'f T,
         tag_id: &'f TagId,
-    ) -> impl Iterator<Item = (AnyId, CssClasses)> + 'f
+    ) -> impl Iterator<Item = (AnyId, CssClassesAndWarnings)> + 'f
     where
         T: Themeable,
     {
@@ -380,14 +422,14 @@ impl Theme {
             let edge_class_partials_specified = self.edge_class_partials_specified(edge_id);
 
             let any_id = Some(AnyId::from(edge_id.clone()));
-            let edge_classes = CssClassMerger::edge_tag_classes(
+            let edge_classes_and_warnings = CssClassMerger::edge_tag_classes(
                 edge_class_partials_defaults,
                 edge_class_partials_specified,
                 themeable,
                 tag_id,
             );
 
-            any_id.map(|any_id| (any_id, edge_classes))
+            any_id.map(|any_id| (any_id, edge_classes_and_warnings))
         })
     }
 }

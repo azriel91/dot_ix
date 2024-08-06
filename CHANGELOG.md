@@ -14,10 +14,16 @@
 * Take in `tags` which only include tag names.
 * Take in `tag_items` for nodes and edges instead of tags per node.
 * Support theming nodes based on tag focus.
+* Add `ThemeAttr::Animate` to support setting [`animation`].
+* Add `ThemeAttr::Visibility` to support setting [`visibility`].
+* Fix black outline shown on focused nodes in Chrome / Edge.
+* Show feedback to user when stroke / outline / fill class partials are not all specified.
 
 [monaco]: https://github.com/microsoft/monaco-editor
 [rust-monaco]: https://github.com/siku2/rust-monaco
 [cursor styling]: https://tailwindcss.com/docs/cursor
+[`animation`]: https://tailwindcss.com/docs/animation
+[`visibility`]: https://tailwindcss.com/docs/visibility
 
 
 ## 0.7.0 (2024-06-30)

@@ -32,7 +32,11 @@ pub async fn dot_svg(
     use std::process::Stdio;
     use tokio::io::{AsyncReadExt, AsyncWriteExt};
 
-    let DotSrcAndStyles { dot_src, styles: _ } = dot_src_and_styles;
+    let DotSrcAndStyles {
+        dot_src,
+        styles: _,
+        theme_warnings: _,
+    } = dot_src_and_styles;
 
     let mut dot_process = tokio::process::Command::new("dot")
         .arg("-Tsvg")
@@ -298,7 +302,7 @@ pub fn DotSvg(
             if !dot_src_and_styles.dot_src.is_empty() {
                 use std::borrow::Cow;
 
-                let DotSrcAndStyles { dot_src, styles } = dot_src_and_styles;
+                let DotSrcAndStyles { dot_src, styles, theme_warnings: _ } = dot_src_and_styles;
 
                 let (dot_svg, error) = match graphviz_dot_svg(dot_src) {
                     // TODO: need to move tag nodes before all other nodes

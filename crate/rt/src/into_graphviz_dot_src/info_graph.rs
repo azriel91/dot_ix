@@ -16,6 +16,9 @@ use indoc::{formatdoc, writedoc};
 
 use crate::{InfoGraphDot, IntoGraphvizDotSrc};
 
+/// Hack to get Chrome/Edge to not display black box around focused nodes.
+const OUTLINE_NONE: &str = "outline-none";
+
 /// Renders a GraphViz Dot diagram with interactive styling.
 ///
 /// This is currently a mashed together implementation. A proper implementation
@@ -105,26 +108,31 @@ impl IntoGraphvizDotSrc for &InfoGraph {
             edge_ids: self.edges().keys().collect::<Vec<_>>(),
         };
         let info_graph_dot = &info_graph_dot;
-        let el_css_classes = diagram_theme.el_css_classes(info_graph_dot);
+        let (el_css_classes, diagram_theme_warnings) = diagram_theme.el_css_classes(info_graph_dot);
         let el_css_classes = &el_css_classes;
 
         // tag styles per tag
         let tag_styles_focus = self.tag_styles_focus();
-        let tag_el_css_classes_map = self
-            .tags()
-            .keys()
-            .map(|tag_id| {
+        let (tag_el_css_classes_map, theme_warnings) = self.tags().keys().fold(
+            (
+                IndexMap::<&TagId, ElCssClasses>::new(),
+                diagram_theme_warnings,
+            ),
+            |(mut tag_el_css_classes_map_acc, mut theme_warnings_acc), tag_id| {
                 let tag_theme = tag_styles_focus
                     .get(tag_id)
                     .cloned()
                     .map(Theme::from)
                     .unwrap_or_else(Theme::tag_base);
-                let tag_el_css_classes =
+                let (tag_el_css_classes, tag_theme_warnings) =
                     tag_theme.tag_el_css_classes(info_graph_dot, diagram_theme, tag_id);
 
-                (tag_id, tag_el_css_classes)
-            })
-            .collect::<IndexMap<&TagId, ElCssClasses>>();
+                tag_el_css_classes_map_acc.insert(tag_id, tag_el_css_classes);
+                theme_warnings_acc.extend(tag_theme_warnings.into_inner());
+
+                (tag_el_css_classes_map_acc, theme_warnings_acc)
+            },
+        );
         let tag_el_css_classes_map = &tag_el_css_classes_map;
 
         let node_clusters = self
@@ -229,7 +237,11 @@ impl IntoGraphvizDotSrc for &InfoGraph {
 
         let styles = self.css().to_string();
 
-        DotSrcAndStyles { dot_src, styles }
+        DotSrcAndStyles {
+            dot_src,
+            styles,
+            theme_warnings,
+        }
     }
 }
 
@@ -477,7 +489,7 @@ fn node_cluster_internal(
                             </tr>
                             {node_desc}
                         </table>>
-                        class = "{node_tailwind_classes}{node_tag_classes}"
+                        class = "{OUTLINE_NONE} {node_tailwind_classes}{node_tag_classes}"
                     ]
                 "#
             )?,
@@ -499,11 +511,11 @@ fn node_cluster_internal(
                         subgraph cluster_{node_id} {{
                             label = <>
                             margin = 0.0
-                            class = ""
+                            class = "{OUTLINE_NONE}"
 
                             {node_id} [
                                 label = ""
-                                class = "{node_tailwind_classes}{node_tag_classes}"
+                                class = "{OUTLINE_NONE} {node_tailwind_classes}{node_tag_classes}"
                                 {margin}
                             ]
                             {node_id}_text [
@@ -545,7 +557,7 @@ fn node_cluster_internal(
                         {node_desc}
                     </table>>
                     style = "filled,rounded"
-                    class = "{node_tailwind_classes}{node_tag_classes}"
+                    class = "{OUTLINE_NONE} {node_tailwind_classes}{node_tag_classes}"
             "#
         )?;
 

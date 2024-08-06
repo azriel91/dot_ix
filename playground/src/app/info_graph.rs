@@ -185,15 +185,9 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
     };
 
     // Creates a reactive value to update the button
+    let (dot_src_and_styles, dot_src_and_styles_set) = create_signal(None::<DotSrcAndStyles>);
     let (error_text, set_error_text) = create_signal(None::<String>);
     let (dot_src, set_dot_src) = create_signal(None::<String>);
-    let (styles, set_styles) = create_signal(None::<String>);
-    let dot_src_and_styles = move || {
-        dot_src
-            .get()
-            .zip(styles.get())
-            .map(|(dot_src, styles)| DotSrcAndStyles { dot_src, styles })
-    };
 
     let (info_graph, set_info_graph) = create_signal(InfoGraph::default());
 
@@ -222,12 +216,40 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
             Ok(info_graph) => {
                 set_info_graph.set(info_graph.clone());
 
-                let DotSrcAndStyles { dot_src, styles } =
+                let dot_src_and_styles =
                     IntoGraphvizDotSrc::into(info_graph, &GraphvizDotTheme::default());
+                dot_src_and_styles_set.set(Some(dot_src_and_styles.clone()));
+                let DotSrcAndStyles {
+                    dot_src,
+                    styles: _,
+                    theme_warnings,
+                } = dot_src_and_styles;
 
                 set_dot_src.set(Some(dot_src));
-                set_styles.set(Some(styles));
-                set_error_text.set(None);
+                if theme_warnings.is_empty() {
+                    set_error_text.set(None);
+                } else {
+                    // TODO: format into a list.
+                    let theme_warnings_string = {
+                        let capacity = theme_warnings
+                            .iter()
+                            .map(|theme_warning| theme_warning.len())
+                            .sum::<usize>()
+                            + theme_warnings.len();
+                        let mut theme_warnings_string = String::with_capacity(capacity);
+                        let mut theme_warnings_iter = theme_warnings.iter();
+                        if let Some(theme_warning_first) = theme_warnings_iter.next() {
+                            theme_warnings_string.push_str(theme_warning_first);
+                        }
+                        theme_warnings.iter().for_each(|theme_warning| {
+                            theme_warnings_string.push('\n');
+                            theme_warnings_string.push_str(theme_warning);
+                        });
+
+                        theme_warnings_string
+                    };
+                    set_error_text.set(Some(theme_warnings_string));
+                }
                 #[cfg(target_arch = "wasm32")]
                 {
                     use lz_str::compress_to_encoded_uri_component;
@@ -274,8 +296,8 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
                 }
             }
             Err(error) => {
+                dot_src_and_styles_set.set(None);
                 set_dot_src.set(None);
-                set_styles.set(None);
                 set_error_text.set(Some(format!("{error}")));
             }
         }
@@ -323,35 +345,6 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
                                 text-xs \
                             "
                         />
-                        <br />
-                        <div
-                            class={
-                                move || {
-                                    let error_text = error_text.get();
-                                    let error_text_empty = error_text
-                                        .as_deref()
-                                        .map(str::is_empty)
-                                        .unwrap_or(true);
-                                    if error_text_empty {
-                                        "hidden"
-                                    } else {
-                                        "
-                                        border
-                                        border-amber-300
-                                        bg-gradient-to-b from-amber-100 to-amber-200
-                                        rounded
-                                        "
-                                    }
-                                }
-                            }
-                            >{
-                                move || {
-                                    let error_text = error_text.get();
-                                    error_text.as_deref()
-                                        .unwrap_or("")
-                                        .to_string()
-                                }
-                            }</div>
                     </div>
 
                     // tab content
@@ -462,8 +455,40 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
                     </div>
                 </div>
             </div>
+            <ErrorText error_text />
             <Disclaimer diagram_only />
         </div>
+    }
+}
+
+#[component]
+pub fn ErrorText(error_text: ReadSignal<Option<String>>) -> impl IntoView {
+    let error_text_classes = move || {
+        let error_text = error_text.get();
+        let error_text_empty = error_text.as_deref().map(str::is_empty).unwrap_or(true);
+        if error_text_empty {
+            "hidden"
+        } else {
+            "
+            border
+            border-amber-300
+            bg-gradient-to-b from-amber-100 to-amber-200
+            rounded
+            "
+        }
+    };
+
+    view! {
+        <div
+            class=error_text_classes
+            >{
+                move || {
+                    let error_text = error_text.get();
+                    error_text.as_deref()
+                        .unwrap_or("")
+                        .to_string()
+                }
+            }</div>
     }
 }
 
