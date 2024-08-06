@@ -1,6 +1,6 @@
 use dot_ix_model::{
     common::{EdgeId, NodeId},
-    theme::{ColorParams, CssClassesBuilder, HighlightState, StrokeParams, Themeable},
+    theme::{ColorParams, CssClassesBuilder, HighlightState, LineParams, Themeable},
 };
 
 #[derive(Clone)]
@@ -17,51 +17,43 @@ impl<'graph> Themeable for InfoGraphDot<'graph> {
         self.node_ids.iter().copied()
     }
 
-    fn node_outline_classes(
-        &self,
-        builder: &mut CssClassesBuilder,
-        stroke_params: StrokeParams<'_>,
-    ) {
-        let StrokeParams {
+    fn node_outline_classes(&self, builder: &mut CssClassesBuilder, line_params: LineParams<'_>) {
+        let LineParams {
             color_params,
-            stroke_width,
-            stroke_style,
-        } = stroke_params;
+            line_width,
+            line_style,
+        } = line_params;
 
         path_color_classes(builder, color_params, "outline");
         outline_style_classes(
             builder,
             color_params.highlight_state,
-            stroke_width,
-            stroke_style,
+            line_width,
+            line_style,
             "[&>path]:",
         );
         outline_style_classes(
             builder,
             color_params.highlight_state,
-            stroke_width,
-            stroke_style,
+            line_width,
+            line_style,
             "[&>ellipse]:",
         );
     }
 
-    fn node_stroke_classes(
-        &self,
-        builder: &mut CssClassesBuilder,
-        stroke_params: StrokeParams<'_>,
-    ) {
-        let StrokeParams {
+    fn node_stroke_classes(&self, builder: &mut CssClassesBuilder, line_params: LineParams<'_>) {
+        let LineParams {
             color_params,
-            stroke_width,
-            stroke_style,
-        } = stroke_params;
+            line_width,
+            line_style,
+        } = line_params;
 
         path_color_classes(builder, color_params, "stroke");
         border_style_classes(
             builder,
             color_params.highlight_state,
-            stroke_width,
-            stroke_style,
+            line_width,
+            line_style,
         );
     }
 
@@ -76,45 +68,37 @@ impl<'graph> Themeable for InfoGraphDot<'graph> {
         self.edge_ids.iter().copied()
     }
 
-    fn edge_outline_classes(
-        &self,
-        builder: &mut CssClassesBuilder,
-        stroke_params: StrokeParams<'_>,
-    ) {
-        let StrokeParams {
+    fn edge_outline_classes(&self, builder: &mut CssClassesBuilder, line_params: LineParams<'_>) {
+        let LineParams {
             color_params,
-            stroke_width,
-            stroke_style,
-        } = stroke_params;
+            line_width,
+            line_style,
+        } = line_params;
 
         el_color_classes(builder, color_params, "outline", "");
         outline_style_classes(
             builder,
             color_params.highlight_state,
-            stroke_width,
-            stroke_style,
+            line_width,
+            line_style,
             "",
         );
     }
 
-    fn edge_stroke_classes(
-        &self,
-        builder: &mut CssClassesBuilder,
-        stroke_params: StrokeParams<'_>,
-    ) {
-        let StrokeParams {
+    fn edge_stroke_classes(&self, builder: &mut CssClassesBuilder, line_params: LineParams<'_>) {
+        let LineParams {
             color_params,
-            stroke_width,
-            stroke_style,
-        } = stroke_params;
+            line_width,
+            line_style,
+        } = line_params;
 
         path_color_classes(builder, color_params, "stroke");
         polygon_color_classes(builder, color_params, "stroke");
         border_style_classes(
             builder,
             color_params.highlight_state,
-            stroke_width,
-            stroke_style,
+            line_width,
+            line_style,
         );
     }
 
@@ -128,18 +112,18 @@ impl<'graph> Themeable for InfoGraphDot<'graph> {
 fn outline_style_classes(
     builder: &mut CssClassesBuilder,
     highlight_state: HighlightState,
-    stroke_width: &str,
-    stroke_style: &str,
+    line_width: &str,
+    line_style: &str,
     el_prefix: &str,
 ) {
     let highlight_prefix = highlight_prefix(highlight_state);
 
     builder
         .append(&format!(
-            "{el_prefix}{highlight_prefix}outline-{stroke_width}"
+            "{el_prefix}{highlight_prefix}outline-{line_width}"
         ))
         .append(&format!(
-            "{el_prefix}{highlight_prefix}outline-{stroke_style}"
+            "{el_prefix}{highlight_prefix}outline-{line_style}"
         ));
 }
 
@@ -147,26 +131,26 @@ fn outline_style_classes(
 fn border_style_classes(
     builder: &mut CssClassesBuilder,
     highlight_state: HighlightState,
-    stroke_width: &str,
-    stroke_style: &str,
+    line_width: &str,
+    line_style: &str,
 ) {
     let highlight_prefix = highlight_prefix(highlight_state);
 
-    match stroke_style {
+    match line_style {
         "none" => {}
         "solid" => {
             builder
-                .append(&format!("[&>path]:{highlight_prefix}stroke-{stroke_width}"))
+                .append(&format!("[&>path]:{highlight_prefix}stroke-{line_width}"))
                 .append(&format!(
-                    "[&>ellipse]:{highlight_prefix}stroke-{stroke_width}"
+                    "[&>ellipse]:{highlight_prefix}stroke-{line_width}"
                 ));
         }
         "dashed" => {
             builder
-                .append(&format!("[&>path]:{highlight_prefix}stroke-{stroke_width}"))
+                .append(&format!("[&>path]:{highlight_prefix}stroke-{line_width}"))
                 .append(&format!("[&>path]:{highlight_prefix}[stroke-dasharray:3]"))
                 .append(&format!(
-                    "[&>ellipse]:{highlight_prefix}stroke-{stroke_width}"
+                    "[&>ellipse]:{highlight_prefix}stroke-{line_width}"
                 ))
                 .append(&format!(
                     "[&>ellipse]:{highlight_prefix}[stroke-dasharray:3]"
@@ -174,26 +158,24 @@ fn border_style_classes(
         }
         "dotted" => {
             builder
-                .append(&format!("[&>path]:{highlight_prefix}stroke-{stroke_width}"))
+                .append(&format!("[&>path]:{highlight_prefix}stroke-{line_width}"))
                 .append(&format!("[&>path]:{highlight_prefix}[stroke-dasharray:2]"))
                 .append(&format!(
-                    "[&>ellipse]:{highlight_prefix}stroke-{stroke_width}"
+                    "[&>ellipse]:{highlight_prefix}stroke-{line_width}"
                 ))
                 .append(&format!(
                     "[&>ellipse]:{highlight_prefix}[stroke-dasharray:2]"
                 ));
         }
-        stroke_style if stroke_style.starts_with("dasharray:") => {
+        line_style if line_style.starts_with("dasharray:") => {
             builder
-                .append(&format!("[&>path]:{highlight_prefix}stroke-{stroke_width}"))
+                .append(&format!("[&>path]:{highlight_prefix}stroke-{line_width}"))
+                .append(&format!("[&>path]:{highlight_prefix}[stroke-{line_style}]"))
                 .append(&format!(
-                    "[&>path]:{highlight_prefix}[stroke-{stroke_style}]"
+                    "[&>ellipse]:{highlight_prefix}stroke-{line_width}"
                 ))
                 .append(&format!(
-                    "[&>ellipse]:{highlight_prefix}stroke-{stroke_width}"
-                ))
-                .append(&format!(
-                    "[&>ellipse]:{highlight_prefix}[stroke-{stroke_style}]"
+                    "[&>ellipse]:{highlight_prefix}[stroke-{line_style}]"
                 ));
         }
         _ => {}

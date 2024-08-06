@@ -12,7 +12,7 @@ pub use self::{
     css_class_merger::CssClassMerger, css_class_partials::CssClassPartials,
     css_classes::CssClasses, css_classes_and_warnings::CssClassesAndWarnings,
     css_classes_builder::CssClassesBuilder, el_css_classes::ElCssClasses,
-    highlight_state::HighlightState, stroke_params::StrokeParams, style_for::StyleFor,
+    highlight_state::HighlightState, line_params::LineParams, style_for::StyleFor,
     theme_attr::ThemeAttr, theme_styles::ThemeStyles, theme_warnings::ThemeWarnings,
     themeable::Themeable,
 };
@@ -26,7 +26,7 @@ mod css_classes_and_warnings;
 mod css_classes_builder;
 mod el_css_classes;
 mod highlight_state;
-mod stroke_params;
+mod line_params;
 mod style_for;
 mod theme_attr;
 mod theme_styles;

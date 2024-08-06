@@ -2,7 +2,7 @@ use std::borrow::Cow;
 
 use dot_ix_model::{
     common::{EdgeId, NodeId},
-    theme::{ColorParams, CssClassesBuilder, HighlightState, StrokeParams, Themeable},
+    theme::{ColorParams, CssClassesBuilder, HighlightState, LineParams, Themeable},
 };
 
 #[derive(Clone)]
@@ -19,43 +19,35 @@ impl<'graph> Themeable for InfoGraphHtml<'graph> {
         self.node_ids.iter().copied()
     }
 
-    fn node_outline_classes(
-        &self,
-        builder: &mut CssClassesBuilder,
-        stroke_params: StrokeParams<'_>,
-    ) {
-        let StrokeParams {
+    fn node_outline_classes(&self, builder: &mut CssClassesBuilder, line_params: LineParams<'_>) {
+        let LineParams {
             color_params,
-            stroke_width,
+            line_width,
             stroke_style,
-        } = stroke_params;
+        } = line_params;
 
         el_color_classes(builder, color_params, "outline");
         stroke_style_classes(
             builder,
             color_params.highlight_state,
-            stroke_width,
+            line_width,
             stroke_style,
             "outline",
         );
     }
 
-    fn node_stroke_classes(
-        &self,
-        builder: &mut CssClassesBuilder,
-        stroke_params: StrokeParams<'_>,
-    ) {
-        let StrokeParams {
+    fn node_stroke_classes(&self, builder: &mut CssClassesBuilder, line_params: LineParams<'_>) {
+        let LineParams {
             color_params,
-            stroke_width,
+            line_width,
             stroke_style,
-        } = stroke_params;
+        } = line_params;
 
         el_color_classes(builder, color_params, "border");
         stroke_style_classes(
             builder,
             color_params.highlight_state,
-            stroke_width,
+            line_width,
             stroke_style,
             "border",
         );
@@ -72,43 +64,35 @@ impl<'graph> Themeable for InfoGraphHtml<'graph> {
         self.edge_ids.iter().copied()
     }
 
-    fn edge_outline_classes(
-        &self,
-        builder: &mut CssClassesBuilder,
-        stroke_params: StrokeParams<'_>,
-    ) {
-        let StrokeParams {
+    fn edge_outline_classes(&self, builder: &mut CssClassesBuilder, line_params: LineParams<'_>) {
+        let LineParams {
             color_params,
-            stroke_width,
+            line_width,
             stroke_style,
-        } = stroke_params;
+        } = line_params;
 
         el_color_classes(builder, color_params, "outline");
         stroke_style_classes(
             builder,
             color_params.highlight_state,
-            stroke_width,
+            line_width,
             stroke_style,
             "outline",
         );
     }
 
-    fn edge_stroke_classes(
-        &self,
-        builder: &mut CssClassesBuilder,
-        stroke_params: StrokeParams<'_>,
-    ) {
-        let StrokeParams {
+    fn edge_stroke_classes(&self, builder: &mut CssClassesBuilder, line_params: LineParams<'_>) {
+        let LineParams {
             color_params,
-            stroke_width,
+            line_width,
             stroke_style,
-        } = stroke_params;
+        } = line_params;
 
         el_color_classes(builder, color_params, "border");
         stroke_style_classes(
             builder,
             color_params.highlight_state,
-            stroke_width,
+            line_width,
             stroke_style,
             "border",
         );
@@ -122,20 +106,20 @@ impl<'graph> Themeable for InfoGraphHtml<'graph> {
 fn stroke_style_classes(
     builder: &mut CssClassesBuilder,
     highlight_state: HighlightState,
-    stroke_width: &str,
+    line_width: &str,
     stroke_style: &str,
     stroke_prefix: &str,
 ) {
     let highlight_prefix = highlight_prefix(highlight_state);
-    let stroke_width = if stroke_style == "dotted" {
-        stroke_width_increment(stroke_width)
+    let line_width = if stroke_style == "dotted" {
+        line_width_increment(line_width)
     } else {
-        Cow::Borrowed(stroke_width)
+        Cow::Borrowed(line_width)
     };
 
     builder
         .append(&format!(
-            "{highlight_prefix}{stroke_prefix}-[{stroke_width}px]"
+            "{highlight_prefix}{stroke_prefix}-[{line_width}px]"
         ))
         .append(&format!("{highlight_prefix}{stroke_prefix}-{stroke_style}"));
 }
@@ -146,12 +130,12 @@ fn stroke_style_classes(
 /// differ:
 ///
 /// * SVG's stroke-1 looks similar to HTML's border-2
-fn stroke_width_increment(stroke_width: &str) -> Cow<'_, str> {
-    let (Ok(stroke_width) | Err(stroke_width)) = stroke_width
+fn line_width_increment(line_width: &str) -> Cow<'_, str> {
+    let (Ok(line_width) | Err(line_width)) = line_width
         .parse::<u32>()
         .map(|w| Cow::Owned(w.saturating_add(1).to_string()))
-        .map_err(|_| Cow::Borrowed(stroke_width));
-    stroke_width
+        .map_err(|_| Cow::Borrowed(line_width));
+    line_width
 }
 
 fn el_color_classes(

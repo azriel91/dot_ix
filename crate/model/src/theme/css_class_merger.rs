@@ -2,7 +2,7 @@ use crate::{
     common::TagId,
     theme::{
         ColorParams, CssClassPartials, CssClassesAndWarnings, CssClassesBuilder, HighlightState,
-        StrokeParams, StyleFor, ThemeAttr, ThemeWarnings, Themeable,
+        LineParams, StyleFor, ThemeAttr, ThemeWarnings, Themeable,
     },
 };
 
@@ -55,14 +55,14 @@ impl CssClassMerger {
         let themeable_node_outline_classes =
             |themeable: &dyn Themeable,
              css_classes_builder: &mut CssClassesBuilder,
-             params: StrokeParams<'_>| {
+             params: LineParams<'_>| {
                 themeable.node_outline_classes(css_classes_builder, params);
             };
 
         let themeable_node_stroke_classes =
             |themeable: &dyn Themeable,
              css_classes_builder: &mut CssClassesBuilder,
-             params: StrokeParams<'_>| {
+             params: LineParams<'_>| {
                 themeable.node_stroke_classes(css_classes_builder, params);
             };
 
@@ -176,14 +176,14 @@ impl CssClassMerger {
         let themeable_edge_outline_classes =
             |themeable: &dyn Themeable,
              css_classes_builder: &mut CssClassesBuilder,
-             params: StrokeParams<'_>| {
+             params: LineParams<'_>| {
                 themeable.edge_outline_classes(css_classes_builder, params);
             };
 
         let themeable_edge_stroke_classes =
             |themeable: &dyn Themeable,
              css_classes_builder: &mut CssClassesBuilder,
-             params: StrokeParams<'_>| {
+             params: LineParams<'_>| {
                 themeable.edge_stroke_classes(css_classes_builder, params);
             };
 
@@ -235,19 +235,19 @@ impl CssClassMerger {
     fn outline_classes_append(
         css_classes_builder: &mut CssClassesBuilder,
         warnings: &mut ThemeWarnings,
-        fn_outline_classes: fn(&dyn Themeable, &mut CssClassesBuilder, StrokeParams<'_>),
+        fn_outline_classes: fn(&dyn Themeable, &mut CssClassesBuilder, LineParams<'_>),
         defaults: Option<&CssClassPartials>,
         specified: Option<&CssClassPartials>,
         themeable: &dyn Themeable,
         style_for: StyleFor<'_>,
     ) {
-        let stroke_class_append_result = match style_for {
+        let line_class_append_result = match style_for {
             StyleFor::Regular => {
                 let param_groupings = [
-                    StrokeParamGroupings::new_outline_normal(fn_outline_classes),
-                    StrokeParamGroupings::new_outline_focus(fn_outline_classes),
-                    StrokeParamGroupings::new_outline_hover(fn_outline_classes),
-                    StrokeParamGroupings::new_outline_active(fn_outline_classes),
+                    LineParamGroupings::new_outline_normal(fn_outline_classes),
+                    LineParamGroupings::new_outline_focus(fn_outline_classes),
+                    LineParamGroupings::new_outline_hover(fn_outline_classes),
+                    LineParamGroupings::new_outline_active(fn_outline_classes),
                 ]
                 .into_iter();
                 Self::line_classes_fold(
@@ -261,7 +261,7 @@ impl CssClassMerger {
 
             StyleFor::TagFocus(_) => {
                 let param_groupings =
-                    [StrokeParamGroupings::new_outline_normal(fn_outline_classes)].into_iter();
+                    [LineParamGroupings::new_outline_normal(fn_outline_classes)].into_iter();
 
                 Self::line_classes_fold(
                     css_classes_builder,
@@ -273,21 +273,21 @@ impl CssClassMerger {
             }
         };
 
-        if !stroke_class_append_result
+        if !line_class_append_result
             .iter()
-            .any(|stroke_class_append_result| {
-                matches!(stroke_class_append_result, StrokeClassAppendResult::Added)
+            .any(|line_class_append_result| {
+                matches!(line_class_append_result, LineClassAppendResult::Added)
             })
         {
-            stroke_class_append_result
+            line_class_append_result
                 .into_iter()
-                .for_each(|stroke_class_append_result| {
-                    if let StrokeClassAppendResult::NoChange {
+                .for_each(|line_class_append_result| {
+                    if let LineClassAppendResult::NoChange {
                         style,
                         width,
                         color,
                         shade,
-                    } = stroke_class_append_result
+                    } = line_class_append_result
                     {
                         warnings.insert(format!(
                             "Outline attributes partially specified, \
@@ -321,20 +321,20 @@ impl CssClassMerger {
     fn stroke_classes_append(
         css_classes_builder: &mut CssClassesBuilder,
         warnings: &mut ThemeWarnings,
-        fn_stroke_classes: fn(&dyn Themeable, &mut CssClassesBuilder, StrokeParams<'_>),
+        fn_stroke_classes: fn(&dyn Themeable, &mut CssClassesBuilder, LineParams<'_>),
         defaults: Option<&CssClassPartials>,
         specified: Option<&CssClassPartials>,
         themeable: &dyn Themeable,
         style_for: StyleFor<'_>,
     ) {
-        let stroke_class_append_result = match style_for {
+        let line_class_append_result = match style_for {
             StyleFor::Regular => {
                 let param_groupings = [
-                    StrokeParamGroupings::new_stroke_normal(fn_stroke_classes),
-                    StrokeParamGroupings::new_stroke_focus(fn_stroke_classes),
-                    StrokeParamGroupings::new_stroke_focus_hover(fn_stroke_classes),
-                    StrokeParamGroupings::new_stroke_hover(fn_stroke_classes),
-                    StrokeParamGroupings::new_stroke_active(fn_stroke_classes),
+                    LineParamGroupings::new_stroke_normal(fn_stroke_classes),
+                    LineParamGroupings::new_stroke_focus(fn_stroke_classes),
+                    LineParamGroupings::new_stroke_focus_hover(fn_stroke_classes),
+                    LineParamGroupings::new_stroke_hover(fn_stroke_classes),
+                    LineParamGroupings::new_stroke_active(fn_stroke_classes),
                 ]
                 .into_iter();
                 Self::line_classes_fold(
@@ -348,7 +348,7 @@ impl CssClassMerger {
 
             StyleFor::TagFocus(_) => {
                 let param_groupings =
-                    [StrokeParamGroupings::new_stroke_normal(fn_stroke_classes)].into_iter();
+                    [LineParamGroupings::new_stroke_normal(fn_stroke_classes)].into_iter();
 
                 Self::line_classes_fold(
                     css_classes_builder,
@@ -360,21 +360,21 @@ impl CssClassMerger {
             }
         };
 
-        if !stroke_class_append_result
+        if !line_class_append_result
             .iter()
-            .any(|stroke_class_append_result| {
-                matches!(stroke_class_append_result, StrokeClassAppendResult::Added)
+            .any(|line_class_append_result| {
+                matches!(line_class_append_result, LineClassAppendResult::Added)
             })
         {
-            stroke_class_append_result
+            line_class_append_result
                 .into_iter()
-                .for_each(|stroke_class_append_result| {
-                    if let StrokeClassAppendResult::NoChange {
+                .for_each(|line_class_append_result| {
+                    if let LineClassAppendResult::NoChange {
                         style,
                         width,
                         color,
                         shade,
-                    } = stroke_class_append_result
+                    } = line_class_append_result
                     {
                         warnings.insert(format!(
                             "Stroke attributes partially specified, \
@@ -405,49 +405,49 @@ impl CssClassMerger {
 
     /// Appends CSS classes for stroke styling for a given [`HighlightState`] to
     /// the CSS classes builder.
-    fn stroke_classes_highlight_state_append<'f1, 'f2: 'f1>(
+    fn line_classes_highlight_state_append<'f1, 'f2: 'f1>(
         css_classes_builder: &mut CssClassesBuilder,
-        css_classes_param_groupings: &StrokeParamGroupings<StrokeParams<'f1>>,
+        css_classes_param_groupings: &LineParamGroupings<LineParams<'f1>>,
         defaults: Option<&'f2 CssClassPartials>,
         specified: Option<&'f2 CssClassPartials>,
         themeable: &dyn Themeable,
-    ) -> StrokeClassAppendResult<'f2> {
-        let StrokeParamGroupings {
+    ) -> LineClassAppendResult<'f2> {
+        let LineParamGroupings {
             highlight_state,
             color_keys,
             shade_keys,
-            stroke_style_keys,
-            stroke_width_keys,
+            line_style_keys,
+            line_width_keys,
             fn_css_classes,
         } = css_classes_param_groupings;
 
-        let stroke_style = attr_value_find(stroke_style_keys, defaults, specified);
-        let stroke_width = attr_value_find(stroke_width_keys, defaults, specified);
+        let line_style = attr_value_find(line_style_keys, defaults, specified);
+        let line_width = attr_value_find(line_width_keys, defaults, specified);
         let color = attr_value_find(color_keys, defaults, specified);
         let shade = attr_value_find(shade_keys, defaults, specified);
 
-        match (stroke_style, stroke_width, color, shade) {
-            (None, None, None, None) => StrokeClassAppendResult::NoAttrsSpecified,
+        match (line_style, line_width, color, shade) {
+            (None, None, None, None) => LineClassAppendResult::NoAttrsSpecified,
             (
-                Some((_stroke_style_attr, stroke_style)),
-                Some((_stroke_width_attr, stroke_width)),
+                Some((_line_style_attr, line_style)),
+                Some((_line_width_attr, line_width)),
                 Some((_color_attr, color)),
                 Some((_shade_attr, shade)),
             ) => {
-                let params = StrokeParams {
+                let params = LineParams {
                     color_params: ColorParams {
                         highlight_state: *highlight_state,
                         color,
                         shade,
                     },
-                    stroke_width,
-                    stroke_style,
+                    line_width,
+                    line_style,
                 };
 
                 fn_css_classes(themeable, css_classes_builder, params);
-                StrokeClassAppendResult::Added
+                LineClassAppendResult::Added
             }
-            (style, width, color, shade) => StrokeClassAppendResult::NoChange {
+            (style, width, color, shade) => LineClassAppendResult::NoChange {
                 style,
                 width,
                 color,
@@ -620,14 +620,14 @@ impl CssClassMerger {
         specified: Option<&'f CssClassPartials>,
         themeable: &dyn Themeable,
         param_groupings: I,
-    ) -> Vec<StrokeClassAppendResult<'f>>
+    ) -> Vec<LineClassAppendResult<'f>>
     where
-        I: Iterator<Item = StrokeParamGroupings<StrokeParams<'f>>> + 'f,
+        I: Iterator<Item = LineParamGroupings<LineParams<'f>>> + 'f,
     {
         param_groupings.fold(
             Vec::new(),
-            |mut stroke_class_append_result_acc, css_classes_param_groupings| {
-                let stroke_class_append_result = Self::stroke_classes_highlight_state_append(
+            |mut line_class_append_result_acc, css_classes_param_groupings| {
+                let line_class_append_result = Self::line_classes_highlight_state_append(
                     css_classes_builder,
                     &css_classes_param_groupings,
                     defaults,
@@ -635,9 +635,9 @@ impl CssClassMerger {
                     themeable,
                 );
 
-                stroke_class_append_result_acc.push(stroke_class_append_result);
+                line_class_append_result_acc.push(line_class_append_result);
 
-                stroke_class_append_result_acc
+                line_class_append_result_acc
             },
         )
     }
@@ -794,19 +794,19 @@ impl<Params> ColorParamGroupings<Params> {
 }
 
 /// Groupings of parameters to generate CSS classes for colour shades.
-struct StrokeParamGroupings<Params> {
+struct LineParamGroupings<Params> {
     highlight_state: HighlightState,
     /// List of keys to fallback on.
     ///
     /// State specific color, state agnostic color, shape color.
     color_keys: &'static [ThemeAttr],
     shade_keys: &'static [ThemeAttr],
-    stroke_style_keys: &'static [ThemeAttr],
-    stroke_width_keys: &'static [ThemeAttr],
+    line_style_keys: &'static [ThemeAttr],
+    line_width_keys: &'static [ThemeAttr],
     fn_css_classes: fn(&dyn Themeable, &mut CssClassesBuilder, Params),
 }
 
-impl<Params> StrokeParamGroupings<Params> {
+impl<Params> LineParamGroupings<Params> {
     fn new_stroke_normal(
         fn_css_classes: fn(&dyn Themeable, &mut CssClassesBuilder, Params),
     ) -> Self {
@@ -818,8 +818,8 @@ impl<Params> StrokeParamGroupings<Params> {
                 ThemeAttr::ShapeColor,
             ],
             shade_keys: &[ThemeAttr::StrokeShadeNormal, ThemeAttr::StrokeShade],
-            stroke_style_keys: &[ThemeAttr::StrokeStyleNormal, ThemeAttr::StrokeStyle],
-            stroke_width_keys: &[ThemeAttr::StrokeWidth],
+            line_style_keys: &[ThemeAttr::StrokeStyleNormal, ThemeAttr::StrokeStyle],
+            line_width_keys: &[ThemeAttr::StrokeWidth],
             fn_css_classes,
         }
     }
@@ -835,8 +835,8 @@ impl<Params> StrokeParamGroupings<Params> {
                 ThemeAttr::ShapeColor,
             ],
             shade_keys: &[ThemeAttr::StrokeShadeFocus, ThemeAttr::StrokeShade],
-            stroke_style_keys: &[ThemeAttr::StrokeStyleFocus, ThemeAttr::StrokeStyle],
-            stroke_width_keys: &[ThemeAttr::StrokeWidth],
+            line_style_keys: &[ThemeAttr::StrokeStyleFocus, ThemeAttr::StrokeStyle],
+            line_width_keys: &[ThemeAttr::StrokeWidth],
             fn_css_classes,
         }
     }
@@ -852,8 +852,8 @@ impl<Params> StrokeParamGroupings<Params> {
                 ThemeAttr::ShapeColor,
             ],
             shade_keys: &[ThemeAttr::StrokeShadeHover, ThemeAttr::StrokeShade],
-            stroke_style_keys: &[ThemeAttr::StrokeStyleHover, ThemeAttr::StrokeStyle],
-            stroke_width_keys: &[ThemeAttr::StrokeWidth],
+            line_style_keys: &[ThemeAttr::StrokeStyleHover, ThemeAttr::StrokeStyle],
+            line_width_keys: &[ThemeAttr::StrokeWidth],
             fn_css_classes,
         }
     }
@@ -869,8 +869,8 @@ impl<Params> StrokeParamGroupings<Params> {
                 ThemeAttr::ShapeColor,
             ],
             shade_keys: &[ThemeAttr::StrokeShadeHover, ThemeAttr::StrokeShade],
-            stroke_style_keys: &[ThemeAttr::StrokeStyleHover, ThemeAttr::StrokeStyle],
-            stroke_width_keys: &[ThemeAttr::StrokeWidth],
+            line_style_keys: &[ThemeAttr::StrokeStyleHover, ThemeAttr::StrokeStyle],
+            line_width_keys: &[ThemeAttr::StrokeWidth],
             fn_css_classes,
         }
     }
@@ -886,8 +886,8 @@ impl<Params> StrokeParamGroupings<Params> {
                 ThemeAttr::ShapeColor,
             ],
             shade_keys: &[ThemeAttr::StrokeShadeActive, ThemeAttr::StrokeShade],
-            stroke_style_keys: &[ThemeAttr::StrokeStyleActive, ThemeAttr::StrokeStyle],
-            stroke_width_keys: &[ThemeAttr::StrokeWidth],
+            line_style_keys: &[ThemeAttr::StrokeStyleActive, ThemeAttr::StrokeStyle],
+            line_width_keys: &[ThemeAttr::StrokeWidth],
             fn_css_classes,
         }
     }
@@ -899,8 +899,8 @@ impl<Params> StrokeParamGroupings<Params> {
             highlight_state: HighlightState::Normal,
             color_keys: &[ThemeAttr::OutlineColorNormal, ThemeAttr::OutlineColor],
             shade_keys: &[ThemeAttr::OutlineShadeNormal, ThemeAttr::OutlineShade],
-            stroke_style_keys: &[ThemeAttr::OutlineStyleNormal, ThemeAttr::OutlineStyle],
-            stroke_width_keys: &[ThemeAttr::OutlineWidth],
+            line_style_keys: &[ThemeAttr::OutlineStyleNormal, ThemeAttr::OutlineStyle],
+            line_width_keys: &[ThemeAttr::OutlineWidth],
             fn_css_classes,
         }
     }
@@ -912,8 +912,8 @@ impl<Params> StrokeParamGroupings<Params> {
             highlight_state: HighlightState::Focus,
             color_keys: &[ThemeAttr::OutlineColorFocus, ThemeAttr::OutlineColor],
             shade_keys: &[ThemeAttr::OutlineShadeFocus, ThemeAttr::OutlineShade],
-            stroke_style_keys: &[ThemeAttr::OutlineStyleFocus, ThemeAttr::OutlineStyle],
-            stroke_width_keys: &[ThemeAttr::OutlineWidth],
+            line_style_keys: &[ThemeAttr::OutlineStyleFocus, ThemeAttr::OutlineStyle],
+            line_width_keys: &[ThemeAttr::OutlineWidth],
             fn_css_classes,
         }
     }
@@ -925,8 +925,8 @@ impl<Params> StrokeParamGroupings<Params> {
             highlight_state: HighlightState::Hover,
             color_keys: &[ThemeAttr::OutlineColorHover, ThemeAttr::OutlineColor],
             shade_keys: &[ThemeAttr::OutlineShadeHover, ThemeAttr::OutlineShade],
-            stroke_style_keys: &[ThemeAttr::OutlineStyleHover, ThemeAttr::OutlineStyle],
-            stroke_width_keys: &[ThemeAttr::OutlineWidth],
+            line_style_keys: &[ThemeAttr::OutlineStyleHover, ThemeAttr::OutlineStyle],
+            line_width_keys: &[ThemeAttr::OutlineWidth],
             fn_css_classes,
         }
     }
@@ -938,19 +938,21 @@ impl<Params> StrokeParamGroupings<Params> {
             highlight_state: HighlightState::Active,
             color_keys: &[ThemeAttr::OutlineColorActive, ThemeAttr::OutlineColor],
             shade_keys: &[ThemeAttr::OutlineShadeActive, ThemeAttr::OutlineShade],
-            stroke_style_keys: &[ThemeAttr::OutlineStyleActive, ThemeAttr::OutlineStyle],
-            stroke_width_keys: &[ThemeAttr::OutlineWidth],
+            line_style_keys: &[ThemeAttr::OutlineStyleActive, ThemeAttr::OutlineStyle],
+            line_width_keys: &[ThemeAttr::OutlineWidth],
             fn_css_classes,
         }
     }
 }
 
-/// Stroke attributes that were specified but not used, due to not a complete
+/// Line attributes that were specified but not used, due to not a complete
 /// set of attributes provided to compute a CSS class.
+///
+/// "Line" applies to both `stroke-*` and `outline-*` classes.
 ///
 /// The `ThemeAttr` in each `NoChange` variant is the `ThemeAttr` that is
 /// specified, i.e. one of the fallbacks.
-enum StrokeClassAppendResult<'value> {
+enum LineClassAppendResult<'value> {
     Added,
     NoChange {
         style: Option<(ThemeAttr, &'value str)>,

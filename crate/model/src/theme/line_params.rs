@@ -2,26 +2,28 @@ use crate::theme::ColorParams;
 
 /// Parameters to compute `CssClasses`.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct StrokeParams<'params> {
+pub struct LineParams<'params> {
     /// Parameters to compute colour related `CssClasses`.
     pub color_params: ColorParams<'params>,
     /// Width that the line should be, e.g. `"1"`.
-    pub stroke_width: &'params str,
+    ///
+    /// Corresponds to either `stroke-width` or `outline-width`.
+    pub line_width: &'params str,
     /// Style that the line should be, e.g. `"dashed"`.
-    pub stroke_style: &'params str,
+    pub line_style: &'params str,
 }
 
-impl<'params> StrokeParams<'params> {
-    /// Returns a new `StrokeParams`.
+impl<'params> LineParams<'params> {
+    /// Returns a new `LineParams`.
     pub fn new(
         color_params: ColorParams<'params>,
-        stroke_width: &'params str,
-        stroke_style: &'params str,
+        line_width: &'params str,
+        line_style: &'params str,
     ) -> Self {
         Self {
             color_params,
-            stroke_width,
-            stroke_style,
+            line_width,
+            line_style,
         }
     }
 }
