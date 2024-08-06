@@ -8,7 +8,7 @@ use dot_ix::{
     rt::IntoGraphvizDotSrc,
     web_components::{DotSvg, FlexDiag},
 };
-use leptos::*;
+use leptos::{ev::Event, *};
 
 use crate::app::{TabLabel, TextEditor};
 
@@ -306,157 +306,196 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
     view! {
         <div class={ editor_and_disclaimer_wrapper_classes }>
             <div class={ editor_and_diagram_div_classes }>
-                <div class={ textbox_div_display_classes }>
-
-                    <TabLabel
-                        tab_group_name="src_tabs"
-                        tab_id="tab_info_graph_yml"
-                        label="info_graph.yml"
-                        checked=true
-                    />
-
-                    <TabLabel
-                        tab_group_name="src_tabs"
-                        tab_id="tab_info_graph_dot"
-                        label="generated.dot"
-                    />
-
-                    // tab content
-                    <div class="\
-                        invisible \
-                        h-0 \
-                        peer-checked/tab_info_graph_yml:visible \
-                        peer-checked/tab_info_graph_yml:h-full \
-                        "
-                    >
-                        <TextEditor
-                            value=info_graph_src
-                            set_value=set_info_graph_src
-                            id="info_graph_yml"
-                            name="info_graph_yml"
-                            class="\
-                                border \
-                                border-slate-400 \
-                                bg-slate-100 \
-                                font-mono \
-                                h-full \
-                                p-2 \
-                                rounded \
-                                text-xs \
-                            "
-                        />
-                    </div>
-
-                    // tab content
-                    <div class="\
-                        invisible \
-                        h-0 \
-                        peer-checked/tab_info_graph_dot:visible \
-                        peer-checked/tab_info_graph_dot:h-full \
-                        "
-                    >
-                        <textarea
-                            id="info_graph_dot"
-                            name="info_graph_dot"
-                            class="\
-                                border \
-                                border-slate-400 \
-                                bg-slate-100 \
-                                w-full \
-                                h-full \
-                                font-mono \
-                                p-2 \
-                                rounded \
-                                text-xs \
-                            "
-                            on:input=leptos_dom::helpers::debounce(Duration::from_millis(400), move |ev| {
-                                let dot_src = event_target_value(&ev);
-                                set_dot_src.set(Some(dot_src));
-                            })
-                            prop:value={
-                                move || {
-                                    let dot_src = dot_src.get();
-                                    dot_src.as_deref()
-                                        .unwrap_or("")
-                                        .to_string()
-                                }
-                            } />
-                    </div>
-                </div>
-                <div
-                    class={move || {
-                        if diagram_only.get() {
-                            ""
-                        } else {
-                            // Take up the full screen if the screen size is small,
-                            // otherwise take up just enough for content.
-                            "\
-                            basis-1/2 \
-                            grow \
-                            lg:basis-3/5 \
-                            lg:grow \
-                            lg:shrink \
-                            "
-                        }
-                    }}
-                >
-
-                    <TabLabel
-                        tab_group_name="diagram_tabs"
-                        tab_id="tab_dot_svg"
-                        label="Dot SVG"
-                        checked=true
-                        on_change=flex_diag_visible_update
-                    />
-
-                    <TabLabel
-                        tab_group_name="diagram_tabs"
-                        tab_id="tab_flex_diag"
-                        label="Flex Diagram"
-                        on_change=flex_diag_visible_update
-                        node_ref=flex_diag_radio
-                    />
-
-                    <div
-                        class="\
-                            invisible \
-                            h-0 \
-                            peer-checked/tab_dot_svg:visible \
-                            peer-checked/tab_dot_svg:h-auto \
-                            w-dvw \
-                            lg:w-auto \
-                            max-w-dvw \
-                            overflow-auto \
-                        "
-                    >
-                        <DotSvg
-                            info_graph=info_graph.into()
-                            dot_src_and_styles=dot_src_and_styles.into()
-                            diagram_only=diagram_only.into()
-                        />
-                    </div>
-
-                    <div
-                        class="\
-                            invisible \
-                            h-0 \
-                            peer-checked/tab_flex_diag:visible \
-                            peer-checked/tab_flex_diag:h-auto \
-                            w-dvw \
-                            lg:w-auto \
-                            max-w-dvw \
-                            overflow-auto \
-                        "
-                    >
-                        <FlexDiag
-                            info_graph=info_graph
-                            visible=flex_diag_visible.into()
-                        />
-                    </div>
-                </div>
+                <InfoGraphSrcAndDotSrc
+                    textbox_div_display_classes
+                    dot_src
+                    set_dot_src
+                    info_graph_src
+                    set_info_graph_src
+                />
+                <InfoGraphDiagram
+                    diagram_only
+                    flex_diag_visible_update
+                    info_graph
+                    dot_src_and_styles
+                    flex_diag_visible
+                    flex_diag_radio
+                />
             </div>
             <ErrorText error_text />
             <Disclaimer diagram_only />
+        </div>
+    }
+}
+
+#[component]
+pub fn InfoGraphSrcAndDotSrc(
+    textbox_div_display_classes: impl Fn() -> &'static str + 'static,
+    dot_src: ReadSignal<Option<String>>,
+    set_dot_src: WriteSignal<Option<String>>,
+    info_graph_src: ReadSignal<String>,
+    set_info_graph_src: WriteSignal<String>,
+) -> impl IntoView {
+    view! {
+        <div class={ textbox_div_display_classes }>
+            <TabLabel
+                tab_group_name="src_tabs"
+                tab_id="tab_info_graph_yml"
+                label="info_graph.yml"
+                checked=true
+            />
+
+            <TabLabel
+                tab_group_name="src_tabs"
+                tab_id="tab_info_graph_dot"
+                label="generated.dot"
+            />
+
+            // tab content
+            <div class="\
+                invisible \
+                h-0 \
+                peer-checked/tab_info_graph_yml:visible \
+                peer-checked/tab_info_graph_yml:h-full \
+                "
+            >
+                <TextEditor
+                    value=info_graph_src
+                    set_value=set_info_graph_src
+                    id="info_graph_yml"
+                    name="info_graph_yml"
+                    class="\
+                        border \
+                        border-slate-400 \
+                        bg-slate-100 \
+                        font-mono \
+                        h-full \
+                        p-2 \
+                        rounded \
+                        text-xs \
+                    "
+                />
+            </div>
+
+            // tab content
+            <div class="\
+                invisible \
+                h-0 \
+                peer-checked/tab_info_graph_dot:visible \
+                peer-checked/tab_info_graph_dot:h-full \
+                "
+            >
+                <textarea
+                    id="info_graph_dot"
+                    name="info_graph_dot"
+                    class="\
+                        border \
+                        border-slate-400 \
+                        bg-slate-100 \
+                        w-full \
+                        h-full \
+                        font-mono \
+                        p-2 \
+                        rounded \
+                        text-xs \
+                    "
+                    on:input=leptos_dom::helpers::debounce(Duration::from_millis(400), move |ev| {
+                        let dot_src = event_target_value(&ev);
+                        set_dot_src.set(Some(dot_src));
+                    })
+                    prop:value={
+                        move || {
+                            let dot_src = dot_src.get();
+                            dot_src.as_deref()
+                                .unwrap_or("")
+                                .to_string()
+                        }
+                    } />
+            </div>
+        </div>
+    }
+}
+
+#[component]
+pub fn InfoGraphDiagram(
+    diagram_only: ReadSignal<bool>,
+    flex_diag_visible_update: impl Fn(Event) + Copy + 'static,
+    info_graph: ReadSignal<InfoGraph>,
+    dot_src_and_styles: ReadSignal<Option<DotSrcAndStyles>>,
+    flex_diag_visible: ReadSignal<bool>,
+    flex_diag_radio: NodeRef<html::Input>,
+) -> impl IntoView {
+    view! {
+        <div
+            class={move || {
+                if diagram_only.get() {
+                    ""
+                } else {
+                    // Take up the full screen if the screen size is small,
+                    // otherwise take up just enough for content.
+                    "\
+                    basis-1/2 \
+                    grow \
+                    lg:basis-3/5 \
+                    lg:grow \
+                    lg:shrink \
+                    "
+                }
+            }}
+        >
+
+            <TabLabel
+                tab_group_name="diagram_tabs"
+                tab_id="tab_dot_svg"
+                label="Dot SVG"
+                checked=true
+                on_change=flex_diag_visible_update
+            />
+
+            <TabLabel
+                tab_group_name="diagram_tabs"
+                tab_id="tab_flex_diag"
+                label="Flex Diagram"
+                on_change=flex_diag_visible_update
+                node_ref=flex_diag_radio
+            />
+
+            <div
+                class="\
+                    invisible \
+                    h-0 \
+                    peer-checked/tab_dot_svg:visible \
+                    peer-checked/tab_dot_svg:h-auto \
+                    w-dvw \
+                    lg:w-auto \
+                    max-w-dvw \
+                    overflow-auto \
+                "
+            >
+                <DotSvg
+                    info_graph=info_graph.into()
+                    dot_src_and_styles=dot_src_and_styles.into()
+                    diagram_only=diagram_only.into()
+                />
+            </div>
+
+            <div
+                class="\
+                    invisible \
+                    h-0 \
+                    peer-checked/tab_flex_diag:visible \
+                    peer-checked/tab_flex_diag:h-auto \
+                    w-dvw \
+                    lg:w-auto \
+                    max-w-dvw \
+                    overflow-auto \
+                "
+            >
+                <FlexDiag
+                    info_graph=info_graph
+                    visible=flex_diag_visible.into()
+                />
+            </div>
         </div>
     }
 }
