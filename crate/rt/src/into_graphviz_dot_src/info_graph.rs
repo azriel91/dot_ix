@@ -93,17 +93,21 @@ const OUTLINE_NONE: &str = "outline-none";
 /// [`tailwind-css`]: https://github.com/oovm/tailwind-rs
 impl IntoGraphvizDotSrc for &InfoGraph {
     fn into(self, theme: &GraphvizDotTheme) -> DotSrcAndStyles {
+        let graph_style = self.graph_style();
         let graphviz_attrs = self.graphviz_attrs();
         let graph_attrs = graph_attrs(theme, self.direction(), graphviz_attrs);
-        let node_attrs = node_attrs(self.graph_style(), theme);
+        let node_attrs = node_attrs(graph_style, theme);
         let edge_attrs = edge_attrs(graphviz_attrs, theme);
         let diagram_theme = self.theme();
 
         // Build a map from `NodeId` to their `NodeHierarchy`, so that we don't have to
         // search for it every time we want to create an edge.
         let node_id_to_hierarchy = self.hierarchy_flat();
+        let node_id_to_hierarchy = &node_id_to_hierarchy;
 
         let info_graph_dot = InfoGraphDot {
+            graph_style,
+            node_id_to_hierarchy,
             node_ids: node_id_to_hierarchy.keys().copied().collect::<Vec<_>>(),
             edge_ids: self.edges().keys().collect::<Vec<_>>(),
         };

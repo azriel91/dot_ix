@@ -1,5 +1,5 @@
 use crate::{
-    common::TagId,
+    common::{AnyId, TagId},
     theme::{
         ColorParams, CssClassPartials, CssClassesAndWarnings, CssClassesBuilder, HighlightState,
         LineParams, StyleFor, ThemeAttr, ThemeWarnings, Themeable,
@@ -14,6 +14,7 @@ impl CssClassMerger {
     ///
     /// This merges the specified themed values over the defaults.
     pub fn node_classes<T>(
+        node_id: &AnyId,
         defaults: Option<&CssClassPartials>,
         specified: Option<&CssClassPartials>,
         themeable: &T,
@@ -22,6 +23,7 @@ impl CssClassMerger {
         T: Themeable,
     {
         let css_class_merge_params = CssClassMergeParams {
+            any_id: node_id,
             defaults,
             specified,
             themeable,
@@ -31,6 +33,7 @@ impl CssClassMerger {
 
     /// Returns the CSS classes for a node associated with a tag.
     pub fn node_tag_classes<T>(
+        node_id: &AnyId,
         defaults: Option<&CssClassPartials>,
         specified: Option<&CssClassPartials>,
         themeable: &T,
@@ -40,6 +43,7 @@ impl CssClassMerger {
         T: Themeable,
     {
         let css_class_merge_params = CssClassMergeParams {
+            any_id: node_id,
             defaults,
             specified,
             themeable,
@@ -58,24 +62,27 @@ impl CssClassMerger {
         let mut warnings = ThemeWarnings::new();
 
         let themeable_node_outline_classes =
-            |themeable: &dyn Themeable,
+            |node_id: &AnyId,
+             themeable: &dyn Themeable,
              css_classes_builder: &mut CssClassesBuilder,
              params: LineParams<'_>| {
-                themeable.node_outline_classes(css_classes_builder, params);
+                themeable.node_outline_classes(node_id, css_classes_builder, params);
             };
 
         let themeable_node_stroke_classes =
-            |themeable: &dyn Themeable,
+            |node_id: &AnyId,
+             themeable: &dyn Themeable,
              css_classes_builder: &mut CssClassesBuilder,
              params: LineParams<'_>| {
-                themeable.node_stroke_classes(css_classes_builder, params);
+                themeable.node_stroke_classes(node_id, css_classes_builder, params);
             };
 
         let themeable_node_fill_classes =
-            |themeable: &dyn Themeable,
+            |node_id: &AnyId,
+             themeable: &dyn Themeable,
              css_classes_builder: &mut CssClassesBuilder,
              params: ColorParams<'_>| {
-                themeable.node_fill_classes(css_classes_builder, params);
+                themeable.node_fill_classes(node_id, css_classes_builder, params);
             };
 
         Self::outline_classes_append(
@@ -101,6 +108,7 @@ impl CssClassMerger {
         );
 
         let CssClassMergeParams {
+            any_id: _,
             defaults,
             specified,
             themeable: _,
@@ -140,6 +148,7 @@ impl CssClassMerger {
     ///
     /// This merges the specified themed values over the defaults.
     pub fn edge_classes<T>(
+        edge_id: &AnyId,
         defaults: Option<&CssClassPartials>,
         specified: Option<&CssClassPartials>,
         themeable: &T,
@@ -148,6 +157,7 @@ impl CssClassMerger {
         T: Themeable,
     {
         let css_class_merge_params = CssClassMergeParams {
+            any_id: edge_id,
             defaults,
             specified,
             themeable,
@@ -157,6 +167,7 @@ impl CssClassMerger {
 
     /// Returns the CSS classes for an edge associated with a tag.
     pub fn edge_tag_classes<T>(
+        edge_id: &AnyId,
         defaults: Option<&CssClassPartials>,
         specified: Option<&CssClassPartials>,
         themeable: &T,
@@ -166,6 +177,7 @@ impl CssClassMerger {
         T: Themeable,
     {
         let css_class_merge_params = CssClassMergeParams {
+            any_id: edge_id,
             defaults,
             specified,
             themeable,
@@ -184,24 +196,27 @@ impl CssClassMerger {
         let mut warnings = ThemeWarnings::new();
 
         let themeable_edge_outline_classes =
-            |themeable: &dyn Themeable,
+            |edge_id: &AnyId,
+             themeable: &dyn Themeable,
              css_classes_builder: &mut CssClassesBuilder,
              params: LineParams<'_>| {
-                themeable.edge_outline_classes(css_classes_builder, params);
+                themeable.edge_outline_classes(edge_id, css_classes_builder, params);
             };
 
         let themeable_edge_stroke_classes =
-            |themeable: &dyn Themeable,
+            |edge_id: &AnyId,
+             themeable: &dyn Themeable,
              css_classes_builder: &mut CssClassesBuilder,
              params: LineParams<'_>| {
-                themeable.edge_stroke_classes(css_classes_builder, params);
+                themeable.edge_stroke_classes(edge_id, css_classes_builder, params);
             };
 
         let themeable_edge_fill_classes =
-            |themeable: &dyn Themeable,
+            |edge_id: &AnyId,
+             themeable: &dyn Themeable,
              css_classes_builder: &mut CssClassesBuilder,
              params: ColorParams<'_>| {
-                themeable.edge_fill_classes(css_classes_builder, params);
+                themeable.edge_fill_classes(edge_id, css_classes_builder, params);
             };
 
         Self::outline_classes_append(
@@ -227,6 +242,7 @@ impl CssClassMerger {
         );
 
         let CssClassMergeParams {
+            any_id: _,
             defaults,
             specified,
             themeable: _,
@@ -246,7 +262,7 @@ impl CssClassMerger {
         css_class_merge_params: CssClassMergeParams<'_>,
         css_classes_builder: &mut CssClassesBuilder,
         warnings: &mut ThemeWarnings,
-        fn_outline_classes: fn(&dyn Themeable, &mut CssClassesBuilder, LineParams<'_>),
+        fn_outline_classes: fn(&AnyId, &dyn Themeable, &mut CssClassesBuilder, LineParams<'_>),
         style_for: StyleFor<'_>,
     ) {
         let line_class_append_result = match style_for {
@@ -326,7 +342,7 @@ impl CssClassMerger {
         css_class_merge_params: CssClassMergeParams<'_>,
         css_classes_builder: &mut CssClassesBuilder,
         warnings: &mut ThemeWarnings,
-        fn_stroke_classes: fn(&dyn Themeable, &mut CssClassesBuilder, LineParams<'_>),
+        fn_stroke_classes: fn(&AnyId, &dyn Themeable, &mut CssClassesBuilder, LineParams<'_>),
         style_for: StyleFor<'_>,
     ) {
         let line_class_append_result = match style_for {
@@ -409,6 +425,7 @@ impl CssClassMerger {
         css_classes_param_groupings: &LineParamGroupings<LineParams<'f1>>,
     ) -> LineClassAppendResult<'f2> {
         let CssClassMergeParams {
+            any_id,
             defaults,
             specified,
             themeable,
@@ -446,7 +463,7 @@ impl CssClassMerger {
                     line_style,
                 };
 
-                fn_css_classes(themeable, css_classes_builder, params);
+                fn_css_classes(any_id, themeable, css_classes_builder, params);
                 LineClassAppendResult::Added
             }
             (style, width, color, shade) => LineClassAppendResult::NoChange {
@@ -464,7 +481,7 @@ impl CssClassMerger {
         css_class_merge_params: CssClassMergeParams<'_>,
         css_classes_builder: &mut CssClassesBuilder,
         warnings: &mut ThemeWarnings,
-        fn_fill_classes: fn(&dyn Themeable, &mut CssClassesBuilder, ColorParams<'_>),
+        fn_fill_classes: fn(&AnyId, &dyn Themeable, &mut CssClassesBuilder, ColorParams<'_>),
         style_for: StyleFor<'_>,
     ) {
         let fill_class_append_result = match style_for {
@@ -534,6 +551,7 @@ impl CssClassMerger {
         css_classes_builder: &mut CssClassesBuilder,
     ) -> FillClassAppendResult<'f2> {
         let CssClassMergeParams {
+            any_id,
             defaults,
             specified,
             themeable,
@@ -557,7 +575,7 @@ impl CssClassMerger {
                     color,
                     shade,
                 };
-                fn_css_classes(themeable, css_classes_builder, params);
+                fn_css_classes(any_id, themeable, css_classes_builder, params);
                 FillClassAppendResult::Added
             }
             (color, shade) => FillClassAppendResult::NoChange { color, shade },
@@ -693,6 +711,7 @@ fn attr_value_find<'attr>(
 /// Grouping of common parameters to reduce parameter count in methods.
 #[derive(Clone, Copy)]
 struct CssClassMergeParams<'params> {
+    any_id: &'params AnyId,
     defaults: Option<&'params CssClassPartials>,
     specified: Option<&'params CssClassPartials>,
     themeable: &'params dyn Themeable,
@@ -723,11 +742,13 @@ struct ColorParamGroupings<Params> {
     /// State specific color, state agnostic color, shape color.
     color_keys: &'static [ThemeAttr],
     shade_keys: &'static [ThemeAttr],
-    fn_css_classes: fn(&dyn Themeable, &mut CssClassesBuilder, Params),
+    fn_css_classes: fn(&AnyId, &dyn Themeable, &mut CssClassesBuilder, Params),
 }
 
 impl<Params> ColorParamGroupings<Params> {
-    fn new_fill_normal(fn_css_classes: fn(&dyn Themeable, &mut CssClassesBuilder, Params)) -> Self {
+    fn new_fill_normal(
+        fn_css_classes: fn(&AnyId, &dyn Themeable, &mut CssClassesBuilder, Params),
+    ) -> Self {
         Self {
             highlight_state: HighlightState::Normal,
             color_keys: &[
@@ -740,7 +761,9 @@ impl<Params> ColorParamGroupings<Params> {
         }
     }
 
-    fn new_fill_focus(fn_css_classes: fn(&dyn Themeable, &mut CssClassesBuilder, Params)) -> Self {
+    fn new_fill_focus(
+        fn_css_classes: fn(&AnyId, &dyn Themeable, &mut CssClassesBuilder, Params),
+    ) -> Self {
         Self {
             highlight_state: HighlightState::Focus,
             color_keys: &[
@@ -754,7 +777,7 @@ impl<Params> ColorParamGroupings<Params> {
     }
 
     fn new_fill_focus_hover(
-        fn_css_classes: fn(&dyn Themeable, &mut CssClassesBuilder, Params),
+        fn_css_classes: fn(&AnyId, &dyn Themeable, &mut CssClassesBuilder, Params),
     ) -> Self {
         Self {
             highlight_state: HighlightState::FocusHover,
@@ -768,7 +791,9 @@ impl<Params> ColorParamGroupings<Params> {
         }
     }
 
-    fn new_fill_hover(fn_css_classes: fn(&dyn Themeable, &mut CssClassesBuilder, Params)) -> Self {
+    fn new_fill_hover(
+        fn_css_classes: fn(&AnyId, &dyn Themeable, &mut CssClassesBuilder, Params),
+    ) -> Self {
         Self {
             highlight_state: HighlightState::Hover,
             color_keys: &[
@@ -781,7 +806,9 @@ impl<Params> ColorParamGroupings<Params> {
         }
     }
 
-    fn new_fill_active(fn_css_classes: fn(&dyn Themeable, &mut CssClassesBuilder, Params)) -> Self {
+    fn new_fill_active(
+        fn_css_classes: fn(&AnyId, &dyn Themeable, &mut CssClassesBuilder, Params),
+    ) -> Self {
         Self {
             highlight_state: HighlightState::Active,
             color_keys: &[
@@ -806,12 +833,12 @@ struct LineParamGroupings<Params> {
     shade_keys: &'static [ThemeAttr],
     line_style_keys: &'static [ThemeAttr],
     line_width_keys: &'static [ThemeAttr],
-    fn_css_classes: fn(&dyn Themeable, &mut CssClassesBuilder, Params),
+    fn_css_classes: fn(&AnyId, &dyn Themeable, &mut CssClassesBuilder, Params),
 }
 
 impl<Params> LineParamGroupings<Params> {
     fn new_stroke_normal(
-        fn_css_classes: fn(&dyn Themeable, &mut CssClassesBuilder, Params),
+        fn_css_classes: fn(&AnyId, &dyn Themeable, &mut CssClassesBuilder, Params),
     ) -> Self {
         Self {
             highlight_state: HighlightState::Normal,
@@ -828,7 +855,7 @@ impl<Params> LineParamGroupings<Params> {
     }
 
     fn new_stroke_focus(
-        fn_css_classes: fn(&dyn Themeable, &mut CssClassesBuilder, Params),
+        fn_css_classes: fn(&AnyId, &dyn Themeable, &mut CssClassesBuilder, Params),
     ) -> Self {
         Self {
             highlight_state: HighlightState::Focus,
@@ -845,7 +872,7 @@ impl<Params> LineParamGroupings<Params> {
     }
 
     fn new_stroke_focus_hover(
-        fn_css_classes: fn(&dyn Themeable, &mut CssClassesBuilder, Params),
+        fn_css_classes: fn(&AnyId, &dyn Themeable, &mut CssClassesBuilder, Params),
     ) -> Self {
         Self {
             highlight_state: HighlightState::FocusHover,
@@ -862,7 +889,7 @@ impl<Params> LineParamGroupings<Params> {
     }
 
     fn new_stroke_hover(
-        fn_css_classes: fn(&dyn Themeable, &mut CssClassesBuilder, Params),
+        fn_css_classes: fn(&AnyId, &dyn Themeable, &mut CssClassesBuilder, Params),
     ) -> Self {
         Self {
             highlight_state: HighlightState::Hover,
@@ -879,7 +906,7 @@ impl<Params> LineParamGroupings<Params> {
     }
 
     fn new_stroke_active(
-        fn_css_classes: fn(&dyn Themeable, &mut CssClassesBuilder, Params),
+        fn_css_classes: fn(&AnyId, &dyn Themeable, &mut CssClassesBuilder, Params),
     ) -> Self {
         Self {
             highlight_state: HighlightState::Active,
@@ -896,7 +923,7 @@ impl<Params> LineParamGroupings<Params> {
     }
 
     fn new_outline_normal(
-        fn_css_classes: fn(&dyn Themeable, &mut CssClassesBuilder, Params),
+        fn_css_classes: fn(&AnyId, &dyn Themeable, &mut CssClassesBuilder, Params),
     ) -> Self {
         Self {
             highlight_state: HighlightState::Normal,
@@ -909,7 +936,7 @@ impl<Params> LineParamGroupings<Params> {
     }
 
     fn new_outline_focus(
-        fn_css_classes: fn(&dyn Themeable, &mut CssClassesBuilder, Params),
+        fn_css_classes: fn(&AnyId, &dyn Themeable, &mut CssClassesBuilder, Params),
     ) -> Self {
         Self {
             highlight_state: HighlightState::Focus,
@@ -922,7 +949,7 @@ impl<Params> LineParamGroupings<Params> {
     }
 
     fn new_outline_hover(
-        fn_css_classes: fn(&dyn Themeable, &mut CssClassesBuilder, Params),
+        fn_css_classes: fn(&AnyId, &dyn Themeable, &mut CssClassesBuilder, Params),
     ) -> Self {
         Self {
             highlight_state: HighlightState::Hover,
@@ -935,7 +962,7 @@ impl<Params> LineParamGroupings<Params> {
     }
 
     fn new_outline_active(
-        fn_css_classes: fn(&dyn Themeable, &mut CssClassesBuilder, Params),
+        fn_css_classes: fn(&AnyId, &dyn Themeable, &mut CssClassesBuilder, Params),
     ) -> Self {
         Self {
             highlight_state: HighlightState::Active,

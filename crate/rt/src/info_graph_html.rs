@@ -1,7 +1,7 @@
 use std::borrow::Cow;
 
 use dot_ix_model::{
-    common::{EdgeId, NodeId},
+    common::{AnyId, EdgeId, NodeId},
     theme::{ColorParams, CssClassesBuilder, HighlightState, LineParams, Themeable},
 };
 
@@ -19,7 +19,12 @@ impl<'graph> Themeable for InfoGraphHtml<'graph> {
         self.node_ids.iter().copied()
     }
 
-    fn node_outline_classes(&self, builder: &mut CssClassesBuilder, line_params: LineParams<'_>) {
+    fn node_outline_classes(
+        &self,
+        _node_id: &AnyId,
+        builder: &mut CssClassesBuilder,
+        line_params: LineParams<'_>,
+    ) {
         let LineParams {
             color_params,
             line_width,
@@ -36,7 +41,12 @@ impl<'graph> Themeable for InfoGraphHtml<'graph> {
         );
     }
 
-    fn node_stroke_classes(&self, builder: &mut CssClassesBuilder, line_params: LineParams<'_>) {
+    fn node_stroke_classes(
+        &self,
+        _node_id: &AnyId,
+        builder: &mut CssClassesBuilder,
+        line_params: LineParams<'_>,
+    ) {
         let LineParams {
             color_params,
             line_width,
@@ -53,7 +63,12 @@ impl<'graph> Themeable for InfoGraphHtml<'graph> {
         );
     }
 
-    fn node_fill_classes(&self, builder: &mut CssClassesBuilder, color_params: ColorParams<'_>) {
+    fn node_fill_classes(
+        &self,
+        _node_id: &AnyId,
+        builder: &mut CssClassesBuilder,
+        color_params: ColorParams<'_>,
+    ) {
         el_color_classes(builder, color_params, "bg");
     }
 
@@ -64,7 +79,12 @@ impl<'graph> Themeable for InfoGraphHtml<'graph> {
         self.edge_ids.iter().copied()
     }
 
-    fn edge_outline_classes(&self, builder: &mut CssClassesBuilder, line_params: LineParams<'_>) {
+    fn edge_outline_classes(
+        &self,
+        _edge_id: &AnyId,
+        builder: &mut CssClassesBuilder,
+        line_params: LineParams<'_>,
+    ) {
         let LineParams {
             color_params,
             line_width,
@@ -81,7 +101,12 @@ impl<'graph> Themeable for InfoGraphHtml<'graph> {
         );
     }
 
-    fn edge_stroke_classes(&self, builder: &mut CssClassesBuilder, line_params: LineParams<'_>) {
+    fn edge_stroke_classes(
+        &self,
+        _edge_id: &AnyId,
+        builder: &mut CssClassesBuilder,
+        line_params: LineParams<'_>,
+    ) {
         let LineParams {
             color_params,
             line_width,
@@ -98,7 +123,12 @@ impl<'graph> Themeable for InfoGraphHtml<'graph> {
         );
     }
 
-    fn edge_fill_classes(&self, builder: &mut CssClassesBuilder, color_params: ColorParams<'_>) {
+    fn edge_fill_classes(
+        &self,
+        _edge_id: &AnyId,
+        builder: &mut CssClassesBuilder,
+        color_params: ColorParams<'_>,
+    ) {
         el_color_classes(builder, color_params, "bg");
     }
 }

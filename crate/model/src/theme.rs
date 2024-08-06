@@ -168,7 +168,6 @@ impl Theme {
 
             node_defaults
         });
-        let mut theme = Self::default();
 
         theme.insert(AnyIdOrDefaults::EdgeDefaults, {
             let mut edge_defaults = CssClassPartials::new();
@@ -274,17 +273,18 @@ impl Theme {
         T: Themeable,
     {
         let node_class_partials_defaults = self.get(&AnyIdOrDefaults::NodeDefaults);
-        themeable.node_ids().filter_map(move |node_id| {
+        themeable.node_ids().map(move |node_id| {
             let node_class_partials_specified = self.node_class_partials_specified(node_id);
 
-            let any_id = Some(AnyId::from(node_id.clone()));
+            let any_id = AnyId::from(node_id.clone());
             let node_classes_and_warnings = CssClassMerger::node_classes(
+                &any_id,
                 node_class_partials_defaults,
                 node_class_partials_specified,
                 themeable,
             );
 
-            any_id.map(|any_id| (any_id, node_classes_and_warnings))
+            (any_id, node_classes_and_warnings)
         })
     }
 
@@ -307,17 +307,18 @@ impl Theme {
     {
         let edge_class_partials_defaults = self.get(&AnyIdOrDefaults::EdgeDefaults);
 
-        themeable.edge_ids().filter_map(move |edge_id| {
+        themeable.edge_ids().map(move |edge_id| {
             let edge_class_partials_specified = self.edge_class_partials_specified(edge_id);
 
-            let any_id = Some(AnyId::from(edge_id.clone()));
+            let any_id = AnyId::from(edge_id.clone());
             let edge_classes_and_warnings = CssClassMerger::edge_classes(
+                &any_id,
                 edge_class_partials_defaults,
                 edge_class_partials_specified,
                 themeable,
             );
 
-            any_id.map(|any_id| (any_id, edge_classes_and_warnings))
+            (any_id, edge_classes_and_warnings)
         })
     }
 
@@ -393,18 +394,19 @@ impl Theme {
         T: Themeable,
     {
         let node_class_partials_defaults = self.get(&AnyIdOrDefaults::NodeDefaults);
-        themeable.node_ids().filter_map(move |node_id| {
+        themeable.node_ids().map(move |node_id| {
             let node_class_partials_specified = self.node_class_partials_specified(node_id);
 
-            let any_id = Some(AnyId::from(node_id.clone()));
+            let any_id = AnyId::from(node_id.clone());
             let node_classes_and_warnings = CssClassMerger::node_tag_classes(
+                &any_id,
                 node_class_partials_defaults,
                 node_class_partials_specified,
                 themeable,
                 tag_id,
             );
 
-            any_id.map(|any_id| (any_id, node_classes_and_warnings))
+            (any_id, node_classes_and_warnings)
         })
     }
 
@@ -418,18 +420,19 @@ impl Theme {
     {
         let edge_class_partials_defaults = self.get(&AnyIdOrDefaults::EdgeDefaults);
 
-        themeable.edge_ids().filter_map(move |edge_id| {
+        themeable.edge_ids().map(move |edge_id| {
             let edge_class_partials_specified = self.edge_class_partials_specified(edge_id);
 
-            let any_id = Some(AnyId::from(edge_id.clone()));
+            let any_id = AnyId::from(edge_id.clone());
             let edge_classes_and_warnings = CssClassMerger::edge_tag_classes(
+                &any_id,
                 edge_class_partials_defaults,
                 edge_class_partials_specified,
                 themeable,
                 tag_id,
             );
 
-            any_id.map(|any_id| (any_id, edge_classes_and_warnings))
+            (any_id, edge_classes_and_warnings)
         })
     }
 }
