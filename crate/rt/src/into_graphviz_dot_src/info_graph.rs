@@ -223,10 +223,6 @@ impl IntoGraphvizDotSrc for &InfoGraph {
 
         let dot_src = formatdoc!(
             "digraph G {{
-                // {tag_styles_focus:?}
-
-                // {tag_el_css_classes_map:?}
-
                 {graph_attrs}
                 {node_attrs}
                 {edge_attrs}
