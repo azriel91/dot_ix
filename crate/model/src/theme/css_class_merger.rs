@@ -21,7 +21,12 @@ impl CssClassMerger {
     where
         T: Themeable,
     {
-        Self::node_classes_calculate(defaults, specified, themeable, StyleFor::Regular)
+        let css_class_merge_params = CssClassMergeParams {
+            defaults,
+            specified,
+            themeable,
+        };
+        Self::node_classes_calculate(css_class_merge_params, StyleFor::Regular)
     }
 
     /// Returns the CSS classes for a node associated with a tag.
@@ -34,21 +39,21 @@ impl CssClassMerger {
     where
         T: Themeable,
     {
-        Self::node_classes_calculate(defaults, specified, themeable, StyleFor::TagFocus(tag_id))
+        let css_class_merge_params = CssClassMergeParams {
+            defaults,
+            specified,
+            themeable,
+        };
+        Self::node_classes_calculate(css_class_merge_params, StyleFor::TagFocus(tag_id))
     }
 
     /// Returns the CSS classes for a node in a particular themeable rendering.
     ///
     /// This merges the specified themed values over the defaults.
-    fn node_classes_calculate<T>(
-        defaults: Option<&CssClassPartials>,
-        specified: Option<&CssClassPartials>,
-        themeable: &T,
+    fn node_classes_calculate(
+        css_class_merge_params: CssClassMergeParams<'_>,
         style_for: StyleFor<'_>,
-    ) -> CssClassesAndWarnings
-    where
-        T: Themeable,
-    {
+    ) -> CssClassesAndWarnings {
         let mut css_classes_builder = CssClassesBuilder::new(style_for);
         let mut warnings = ThemeWarnings::new();
 
@@ -74,32 +79,32 @@ impl CssClassMerger {
             };
 
         Self::outline_classes_append(
+            css_class_merge_params,
             &mut css_classes_builder,
             &mut warnings,
             themeable_node_outline_classes,
-            defaults,
-            specified,
-            themeable,
             style_for,
         );
         Self::stroke_classes_append(
+            css_class_merge_params,
             &mut css_classes_builder,
             &mut warnings,
             themeable_node_stroke_classes,
-            defaults,
-            specified,
-            themeable,
             style_for,
         );
         Self::fill_classes_append(
+            css_class_merge_params,
             &mut css_classes_builder,
             &mut warnings,
             themeable_node_fill_classes,
-            defaults,
-            specified,
-            themeable,
             style_for,
         );
+
+        let CssClassMergeParams {
+            defaults,
+            specified,
+            themeable: _,
+        } = css_class_merge_params;
 
         [
             SpacingParamGroupings::new("px", &[ThemeAttr::PaddingX, ThemeAttr::Padding]),
@@ -142,7 +147,12 @@ impl CssClassMerger {
     where
         T: Themeable,
     {
-        Self::edge_classes_calculate(defaults, specified, themeable, StyleFor::Regular)
+        let css_class_merge_params = CssClassMergeParams {
+            defaults,
+            specified,
+            themeable,
+        };
+        Self::edge_classes_calculate(css_class_merge_params, StyleFor::Regular)
     }
 
     /// Returns the CSS classes for an edge associated with a tag.
@@ -155,21 +165,21 @@ impl CssClassMerger {
     where
         T: Themeable,
     {
-        Self::edge_classes_calculate(defaults, specified, themeable, StyleFor::TagFocus(tag_id))
+        let css_class_merge_params = CssClassMergeParams {
+            defaults,
+            specified,
+            themeable,
+        };
+        Self::edge_classes_calculate(css_class_merge_params, StyleFor::TagFocus(tag_id))
     }
 
     /// Returns the CSS classes for an edge in a particular themeable rendering.
     ///
     /// This merges the specified themed values over the defaults.
-    fn edge_classes_calculate<T>(
-        defaults: Option<&CssClassPartials>,
-        specified: Option<&CssClassPartials>,
-        themeable: &T,
+    fn edge_classes_calculate(
+        css_class_merge_params: CssClassMergeParams<'_>,
         style_for: StyleFor<'_>,
-    ) -> CssClassesAndWarnings
-    where
-        T: Themeable,
-    {
+    ) -> CssClassesAndWarnings {
         let mut css_classes_builder = CssClassesBuilder::new(style_for);
         let mut warnings = ThemeWarnings::new();
 
@@ -195,32 +205,32 @@ impl CssClassMerger {
             };
 
         Self::outline_classes_append(
+            css_class_merge_params,
             &mut css_classes_builder,
             &mut warnings,
             themeable_edge_outline_classes,
-            defaults,
-            specified,
-            themeable,
             style_for,
         );
         Self::stroke_classes_append(
+            css_class_merge_params,
             &mut css_classes_builder,
             &mut warnings,
             themeable_edge_stroke_classes,
-            defaults,
-            specified,
-            themeable,
             style_for,
         );
         Self::fill_classes_append(
+            css_class_merge_params,
             &mut css_classes_builder,
             &mut warnings,
             themeable_edge_fill_classes,
-            defaults,
-            specified,
-            themeable,
             style_for,
         );
+
+        let CssClassMergeParams {
+            defaults,
+            specified,
+            themeable: _,
+        } = css_class_merge_params;
 
         Self::animation_classes(&mut css_classes_builder, defaults, specified);
         Self::visibility_classes(&mut css_classes_builder, defaults, specified);
@@ -233,12 +243,10 @@ impl CssClassMerger {
     }
 
     fn outline_classes_append(
+        css_class_merge_params: CssClassMergeParams<'_>,
         css_classes_builder: &mut CssClassesBuilder,
         warnings: &mut ThemeWarnings,
         fn_outline_classes: fn(&dyn Themeable, &mut CssClassesBuilder, LineParams<'_>),
-        defaults: Option<&CssClassPartials>,
-        specified: Option<&CssClassPartials>,
-        themeable: &dyn Themeable,
         style_for: StyleFor<'_>,
     ) {
         let line_class_append_result = match style_for {
@@ -251,10 +259,8 @@ impl CssClassMerger {
                 ]
                 .into_iter();
                 Self::line_classes_fold(
+                    css_class_merge_params,
                     css_classes_builder,
-                    defaults,
-                    specified,
-                    themeable,
                     param_groupings,
                 )
             }
@@ -264,10 +270,8 @@ impl CssClassMerger {
                     [LineParamGroupings::new_outline_normal(fn_outline_classes)].into_iter();
 
                 Self::line_classes_fold(
+                    css_class_merge_params,
                     css_classes_builder,
-                    defaults,
-                    specified,
-                    themeable,
                     param_groupings,
                 )
             }
@@ -319,12 +323,10 @@ impl CssClassMerger {
     /// Appends CSS classes for stroke styling for all [`HighlightState`]s to
     /// the CSS classes builder.
     fn stroke_classes_append(
+        css_class_merge_params: CssClassMergeParams<'_>,
         css_classes_builder: &mut CssClassesBuilder,
         warnings: &mut ThemeWarnings,
         fn_stroke_classes: fn(&dyn Themeable, &mut CssClassesBuilder, LineParams<'_>),
-        defaults: Option<&CssClassPartials>,
-        specified: Option<&CssClassPartials>,
-        themeable: &dyn Themeable,
         style_for: StyleFor<'_>,
     ) {
         let line_class_append_result = match style_for {
@@ -338,10 +340,8 @@ impl CssClassMerger {
                 ]
                 .into_iter();
                 Self::line_classes_fold(
+                    css_class_merge_params,
                     css_classes_builder,
-                    defaults,
-                    specified,
-                    themeable,
                     param_groupings,
                 )
             }
@@ -351,10 +351,8 @@ impl CssClassMerger {
                     [LineParamGroupings::new_stroke_normal(fn_stroke_classes)].into_iter();
 
                 Self::line_classes_fold(
+                    css_class_merge_params,
                     css_classes_builder,
-                    defaults,
-                    specified,
-                    themeable,
                     param_groupings,
                 )
             }
@@ -406,12 +404,16 @@ impl CssClassMerger {
     /// Appends CSS classes for stroke styling for a given [`HighlightState`] to
     /// the CSS classes builder.
     fn line_classes_highlight_state_append<'f1, 'f2: 'f1>(
+        css_class_merge_params: CssClassMergeParams<'f2>,
         css_classes_builder: &mut CssClassesBuilder,
         css_classes_param_groupings: &LineParamGroupings<LineParams<'f1>>,
-        defaults: Option<&'f2 CssClassPartials>,
-        specified: Option<&'f2 CssClassPartials>,
-        themeable: &dyn Themeable,
     ) -> LineClassAppendResult<'f2> {
+        let CssClassMergeParams {
+            defaults,
+            specified,
+            themeable,
+        } = css_class_merge_params;
+
         let LineParamGroupings {
             highlight_state,
             color_keys,
@@ -459,12 +461,10 @@ impl CssClassMerger {
     /// Appends CSS classes for fill styling for all [`HighlightState`]s to
     /// the CSS classes builder.
     fn fill_classes_append(
+        css_class_merge_params: CssClassMergeParams<'_>,
         css_classes_builder: &mut CssClassesBuilder,
         warnings: &mut ThemeWarnings,
         fn_fill_classes: fn(&dyn Themeable, &mut CssClassesBuilder, ColorParams<'_>),
-        defaults: Option<&CssClassPartials>,
-        specified: Option<&CssClassPartials>,
-        themeable: &dyn Themeable,
         style_for: StyleFor<'_>,
     ) {
         let fill_class_append_result = match style_for {
@@ -478,10 +478,8 @@ impl CssClassMerger {
                 ]
                 .into_iter();
                 Self::fill_classes_fold(
+                    css_class_merge_params,
                     css_classes_builder,
-                    defaults,
-                    specified,
-                    themeable,
                     param_groupings,
                 )
             }
@@ -491,10 +489,8 @@ impl CssClassMerger {
                     [ColorParamGroupings::new_fill_normal(fn_fill_classes)].into_iter();
 
                 Self::fill_classes_fold(
+                    css_class_merge_params,
                     css_classes_builder,
-                    defaults,
-                    specified,
-                    themeable,
                     param_groupings,
                 )
             }
@@ -533,12 +529,16 @@ impl CssClassMerger {
     /// Appends CSS classes for fill styling for a given [`HighlightState`]s to
     /// the CSS classes builder.
     fn fill_classes_highlight_state_append<'f1, 'f2: 'f1>(
+        css_class_merge_params: CssClassMergeParams<'f2>,
         css_classes_param_groupings: ColorParamGroupings<ColorParams<'f1>>,
-        defaults: Option<&'f2 CssClassPartials>,
-        specified: Option<&'f2 CssClassPartials>,
-        themeable: &dyn Themeable,
         css_classes_builder: &mut CssClassesBuilder,
     ) -> FillClassAppendResult<'f2> {
+        let CssClassMergeParams {
+            defaults,
+            specified,
+            themeable,
+        } = css_class_merge_params;
+
         let ColorParamGroupings {
             highlight_state,
             color_keys,
@@ -615,10 +615,8 @@ impl CssClassMerger {
     /// Since the param groupings are arrays of different sizes, we need to have
     /// a generic function to cater for different concrete types.
     fn line_classes_fold<'f, I>(
+        css_class_merge_params: CssClassMergeParams<'f>,
         css_classes_builder: &mut CssClassesBuilder,
-        defaults: Option<&'f CssClassPartials>,
-        specified: Option<&'f CssClassPartials>,
-        themeable: &dyn Themeable,
         param_groupings: I,
     ) -> Vec<LineClassAppendResult<'f>>
     where
@@ -628,11 +626,9 @@ impl CssClassMerger {
             Vec::new(),
             |mut line_class_append_result_acc, css_classes_param_groupings| {
                 let line_class_append_result = Self::line_classes_highlight_state_append(
+                    css_class_merge_params,
                     css_classes_builder,
                     &css_classes_param_groupings,
-                    defaults,
-                    specified,
-                    themeable,
                 );
 
                 line_class_append_result_acc.push(line_class_append_result);
@@ -645,10 +641,8 @@ impl CssClassMerger {
     /// Since the param groupings are arrays of different sizes, we need to have
     /// a generic function to cater for different concrete types.
     fn fill_classes_fold<'f, I>(
+        css_class_merge_params: CssClassMergeParams<'f>,
         css_classes_builder: &mut CssClassesBuilder,
-        defaults: Option<&'f CssClassPartials>,
-        specified: Option<&'f CssClassPartials>,
-        themeable: &dyn Themeable,
         param_groupings: I,
     ) -> Vec<FillClassAppendResult<'f>>
     where
@@ -658,10 +652,8 @@ impl CssClassMerger {
             Vec::new(),
             |mut fill_class_append_result_acc, css_classes_param_groupings| {
                 let fill_class_append_result = Self::fill_classes_highlight_state_append(
+                    css_class_merge_params,
                     css_classes_param_groupings,
-                    defaults,
-                    specified,
-                    themeable,
                     css_classes_builder,
                 );
 
@@ -698,7 +690,16 @@ fn attr_value_find<'attr>(
     })
 }
 
+/// Grouping of common parameters to reduce parameter count in methods.
+#[derive(Clone, Copy)]
+struct CssClassMergeParams<'params> {
+    defaults: Option<&'params CssClassPartials>,
+    specified: Option<&'params CssClassPartials>,
+    themeable: &'params dyn Themeable,
+}
+
 /// Groupings of parameters to generate CSS classes for spacing.
+#[derive(Clone, Copy)]
 struct SpacingParamGroupings {
     spacing_prefix: &'static str,
     spacing_keys: &'static [ThemeAttr],
@@ -714,6 +715,7 @@ impl SpacingParamGroupings {
 }
 
 /// Groupings of parameters to generate CSS classes for colour shades.
+#[derive(Clone, Copy)]
 struct ColorParamGroupings<Params> {
     highlight_state: HighlightState,
     /// List of keys to fallback on.
@@ -794,6 +796,7 @@ impl<Params> ColorParamGroupings<Params> {
 }
 
 /// Groupings of parameters to generate CSS classes for colour shades.
+#[derive(Clone, Copy)]
 struct LineParamGroupings<Params> {
     highlight_state: HighlightState,
     /// List of keys to fallback on.
@@ -952,6 +955,7 @@ impl<Params> LineParamGroupings<Params> {
 ///
 /// The `ThemeAttr` in each `NoChange` variant is the `ThemeAttr` that is
 /// specified, i.e. one of the fallbacks.
+#[derive(Clone, Copy)]
 enum LineClassAppendResult<'value> {
     Added,
     NoChange {
@@ -968,6 +972,7 @@ enum LineClassAppendResult<'value> {
 ///
 /// The `ThemeAttr` in each `NoChange` variant is the `ThemeAttr` that is
 /// specified, i.e. one of the fallbacks.
+#[derive(Clone, Copy)]
 enum FillClassAppendResult<'value> {
     Added,
     NoChange {
