@@ -102,6 +102,66 @@ fn info_graph_src_init() -> String {
     }
 }
 
+/// Requests and returns the given example.
+pub async fn example_load(example_name: &str) -> Option<String> {
+    // Load the example source from static content.
+    let path = match example_name {
+        "custom" => {
+            leptos::logging::log!("Not loading anything for `{example_name}`.");
+            return None;
+        }
+        _ if example_name.starts_with("example") => format!("/examples/{example_name}.yaml"),
+        _ => {
+            leptos::logging::log!(
+                "Not loading anything for unknown example name: `{example_name}`."
+            );
+            return None;
+        }
+    };
+
+    cfg_if::cfg_if! {
+        if #[cfg(target_arch = "wasm32")] {
+            let abort_controller = web_sys::AbortController::new().ok();
+            let abort_signal = abort_controller.as_ref().map(|a| a.signal());
+
+            // abort in-flight requests if, e.g., we've navigated away from this page
+            leptos::on_cleanup(move || {
+                if let Some(abort_controller) = abort_controller {
+                    abort_controller.abort()
+                }
+            });
+
+            let content = gloo_net::http::Request::get(&path)
+                .abort_signal(abort_signal.as_ref())
+                .send()
+                .await
+                .map_err(|e| leptos::logging::error!("gloo_net request error. Path: `{path}`, Error: {e}"))
+                .ok()?
+                .text()
+                .await
+                .ok()?;
+
+            Some(content)
+        } else if #[cfg(feature = "ssr")] {
+            let content = reqwest::get(&path)
+                .await
+                .map_err(|e| leptos::logging::error!("reqwest get error. Path: `{path}`, Error: {e}"))
+                .ok()?
+                .text()
+                .await
+                .ok()?;
+
+            Some(content)
+        } else {
+            // Should be unreachable, since we only support `"ssr"`,
+            // with the server side / client side builds.
+            leptos::logging::log!("Not loading anything for {path} for non-ssr, non-wasm build.");
+
+            None
+        }
+    }
+}
+
 /// Text input and dot graph rendering.
 ///
 /// Notably, we run `set_*.update(..)` within a number of `create_effect`s.
@@ -120,6 +180,7 @@ fn info_graph_src_init() -> String {
 #[component]
 pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
     let (info_graph_src, set_info_graph_src) = create_signal(info_graph_src_init());
+    let (src_selection, src_selection_set) = create_signal(String::from(""));
     let flex_diag_radio = create_node_ref::<html::Input>();
     let (flex_diag_visible, flex_diag_visible_set) = create_signal(false);
     let flex_diag_visible_update = move |_ev| {
@@ -190,6 +251,20 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
     let (dot_src, set_dot_src) = create_signal(None::<String>);
 
     let (info_graph, set_info_graph) = create_signal(InfoGraph::default());
+    let (external_refresh_count, external_refresh_count_set) = create_signal(0);
+
+    // Load an example when the selection box is changed.
+    let _example_resource_load = leptos::create_resource(
+        move || src_selection.get(),
+        // every time `src_selection` changes, this will run
+        move |src_selection| async move {
+            let example_content = example_load(&src_selection).await;
+            if let Some(example_content) = example_content {
+                set_info_graph_src.set(example_content);
+                external_refresh_count_set.set(external_refresh_count.get() + 1);
+            }
+        },
+    );
 
     create_effect(move |_| {
         let info_graph_src = info_graph_src.get();
@@ -312,6 +387,9 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
                     set_dot_src
                     info_graph_src
                     set_info_graph_src
+                    src_selection
+                    src_selection_set
+                    external_refresh_count
                 />
                 <InfoGraphDiagram
                     diagram_only
@@ -335,6 +413,9 @@ pub fn InfoGraphSrcAndDotSrc(
     set_dot_src: WriteSignal<Option<String>>,
     info_graph_src: ReadSignal<String>,
     set_info_graph_src: WriteSignal<String>,
+    src_selection: ReadSignal<String>,
+    src_selection_set: WriteSignal<String>,
+    external_refresh_count: ReadSignal<u32>,
 ) -> impl IntoView {
     view! {
         <div class={ textbox_div_display_classes }>
@@ -351,6 +432,23 @@ pub fn InfoGraphSrcAndDotSrc(
                 label="generated.dot"
             />
 
+            <div class="float-right flex gap-x-2 px-2">
+                <label for="">"Source:"</label>
+                <select
+                    class="border border-slate-400 rounded"
+                    on:change=move |ev| {
+                        let new_value = event_target_value(&ev);
+                        src_selection_set.set(new_value);
+                    }
+                    prop:value=move || src_selection.get()
+                >
+                    <option value="custom" selected></option>
+                    <option value="example_001">"Ex 1: Simple"</option>
+                    <option value="example_002">"Ex 2: Tags"</option>
+                    <option value="example_003">"Ex 3: Interactive"</option>
+                </select>
+            </div>
+
             // tab content
             <div class="\
                 invisible \
@@ -362,6 +460,7 @@ pub fn InfoGraphSrcAndDotSrc(
                 <TextEditor
                     value=info_graph_src
                     set_value=set_info_graph_src
+                    external_refresh_count
                     id="info_graph_yml"
                     name="info_graph_yml"
                     class="\

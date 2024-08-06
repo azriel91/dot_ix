@@ -31,6 +31,7 @@ use wasm_bindgen::{closure::Closure, JsCast};
 pub fn TextEditor(
     value: ReadSignal<String>,
     set_value: WriteSignal<String>,
+    #[prop(optional)] external_refresh_count: Option<ReadSignal<u32>>,
     #[prop(optional)] id: Option<&'static str>,
     #[prop(optional)] name: Option<&'static str>,
     #[prop(optional)] class: Option<&'static str>,
@@ -42,6 +43,7 @@ pub fn TextEditor(
     {
         let _value = value;
         let _set_value = set_value;
+        let _external_refresh_count = external_refresh_count;
         let _editor_state = editor_state;
         let _div_ref = div_ref;
     }
@@ -101,6 +103,13 @@ pub fn TextEditor(
         //     editor_state.get_untracked().set_value(&updated_value);
         // });
         // ```
+        leptos::create_effect(move |_| {
+            if let Some(external_refresh_count) = external_refresh_count {
+                let _external_refresh_count = external_refresh_count.get();
+                let updated_value = value.get_untracked();
+                editor_state.get_untracked().set_value(&updated_value);
+            }
+        });
     }
 
     view! {

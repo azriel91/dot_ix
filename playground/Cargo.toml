@@ -21,6 +21,7 @@ console_error_panic_hook = { workspace = true }
 console_log = { workspace = true }
 cfg-if = { workspace = true }
 dot_ix = { version = "0.7.0", path = "..", features = ["flex_diag"] }
+gloo-net = { workspace = true, features = ["http"] }
 leptos = { workspace = true }
 leptos_axum = { workspace = true, optional = true }
 leptos_meta = { workspace = true }
@@ -29,6 +30,7 @@ leptos-use = { workspace = true }
 log = { workspace = true }
 log4rs = { workspace = true, optional = true, default-features = false, features = ["console_appender", "threshold_filter"] }
 monaco = { workspace = true }
+reqwest = { workspace = true, optional = true }
 serde = { workspace = true, features = ["derive"] }
 tokio = { workspace = true, optional = true }
 tower = { workspace = true, optional = true }
@@ -40,7 +42,7 @@ lz-str = "0.2.1"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 wasm-bindgen = { workspace = true }
-web-sys = { workspace = true, features = ["console", "Document", "Element", "HtmlElement", "Url", "UrlSearchParams", "Window"] }
+web-sys = { workspace = true, features = ["console", "AbortController", "AbortSignal", "Document", "Element", "HtmlElement", "Url", "UrlSearchParams", "Window"] }
 js-sys = { workspace = true }
 
 [features]
@@ -59,6 +61,7 @@ ssr = [
     "leptos/ssr",
     "leptos_meta/ssr",
     "leptos_router/ssr",
+    "dep:reqwest",
     "dep:tracing",
 ]
 csr = [

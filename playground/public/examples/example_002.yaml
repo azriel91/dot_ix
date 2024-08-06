@@ -1,0 +1,16 @@
+---
+# Example 002: Tags
+
+hierarchy:
+  a: {}
+  b: {}
+  c: {}
+  d: {}
+
+tags:
+  tag_one: "Group One"
+  tag_two: "Group Two"
+
+tag_items:
+  tag_one: [a, b]
+  tag_two: [b, c, d]
