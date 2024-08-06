@@ -797,7 +797,7 @@ fn tag_legend(
                 margin    = "{tag_margin_x:.3},{tag_margin_y:.3}"
                 fontname  = "liberationmono"
                 fontsize  = {tag_point_size}
-                class     = "{tag_classes} {tag_peer_class}"
+                class     = "{OUTLINE_NONE} {tag_classes} {tag_peer_class}"
                 penwidth  = 1
 
                 // invisible node for cluster to appear
