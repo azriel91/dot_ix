@@ -1,0 +1,165 @@
+# Example: Cloud Infrastructure
+---
+direction: vertical
+hierarchy:
+  aws:
+    aws_global:
+      aws_global_iam_role_beanstalk: {}
+      aws_global_iam_role_instance: {}
+    aws_region:
+      aws_region_vpc:
+        aws_region_vpc_a:
+          aws_region_vpc_a_shared_subnet: {}
+          aws_region_vpc_a_dev_subnet: {}
+          aws_region_vpc_a_prod_subnet: {}
+        aws_region_vpc_b:
+          aws_region_vpc_b_dev_subnet: {}
+          aws_region_vpc_b_prod_subnet: {}
+        aws_region_vpc_c:
+          aws_region_vpc_c_dev_subnet: {}
+          aws_region_vpc_c_prod_subnet: {}
+
+node_names:
+  aws: "Amazon Web Services"
+  aws_global: "<b>Global Resources</b> "
+  aws_global_iam_role_beanstalk: "IAM Role"
+  aws_global_iam_role_instance: "IAM Role"
+  aws_region: "<b>Regional Resources</b> "
+  aws_region_vpc: "VPC"
+  aws_region_vpc_a: "Region A"
+  aws_region_vpc_a_shared_subnet: "(Shared) Subnet"
+  aws_region_vpc_a_dev_subnet: "(DEV) Subnet"
+  aws_region_vpc_a_prod_subnet: "(PROD) Subnet"
+  aws_region_vpc_b: "Region B"
+  aws_region_vpc_b_dev_subnet: "(DEV) Subnet"
+  aws_region_vpc_b_prod_subnet: "(PROD) Subnet"
+  aws_region_vpc_c: "Region C"
+  aws_region_vpc_c_dev_subnet: "(DEV) Subnet"
+  aws_region_vpc_c_prod_subnet: "(PROD) Subnet"
+
+node_descs:
+  step_1: "Find bug"
+  aws_global_iam_role_beanstalk: "aws-elasticbeanstalk-service-role"
+  aws_global_iam_role_instance: "aws-elasticbeanstalk-ec2-role"
+  aws_region_vpc: "172.31.0.0/16"
+  aws_region_vpc_a_shared_subnet: "172.31.0.0/22"
+  aws_region_vpc_a_dev_subnet: "172.31.4.0/23"
+  aws_region_vpc_b_dev_subnet: "172.31.6.0/23"
+  aws_region_vpc_c_dev_subnet: "172.31.8.0/23"
+  aws_region_vpc_a_prod_subnet: "172.31.10.0/23"
+  aws_region_vpc_b_prod_subnet: "172.31.12.0/23"
+  aws_region_vpc_c_prod_subnet: "172.31.14.0/23"
+
+node_emojis:
+  aws: ☁️
+  aws_global: 🌏
+  aws_global_iam_role_beanstalk: 📄
+  aws_global_iam_role_instance: 📄
+  aws_region: 🗾
+  aws_region_vpc: 🌐
+  aws_region_vpc_a_shared_subnet: 🕸️
+  aws_region_vpc_a_dev_subnet: 🕸️
+  aws_region_vpc_b_dev_subnet: 🕸️
+  aws_region_vpc_c_dev_subnet: 🕸️
+  aws_region_vpc_a_prod_subnet: 🕸️
+  aws_region_vpc_b_prod_subnet: 🕸️
+  aws_region_vpc_c_prod_subnet: 🕸️
+
+edges:
+  aws_region_vpc_a_shared_subnet__aws_region_vpc_a_dev_subnet: [aws_region_vpc_a_shared_subnet, aws_region_vpc_a_dev_subnet]
+  aws_region_vpc_a_shared_subnet__aws_region_vpc_b_dev_subnet: [aws_region_vpc_a_shared_subnet, aws_region_vpc_b_dev_subnet]
+  aws_region_vpc_a_shared_subnet__aws_region_vpc_c_dev_subnet: [aws_region_vpc_a_shared_subnet, aws_region_vpc_c_dev_subnet]
+
+  aws_region_vpc_a_dev_subnet__aws_region_vpc_a_prod_subnet: [aws_region_vpc_a_dev_subnet, aws_region_vpc_a_prod_subnet]
+  aws_region_vpc_b_dev_subnet__aws_region_vpc_b_prod_subnet: [aws_region_vpc_b_dev_subnet, aws_region_vpc_b_prod_subnet]
+  aws_region_vpc_c_dev_subnet__aws_region_vpc_c_prod_subnet: [aws_region_vpc_c_dev_subnet, aws_region_vpc_c_prod_subnet]
+
+  aws_global_iam_role_beanstalk__aws_global_iam_role_instance: [aws_global_iam_role_beanstalk, aws_global_iam_role_instance]
+  aws_global_iam_role_instance__aws_region_vpc_a: [aws_global_iam_role_instance, aws_region_vpc_a]
+
+tags:
+  tag_global: "global"
+  tag_vpc: "vpc"
+  tag_stage_dev: "stage (DEV)"
+  tag_stage_prod: "stage (PROD)"
+
+tag_items:
+  tag_global:     [aws_global_iam_role_beanstalk, aws_global_iam_role_instance]
+  tag_vpc:        [aws_region_vpc, aws_region_vpc_a_shared_subnet]
+  tag_stage_dev:  [aws_region_vpc_a_dev_subnet, aws_region_vpc_b_dev_subnet, aws_region_vpc_c_dev_subnet]
+  tag_stage_prod: [aws_region_vpc_a_prod_subnet, aws_region_vpc_b_prod_subnet, aws_region_vpc_c_prod_subnet]
+
+tag_styles_focus:
+  tag_global: &tag_defaults
+    node_defaults:
+      shape_color: lime
+      stroke_width: '[1px]'
+      stroke_style: 'solid'
+      stroke_shade: '500'
+      fill_shade: '200'
+  tag_vpc: *tag_defaults
+  tag_stage_dev: *tag_defaults
+  tag_stage_prod: *tag_defaults
+
+graphviz_attrs:
+  pack_mode: array_t2
+
+theme:
+  styles:
+    node_defaults:
+      extra: 'cursor-pointer rounded-lg'
+    edge_defaults:
+      extra: cursor-pointer
+    hidden: &hidden { extra: hidden }
+    aws_region_vpc_a_shared_subnet__aws_region_vpc_a_dev_subnet: *hidden
+    aws_region_vpc_a_shared_subnet__aws_region_vpc_b_dev_subnet: *hidden
+    aws_region_vpc_a_shared_subnet__aws_region_vpc_c_dev_subnet: *hidden
+    aws_global_iam_role_beanstalk__aws_global_iam_role_instance: *hidden
+    aws_region_vpc_a_dev_subnet__aws_region_vpc_a_prod_subnet: *hidden
+    aws_region_vpc_b_dev_subnet__aws_region_vpc_b_prod_subnet: *hidden
+    aws_region_vpc_c_dev_subnet__aws_region_vpc_c_prod_subnet: *hidden
+    aws_global_iam_role_instance__aws_region_vpc_a: *hidden
+    light: &light
+      fill_shade_normal: '100'
+      fill_shade_hover: '50'
+      fill_shade_focus: '100'
+      fill_shade_active: '100'
+      stroke_shade_normal: '400'
+      stroke_shade_hover: '300'
+      stroke_shade_active: '500'
+      stroke_style: dotted
+      padding: '3'
+    aws:
+      <<: *light
+      shape_color: yellow
+      outline_color: yellow
+    
+    resource_group: &resource_group
+      <<: *light
+      shape_color: stone
+      outline_color: stone
+    aws_global: *resource_group
+    aws_region: *resource_group
+    aws_region_vpc:
+      <<: *light
+      stroke_style: solid
+    region: &region
+      <<: *light
+      shape_color: slate
+      outline_color: slate
+    aws_region_vpc_a: *region
+    aws_region_vpc_b: *region
+    aws_region_vpc_c: *region
+
+    subnet: &subnet
+      <<: *light
+      shape_color: blue
+      outline_color: blue
+      stroke_style: solid
+    aws_region_vpc_a_shared_subnet: *subnet
+    aws_region_vpc_a_dev_subnet: *subnet
+    aws_region_vpc_a_prod_subnet: *subnet
+    aws_region_vpc_b_dev_subnet: *subnet
+    aws_region_vpc_b_prod_subnet: *subnet
+    aws_region_vpc_c_dev_subnet: *subnet
+    aws_region_vpc_c_prod_subnet: *subnet

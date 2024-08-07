@@ -1,0 +1,53 @@
+# Example: Styles (animated)
+---
+graph_style: circle # circle / box
+direction: vertical
+hierarchy:
+  a: {}
+  b: {}
+  c: {}
+  d: {}
+
+edges:
+  ab: [a, b]
+  ac: [a, c]
+  bd: [b, d]
+  cd: [c, d]
+
+theme:
+  merge_with_base: true # defaults to true
+  styles:
+    a:
+      stroke_width: '2' 
+      shape_color: 'green'
+
+    b: &in_progress
+      animate: 'pulse'
+      stroke_width: '2' 
+      shape_color: 'blue'
+
+    c:
+      # we can use YAML 1.1's Merge Key's feature:
+      #
+      # <https://yaml.org/type/merge.html>
+      #
+      # A side effect of the implementation means all style
+      # values must be single quoted.
+      #
+      # That's why values like `stroke_width: '2'` are quoted
+      # instead of a plain number.
+      <<: *in_progress
+
+      # Must surround custom keyframes animation name in quotes and brackets
+      #
+      # For syntax, see:
+      #
+      # <https://tailwindcss.com/docs/animation#arbitrary-values>
+      animate: '[ellipse-spin_0.3s_linear_infinite]'
+      stroke_style: 'dashed'
+
+css: >-
+  @keyframes ellipse-spin {
+    0%   { stroke-dashoffset: 6; }
+    100% { stroke-dashoffset: 0; }
+  }

@@ -2,12 +2,12 @@
 graph_style: circle # box, circle
 direction: vertical
 hierarchy:
-  github:
-    github_app_zip: {}
-
   localhost:
     app_download: {}
     app_extract: {}
+
+  github:
+    github_app_zip: {}
 
   aws:
     iam_policy: {}
@@ -75,17 +75,6 @@ graphviz_attrs:
     github_app_zip__app_download_response: 1
   edge_dirs: # forward, back, both, none
     github_app_zip__app_download_request: back
-
-  # "node", "cluster", "graph", "array(_flags)?(n)?"
-  #
-  # array flags:
-  #
-  # - <none>: row major order
-  # - c: column major order
-  # - t: align clusters top (horizontal graphs)
-  # - b: align clusters bottom (horizontal graphs)
-  # - l: align clusters left (vertical graphs)
-  # - r: align clusters right (vertical graphs)
   pack_mode: "array_t"
 
 theme:
@@ -93,7 +82,6 @@ theme:
   styles:
     node_defaults:
       stroke_width: '1'
-      extra: 'rounded-lg'
     edge_defaults:
       visibility: invisible
     light: &light
@@ -139,8 +127,8 @@ tag_items:
   tag_step_1: [iam_policy, iam_role, instance_profile]
   tag_step_2: [iam_policy, iam_role, instance_profile, github_app_zip, app_download, github_app_zip__app_download_request, github_app_zip__app_download_response]
   tag_step_3: [iam_policy, iam_role, instance_profile, github_app_zip, app_download, app_download__s3_object, s3_object]
-  tag_step_4: [iam_policy, iam_role, instance_profile, github_app_zip, app_download, app_download__s3_object, s3_object, app_extract, app_download__app_extract]
-  tag_step_5: [iam_policy, iam_role, instance_profile, github_app_zip, app_download, app_download__s3_object, s3_object, app_extract]
+  tag_step_4: [iam_policy, iam_role, instance_profile, github_app_zip, app_download, s3_object, app_extract, app_download__app_extract]
+  tag_step_5: [iam_policy, iam_role, instance_profile, github_app_zip, app_download, s3_object, app_extract]
 
 # Not part of `info_graph`, but for deduplication, we can use our own keys.
 # Unknown keys are ignored during deserialization

@@ -16,7 +16,7 @@ use crate::app::{TabLabel, TextEditor};
 use super::QUERY_PARAM_DIAGRAM_ONLY;
 
 #[cfg(target_arch = "wasm32")]
-const INFO_GRAPH_DEMO: &str = include_str!("info_graph_example.yaml");
+const INFO_GRAPH_DEMO: &str = include_str!("../../public/examples/demo.yaml");
 
 /// User provided info graph source.
 #[cfg(target_arch = "wasm32")]
@@ -106,17 +106,9 @@ fn info_graph_src_init() -> String {
 pub async fn example_load(example_name: &str) -> Option<String> {
     // Load the example source from static content.
     let path = match example_name {
-        "custom" => {
-            leptos::logging::log!("Not loading anything for `{example_name}`.");
-            return None;
-        }
-        _ if example_name.starts_with("example") => format!("/examples/{example_name}.yaml"),
-        _ => {
-            leptos::logging::log!(
-                "Not loading anything for unknown example name: `{example_name}`."
-            );
-            return None;
-        }
+        // Loaded from URL.
+        "custom" | "" => return None,
+        _ => format!("examples/{example_name}.yaml"),
     };
 
     cfg_if::cfg_if! {
@@ -435,7 +427,7 @@ pub fn InfoGraphSrcAndDotSrc(
             <div class="float-right flex gap-x-2 px-2">
                 <label for="">"Source:"</label>
                 <select
-                    class="border border-slate-400 rounded"
+                    class="border border-slate-400 rounded focus:ring-2 focus:ring-blue-500"
                     on:change=move |ev| {
                         let new_value = event_target_value(&ev);
                         src_selection_set.set(new_value);
@@ -443,9 +435,15 @@ pub fn InfoGraphSrcAndDotSrc(
                     prop:value=move || src_selection.get()
                 >
                     <option value="custom" selected></option>
-                    <option value="example_001">"Ex 1: Simple"</option>
-                    <option value="example_002">"Ex 2: Tags"</option>
-                    <option value="example_003">"Ex 3: Interactive"</option>
+                    <option value="demo">"Demo"</option>
+                    <option value="process_simple">      "Ex 1: Process (simple)"</option>
+                    <option value="process_with_info">   "Ex 2: Process with info"</option>
+                    <option value="nested_nodes">        "Ex 3: Nested nodes"</option>
+                    <option value="styles_simple">       "Ex 4: Styles (simple)"</option>
+                    <option value="styles_animated">     "Ex 5: Styles (animated)"</option>
+                    <option value="tags_simple">         "Ex 6: Tags (simple)"</option>
+                    <option value="tags_styled">         "Ex 7: Tags (styled)"</option>
+                    <option value="cloud_infrastructure">"Ex 8: Cloud Infrastructure"</option>
                 </select>
             </div>
 

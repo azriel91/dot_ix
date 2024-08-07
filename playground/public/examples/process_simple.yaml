@@ -1,6 +1,5 @@
+# Example: Process (simple)
 ---
-# Example 001: Simple Diagram
-
 hierarchy:
   a: {}
   b: {}

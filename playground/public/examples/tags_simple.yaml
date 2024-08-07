@@ -1,6 +1,5 @@
+# Example: Tags (simple)
 ---
-# Example 002: Tags
-
 hierarchy:
   a: {}
   b: {}
