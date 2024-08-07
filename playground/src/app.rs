@@ -60,6 +60,27 @@ fn diagram_only_init() -> bool {
     }
 }
 
+#[component]
+pub fn GoogleTagManagerHeader() -> impl IntoView {
+    view! {
+        <script>
+        "(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':\
+        new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],\
+        j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=\
+        'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);\
+        })(window,document,'script','dataLayer','GTM-W2485ZNP');"
+        </script>
+    }
+}
+
+#[component]
+pub fn GoogleTagManagerBody() -> impl IntoView {
+    view! {
+        <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-W2485ZNP"
+        height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    }
+}
+
 /// Top level playground application.
 #[component]
 pub fn App() -> impl IntoView {
@@ -83,6 +104,8 @@ pub fn App() -> impl IntoView {
     // through client side routing.
     if site_prefix.is_empty() {
         view! {
+            <GoogleTagManagerHeader />
+
             // injects a stylesheet into the document <head>
             // id=leptos means cargo-leptos will hot-reload this stylesheet
             <Stylesheet id="leptos" href=stylesheet_path />
@@ -94,6 +117,7 @@ pub fn App() -> impl IntoView {
             <Router
                 fallback=|| RouterFallback.into_view()
             >
+                <GoogleTagManagerBody />
                 <main>
                     <Routes>
                         <Route
@@ -107,6 +131,8 @@ pub fn App() -> impl IntoView {
         }
     } else {
         view! {
+            <GoogleTagManagerHeader />
+
             // injects a stylesheet into the document <head>
             // id=leptos means cargo-leptos will hot-reload this stylesheet
             <Stylesheet id="leptos" href=stylesheet_path />
