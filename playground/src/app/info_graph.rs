@@ -8,7 +8,7 @@ use dot_ix::{
     rt::IntoGraphvizDotSrc,
     web_components::{DotSvg, FlexDiag},
 };
-use leptos::*;
+use leptos::{ev::Event, *};
 
 use crate::app::{TabLabel, TextEditor};
 
@@ -16,7 +16,7 @@ use crate::app::{TabLabel, TextEditor};
 use super::QUERY_PARAM_DIAGRAM_ONLY;
 
 #[cfg(target_arch = "wasm32")]
-const INFO_GRAPH_DEMO: &str = include_str!("info_graph_example.yaml");
+const INFO_GRAPH_DEMO: &str = include_str!("../../public/examples/demo.yaml");
 
 /// User provided info graph source.
 #[cfg(target_arch = "wasm32")]
@@ -102,6 +102,58 @@ fn info_graph_src_init() -> String {
     }
 }
 
+/// Requests and returns the given example.
+pub async fn example_load(example_name: &str) -> Option<String> {
+    // Load the example source from static content.
+    let path = match example_name {
+        // Loaded from URL.
+        "custom" | "" => return None,
+        _ => format!("examples/{example_name}.yaml"),
+    };
+
+    cfg_if::cfg_if! {
+        if #[cfg(target_arch = "wasm32")] {
+            let abort_controller = web_sys::AbortController::new().ok();
+            let abort_signal = abort_controller.as_ref().map(|a| a.signal());
+
+            // abort in-flight requests if, e.g., we've navigated away from this page
+            leptos::on_cleanup(move || {
+                if let Some(abort_controller) = abort_controller {
+                    abort_controller.abort()
+                }
+            });
+
+            let content = gloo_net::http::Request::get(&path)
+                .abort_signal(abort_signal.as_ref())
+                .send()
+                .await
+                .map_err(|e| leptos::logging::error!("gloo_net request error. Path: `{path}`, Error: {e}"))
+                .ok()?
+                .text()
+                .await
+                .ok()?;
+
+            Some(content)
+        } else if #[cfg(feature = "ssr")] {
+            let content = reqwest::get(&path)
+                .await
+                .map_err(|e| leptos::logging::error!("reqwest get error. Path: `{path}`, Error: {e}"))
+                .ok()?
+                .text()
+                .await
+                .ok()?;
+
+            Some(content)
+        } else {
+            // Should be unreachable, since we only support `"ssr"`,
+            // with the server side / client side builds.
+            leptos::logging::log!("Not loading anything for {path} for non-ssr, non-wasm build.");
+
+            None
+        }
+    }
+}
+
 /// Text input and dot graph rendering.
 ///
 /// Notably, we run `set_*.update(..)` within a number of `create_effect`s.
@@ -120,6 +172,7 @@ fn info_graph_src_init() -> String {
 #[component]
 pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
     let (info_graph_src, set_info_graph_src) = create_signal(info_graph_src_init());
+    let (src_selection, src_selection_set) = create_signal(String::from(""));
     let flex_diag_radio = create_node_ref::<html::Input>();
     let (flex_diag_visible, flex_diag_visible_set) = create_signal(false);
     let flex_diag_visible_update = move |_ev| {
@@ -190,6 +243,20 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
     let (dot_src, set_dot_src) = create_signal(None::<String>);
 
     let (info_graph, set_info_graph) = create_signal(InfoGraph::default());
+    let (external_refresh_count, external_refresh_count_set) = create_signal(0);
+
+    // Load an example when the selection box is changed.
+    let _example_resource_load = leptos::create_resource(
+        move || src_selection.get(),
+        // every time `src_selection` changes, this will run
+        move |src_selection| async move {
+            let example_content = example_load(&src_selection).await;
+            if let Some(example_content) = example_content {
+                set_info_graph_src.set(example_content);
+                external_refresh_count_set.set(external_refresh_count.get_untracked() + 1);
+            }
+        },
+    );
 
     create_effect(move |_| {
         let info_graph_src = info_graph_src.get();
@@ -306,157 +373,226 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
     view! {
         <div class={ editor_and_disclaimer_wrapper_classes }>
             <div class={ editor_and_diagram_div_classes }>
-                <div class={ textbox_div_display_classes }>
-
-                    <TabLabel
-                        tab_group_name="src_tabs"
-                        tab_id="tab_info_graph_yml"
-                        label="info_graph.yml"
-                        checked=true
-                    />
-
-                    <TabLabel
-                        tab_group_name="src_tabs"
-                        tab_id="tab_info_graph_dot"
-                        label="generated.dot"
-                    />
-
-                    // tab content
-                    <div class="\
-                        invisible \
-                        h-0 \
-                        peer-checked/tab_info_graph_yml:visible \
-                        peer-checked/tab_info_graph_yml:h-full \
-                        "
-                    >
-                        <TextEditor
-                            value=info_graph_src
-                            set_value=set_info_graph_src
-                            id="info_graph_yml"
-                            name="info_graph_yml"
-                            class="\
-                                border \
-                                border-slate-400 \
-                                bg-slate-100 \
-                                font-mono \
-                                h-full \
-                                p-2 \
-                                rounded \
-                                text-xs \
-                            "
-                        />
-                    </div>
-
-                    // tab content
-                    <div class="\
-                        invisible \
-                        h-0 \
-                        peer-checked/tab_info_graph_dot:visible \
-                        peer-checked/tab_info_graph_dot:h-full \
-                        "
-                    >
-                        <textarea
-                            id="info_graph_dot"
-                            name="info_graph_dot"
-                            class="\
-                                border \
-                                border-slate-400 \
-                                bg-slate-100 \
-                                w-full \
-                                h-full \
-                                font-mono \
-                                p-2 \
-                                rounded \
-                                text-xs \
-                            "
-                            on:input=leptos_dom::helpers::debounce(Duration::from_millis(400), move |ev| {
-                                let dot_src = event_target_value(&ev);
-                                set_dot_src.set(Some(dot_src));
-                            })
-                            prop:value={
-                                move || {
-                                    let dot_src = dot_src.get();
-                                    dot_src.as_deref()
-                                        .unwrap_or("")
-                                        .to_string()
-                                }
-                            } />
-                    </div>
-                </div>
-                <div
-                    class={move || {
-                        if diagram_only.get() {
-                            ""
-                        } else {
-                            // Take up the full screen if the screen size is small,
-                            // otherwise take up just enough for content.
-                            "\
-                            basis-1/2 \
-                            grow \
-                            lg:basis-3/5 \
-                            lg:grow \
-                            lg:shrink \
-                            "
-                        }
-                    }}
-                >
-
-                    <TabLabel
-                        tab_group_name="diagram_tabs"
-                        tab_id="tab_dot_svg"
-                        label="Dot SVG"
-                        checked=true
-                        on_change=flex_diag_visible_update
-                    />
-
-                    <TabLabel
-                        tab_group_name="diagram_tabs"
-                        tab_id="tab_flex_diag"
-                        label="Flex Diagram"
-                        on_change=flex_diag_visible_update
-                        node_ref=flex_diag_radio
-                    />
-
-                    <div
-                        class="\
-                            invisible \
-                            h-0 \
-                            peer-checked/tab_dot_svg:visible \
-                            peer-checked/tab_dot_svg:h-auto \
-                            w-dvw \
-                            lg:w-auto \
-                            max-w-dvw \
-                            overflow-auto \
-                        "
-                    >
-                        <DotSvg
-                            info_graph=info_graph.into()
-                            dot_src_and_styles=dot_src_and_styles.into()
-                            diagram_only=diagram_only.into()
-                        />
-                    </div>
-
-                    <div
-                        class="\
-                            invisible \
-                            h-0 \
-                            peer-checked/tab_flex_diag:visible \
-                            peer-checked/tab_flex_diag:h-auto \
-                            w-dvw \
-                            lg:w-auto \
-                            max-w-dvw \
-                            overflow-auto \
-                        "
-                    >
-                        <FlexDiag
-                            info_graph=info_graph
-                            visible=flex_diag_visible.into()
-                        />
-                    </div>
-                </div>
+                <InfoGraphSrcAndDotSrc
+                    textbox_div_display_classes
+                    dot_src
+                    set_dot_src
+                    info_graph_src
+                    set_info_graph_src
+                    src_selection
+                    src_selection_set
+                    external_refresh_count
+                />
+                <InfoGraphDiagram
+                    diagram_only
+                    flex_diag_visible_update
+                    info_graph
+                    dot_src_and_styles
+                    flex_diag_visible
+                    flex_diag_radio
+                />
             </div>
             <ErrorText error_text />
             <Disclaimer diagram_only />
+        </div>
+    }
+}
+
+#[component]
+pub fn InfoGraphSrcAndDotSrc(
+    textbox_div_display_classes: impl Fn() -> &'static str + 'static,
+    dot_src: ReadSignal<Option<String>>,
+    set_dot_src: WriteSignal<Option<String>>,
+    info_graph_src: ReadSignal<String>,
+    set_info_graph_src: WriteSignal<String>,
+    src_selection: ReadSignal<String>,
+    src_selection_set: WriteSignal<String>,
+    external_refresh_count: ReadSignal<u32>,
+) -> impl IntoView {
+    view! {
+        <div class={ textbox_div_display_classes }>
+            <TabLabel
+                tab_group_name="src_tabs"
+                tab_id="tab_info_graph_yml"
+                label="info_graph.yml"
+                checked=true
+            />
+
+            <TabLabel
+                tab_group_name="src_tabs"
+                tab_id="tab_info_graph_dot"
+                label="generated.dot"
+            />
+
+            <div class="float-right flex gap-x-2 px-2">
+                <label for="">"Source:"</label>
+                <select
+                    class="border border-slate-400 rounded focus:ring-2 focus:ring-blue-500"
+                    on:change=move |ev| {
+                        let new_value = event_target_value(&ev);
+                        src_selection_set.set(new_value);
+                    }
+                    prop:value=move || src_selection.get()
+                >
+                    <option value="custom" selected></option>
+                    <option value="demo">"Demo"</option>
+                    <option value="process_simple">      "Ex 1: Process (simple)"</option>
+                    <option value="process_with_info">   "Ex 2: Process with info"</option>
+                    <option value="nested_nodes">        "Ex 3: Nested nodes"</option>
+                    <option value="styles_simple">       "Ex 4: Styles (simple)"</option>
+                    <option value="styles_animated">     "Ex 5: Styles (animated)"</option>
+                    <option value="tags_simple">         "Ex 6: Tags (simple)"</option>
+                    <option value="tags_styled">         "Ex 7: Tags (styled)"</option>
+                    <option value="cloud_infrastructure">"Ex 8: Cloud Infrastructure"</option>
+                </select>
+            </div>
+
+            // tab content
+            <div class="\
+                invisible \
+                h-0 \
+                peer-checked/tab_info_graph_yml:visible \
+                peer-checked/tab_info_graph_yml:h-full \
+                "
+            >
+                <TextEditor
+                    value=info_graph_src
+                    set_value=set_info_graph_src
+                    external_refresh_count
+                    id="info_graph_yml"
+                    name="info_graph_yml"
+                    class="\
+                        border \
+                        border-slate-400 \
+                        bg-slate-100 \
+                        font-mono \
+                        h-full \
+                        p-2 \
+                        rounded \
+                        text-xs \
+                    "
+                />
+            </div>
+
+            // tab content
+            <div class="\
+                invisible \
+                h-0 \
+                peer-checked/tab_info_graph_dot:visible \
+                peer-checked/tab_info_graph_dot:h-full \
+                "
+            >
+                <textarea
+                    id="info_graph_dot"
+                    name="info_graph_dot"
+                    class="\
+                        border \
+                        border-slate-400 \
+                        bg-slate-100 \
+                        w-full \
+                        h-full \
+                        font-mono \
+                        p-2 \
+                        rounded \
+                        text-xs \
+                    "
+                    on:input=leptos_dom::helpers::debounce(Duration::from_millis(400), move |ev| {
+                        let dot_src = event_target_value(&ev);
+                        set_dot_src.set(Some(dot_src));
+                    })
+                    prop:value={
+                        move || {
+                            let dot_src = dot_src.get();
+                            dot_src.as_deref()
+                                .unwrap_or("")
+                                .to_string()
+                        }
+                    } />
+            </div>
+        </div>
+    }
+}
+
+#[component]
+pub fn InfoGraphDiagram(
+    diagram_only: ReadSignal<bool>,
+    flex_diag_visible_update: impl Fn(Event) + Copy + 'static,
+    info_graph: ReadSignal<InfoGraph>,
+    dot_src_and_styles: ReadSignal<Option<DotSrcAndStyles>>,
+    flex_diag_visible: ReadSignal<bool>,
+    flex_diag_radio: NodeRef<html::Input>,
+) -> impl IntoView {
+    view! {
+        <div
+            class={move || {
+                if diagram_only.get() {
+                    ""
+                } else {
+                    // Take up the full screen if the screen size is small,
+                    // otherwise take up just enough for content.
+                    "\
+                    basis-1/2 \
+                    grow \
+                    lg:basis-3/5 \
+                    lg:grow \
+                    lg:shrink \
+                    "
+                }
+            }}
+        >
+
+            <TabLabel
+                tab_group_name="diagram_tabs"
+                tab_id="tab_dot_svg"
+                label="Dot SVG"
+                checked=true
+                on_change=flex_diag_visible_update
+            />
+
+            <TabLabel
+                tab_group_name="diagram_tabs"
+                tab_id="tab_flex_diag"
+                label="Flex Diagram"
+                on_change=flex_diag_visible_update
+                node_ref=flex_diag_radio
+            />
+
+            <div
+                class="\
+                    invisible \
+                    h-0 \
+                    peer-checked/tab_dot_svg:visible \
+                    peer-checked/tab_dot_svg:h-auto \
+                    w-dvw \
+                    lg:w-auto \
+                    max-w-dvw \
+                    overflow-auto \
+                "
+            >
+                <DotSvg
+                    info_graph=info_graph.into()
+                    dot_src_and_styles=dot_src_and_styles.into()
+                    diagram_only=diagram_only.into()
+                />
+            </div>
+
+            <div
+                class="\
+                    invisible \
+                    h-0 \
+                    peer-checked/tab_flex_diag:visible \
+                    peer-checked/tab_flex_diag:h-auto \
+                    w-dvw \
+                    lg:w-auto \
+                    max-w-dvw \
+                    overflow-auto \
+                "
+            >
+                <FlexDiag
+                    info_graph=info_graph
+                    visible=flex_diag_visible.into()
+                />
+            </div>
         </div>
     }
 }

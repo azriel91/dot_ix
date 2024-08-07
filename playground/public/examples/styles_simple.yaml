@@ -1,0 +1,60 @@
+# Example: Styles (simple)
+---
+hierarchy:
+  a: {}
+  b: {}
+  c: {}
+  d: {}
+
+edges:
+  ab: [a, b]
+  bc: [b, c]
+  cd: [c, d]
+
+# Theme to style the nodes with.
+#
+# See the following pages for a full list of fields:
+#
+# * <https://docs.rs/dot_ix_model/latest/dot_ix_model/theme/struct.Theme.html>
+# * <https://docs.rs/dot_ix_model/latest/dot_ix_model/theme/enum.ThemeAttr.html>
+theme:
+  merge_with_base: true # defaults to true
+  styles:
+    node_defaults: # applies to all nodes
+
+      # Default color if `stroke_color` and `fill_color` are not specified.
+      shape_color: stone
+
+      # All four keys -- width, style, color, shade --
+      # must be defined for the stroke color to be set.
+      #
+      # Some of these can be defined by a more general key,
+      # e.g. `shape_color` in place of `stroke_color`.
+      #
+      # There are also default values in the base theme[1].
+      #
+      # [1]: https://github.com/azriel91/dot_ix/blob/0.7.0/crate/model/src/theme.rs#L86
+      stroke_width: '1' 
+      stroke_style: 'solid'
+      stroke_color: 'indigo'
+
+      # stroke_shade: '600'       # default for all states
+      stroke_shade_normal: '600'  # when there is nothing applied to the node
+      stroke_shade_focus:  '500'  # when the node is focused
+      stroke_shade_hover:  '400'  # when the cursor is hovering above the node
+      stroke_shade_active: '500'  # when the node is clicked and held
+
+    a: # specifically style node `a`
+      stroke_width: '2' 
+      shape_color: 'green'
+      # stroke_color from `node_defaults`
+      # is more specific than `shape_color`
+      # from a shape's styles
+      stroke_color: 'green'
+
+    b:
+      shape_color: 'blue'
+      stroke_style: 'dashed'
+
+    edge_defaults:
+      stroke_style: 'dotted'

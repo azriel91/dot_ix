@@ -1,0 +1,12 @@
+# Example: Process (simple)
+---
+hierarchy:
+  a: {}
+  b: {}
+  c: {}
+
+edges:
+  # edge_id: [node_id_from, node_id_to]
+  #          ^ always 2 elements
+  ab: [a, b]
+  bc: [b, c]

@@ -18,6 +18,7 @@
 * Add `ThemeAttr::Visibility` to support setting [`visibility`].
 * Fix black outline shown on focused nodes in Chrome / Edge.
 * Show feedback to user when stroke / outline / fill class partials are not all specified.
+* Add examples to playground.
 
 [monaco]: https://github.com/microsoft/monaco-editor
 [rust-monaco]: https://github.com/siku2/rust-monaco

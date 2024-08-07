@@ -93,17 +93,21 @@ const OUTLINE_NONE: &str = "outline-none";
 /// [`tailwind-css`]: https://github.com/oovm/tailwind-rs
 impl IntoGraphvizDotSrc for &InfoGraph {
     fn into(self, theme: &GraphvizDotTheme) -> DotSrcAndStyles {
+        let graph_style = self.graph_style();
         let graphviz_attrs = self.graphviz_attrs();
         let graph_attrs = graph_attrs(theme, self.direction(), graphviz_attrs);
-        let node_attrs = node_attrs(self.graph_style(), theme);
+        let node_attrs = node_attrs(graph_style, theme);
         let edge_attrs = edge_attrs(graphviz_attrs, theme);
         let diagram_theme = self.theme();
 
         // Build a map from `NodeId` to their `NodeHierarchy`, so that we don't have to
         // search for it every time we want to create an edge.
         let node_id_to_hierarchy = self.hierarchy_flat();
+        let node_id_to_hierarchy = &node_id_to_hierarchy;
 
         let info_graph_dot = InfoGraphDot {
+            graph_style,
+            node_id_to_hierarchy,
             node_ids: node_id_to_hierarchy.keys().copied().collect::<Vec<_>>(),
             edge_ids: self.edges().keys().collect::<Vec<_>>(),
         };
@@ -138,9 +142,6 @@ impl IntoGraphvizDotSrc for &InfoGraph {
         let node_clusters = self
             .hierarchy()
             .iter()
-            // Reversing the order we feed nodes to Graphviz dot tends to produce a more natural
-            // layout order.
-            .rev()
             .map(|(node_id, node_hierarchy)| {
                 node_cluster(
                     self,
@@ -214,15 +215,17 @@ impl IntoGraphvizDotSrc for &InfoGraph {
             .join("\n");
 
         let mut tag_legend_buffer = String::with_capacity(512 * self.tags().len() + 512);
-        tag_legend(&mut tag_legend_buffer, theme, el_css_classes, self.tags())
-            .expect("Failed to write `tag_legend` string.");
+        tag_legend(
+            self.direction(),
+            &mut tag_legend_buffer,
+            theme,
+            el_css_classes,
+            self.tags(),
+        )
+        .expect("Failed to write `tag_legend` string.");
 
         let dot_src = formatdoc!(
             "digraph G {{
-                // {tag_styles_focus:?}
-
-                // {tag_el_css_classes_map:?}
-
                 {graph_attrs}
                 {node_attrs}
                 {edge_attrs}
@@ -755,6 +758,7 @@ fn middle_node(node_hierarchy: &NodeHierarchy) -> Option<(&NodeId, &NodeHierarch
 }
 
 fn tag_legend(
+    graph_dir: GraphDir,
     buffer: &mut String,
     theme: &GraphvizDotTheme,
     el_css_classes: &ElCssClasses,
@@ -776,7 +780,9 @@ fn tag_legend(
     let tag_margin_y = theme.tag_margin_y();
     let tag_point_size = theme.tag_point_size();
     let tag_classes = theme.tag_classes().trim();
-    tags.iter().try_for_each(|(tag_id, tag_name)| {
+    // `rev()` here makes the tags appear in the correct order for horizontal
+    // graphs.
+    tags.iter().rev().try_for_each(|(tag_id, tag_name)| {
         let tag_label = tag_name; // TODO: escape
 
         // This is for tailwindcss to identify this peer by name.
@@ -797,7 +803,7 @@ fn tag_legend(
                 margin    = "{tag_margin_x:.3},{tag_margin_y:.3}"
                 fontname  = "liberationmono"
                 fontsize  = {tag_point_size}
-                class     = "{tag_classes} {tag_peer_class}"
+                class     = "{OUTLINE_NONE} {tag_classes} {tag_peer_class}"
                 penwidth  = 1
 
                 // invisible node for cluster to appear
@@ -807,6 +813,7 @@ fn tag_legend(
                     height    = 0.01
                     margin    = "0.0,0.0"
                     shape     = point
+                    style     = invis
                 ]
             }}
             "#
@@ -815,15 +822,17 @@ fn tag_legend(
         Ok(())
     })?;
 
-    // Add invisible edge between tags to enforce ordering
-    let mut tag_ids_iter = tags.keys();
-    if let Some(mut tag_id_current) = tag_ids_iter.next() {
-        for tag_id_next in tag_ids_iter {
-            writeln!(
-                buffer,
-                "    {tag_id_current} -> {tag_id_next} [style = invis]"
-            )?;
-            tag_id_current = tag_id_next;
+    if graph_dir == GraphDir::Vertical {
+        // Add invisible edge between tags to enforce ordering
+        let mut tag_ids_iter = tags.keys();
+        if let Some(mut tag_id_current) = tag_ids_iter.next() {
+            for tag_id_next in tag_ids_iter {
+                writeln!(
+                    buffer,
+                    "    {tag_id_current} -> {tag_id_next} [style = invis, minlen = 1]"
+                )?;
+                tag_id_current = tag_id_next;
+            }
         }
     }
 

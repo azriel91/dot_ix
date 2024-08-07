@@ -1,0 +1,36 @@
+# Example: Process With Info
+---
+hierarchy:
+  a: {}
+  b: {}
+  c: {}
+
+node_names:
+  a: "Step 1"
+  b: "Step 2"
+  c: "Step 3"
+
+node_descs:
+  a: >-
+    Download Rust:
+
+    https://www.rust-lang.org/learn/get-started
+
+  b: >-
+    Learn from the book:
+
+    https://www.rust-lang.org/learn
+
+  c: >-
+    Visit the forum:
+
+    https://users.rust-lang.org/
+
+node_emojis:
+  a: 📥
+  b: 📚
+  c: 🧵
+
+edges:
+  ab: [a, b]
+  bc: [b, c]

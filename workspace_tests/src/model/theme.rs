@@ -1,5 +1,9 @@
+use std::collections::HashMap;
+
 use dot_ix::{
     model::{
+        common::NodeHierarchy,
+        info_graph::GraphStyle,
         node_id, tag_id,
         theme::{AnyIdOrDefaults, CssClassPartials, CssClasses, Theme, ThemeAttr},
     },
@@ -49,6 +53,45 @@ fn base_theme_contains_node_defaults_and_edge_defaults() {
 }
 
 #[test]
+fn tag_theme_default_contains_peer_focus_lime() {
+    let tag_theme = Theme::tag_base();
+    let test_node_id = node_id!("my_node");
+    let test_node_hierarchy = NodeHierarchy::new();
+    let node_id_to_hierarchy = {
+        let mut node_id_to_hierarchy = HashMap::with_capacity(1);
+        node_id_to_hierarchy.insert(&test_node_id, &test_node_hierarchy);
+        node_id_to_hierarchy
+    };
+    let node_id_to_hierarchy = &node_id_to_hierarchy;
+    let diagram_theme = Theme::new();
+    let info_graph_dot = InfoGraphDot {
+        graph_style: GraphStyle::Box,
+        node_id_to_hierarchy,
+        node_ids: vec![&test_node_id],
+        edge_ids: vec![],
+    };
+    let themeable = &info_graph_dot;
+
+    let (tag_el_css_classes, theme_warnings) =
+        tag_theme.tag_el_css_classes(themeable, &diagram_theme, &tag_id!("tag_step_1"));
+
+    let css_classes = tag_el_css_classes.get(test_node_id.as_str());
+    assert_eq!(
+        Some(CssClasses::from(
+            "\
+                peer-focus/tag_step_1:[&>path]:stroke-lime-500 \
+                peer-focus/tag_step_1:[&>path]:stroke-2 \
+                peer-focus/tag_step_1:[&>path]:fill-lime-200 \
+            "
+            .to_string()
+        ))
+        .as_ref(),
+        css_classes,
+        "Theme warnings: `{theme_warnings:?}`",
+    );
+}
+
+#[test]
 fn tag_theme_merge_resolves_node_outline() {
     let mut tag_theme = Theme::new();
     tag_theme.insert(
@@ -61,48 +104,40 @@ fn tag_theme_merge_resolves_node_outline() {
         ]),
     );
     let test_node_id = node_id!("my_node");
+    let test_node_hierarchy = NodeHierarchy::new();
+    let node_id_to_hierarchy = {
+        let mut node_id_to_hierarchy = HashMap::with_capacity(1);
+        node_id_to_hierarchy.insert(&test_node_id, &test_node_hierarchy);
+        node_id_to_hierarchy
+    };
+    let node_id_to_hierarchy = &node_id_to_hierarchy;
     let diagram_theme = Theme::new();
     let info_graph_dot = InfoGraphDot {
+        graph_style: GraphStyle::Circle,
+        node_id_to_hierarchy,
         node_ids: vec![&test_node_id],
         edge_ids: vec![],
     };
     let themeable = &info_graph_dot;
 
-    let (tag_el_css_classes, _theme_warnings) =
+    let (tag_el_css_classes, theme_warnings) =
         tag_theme.tag_el_css_classes(themeable, &diagram_theme, &tag_id!("tag_step_1"));
 
     let css_classes = tag_el_css_classes.get(test_node_id.as_str());
     assert_eq!(
         Some(CssClasses::from(
             "\
-                peer-focus/tag_step_1:[&>path]:outline-red-600 \
                 peer-focus/tag_step_1:[&>ellipse]:outline-red-600 \
-                peer-focus/tag_step_1:[&>path]:outline-[2px] \
-                peer-focus/tag_step_1:[&>path]:outline-dashed \
                 peer-focus/tag_step_1:[&>ellipse]:outline-[2px] \
                 peer-focus/tag_step_1:[&>ellipse]:outline-dashed \
-                peer-focus/tag_step_1:[&>path]:focus:outline-red-600 \
-                peer-focus/tag_step_1:[&>ellipse]:focus:outline-red-600 \
-                peer-focus/tag_step_1:[&>path]:focus:outline-[2px] \
-                peer-focus/tag_step_1:[&>path]:focus:outline-dashed \
-                peer-focus/tag_step_1:[&>ellipse]:focus:outline-[2px] \
-                peer-focus/tag_step_1:[&>ellipse]:focus:outline-dashed \
-                peer-focus/tag_step_1:[&>path]:hover:outline-red-600 \
-                peer-focus/tag_step_1:[&>ellipse]:hover:outline-red-600 \
-                peer-focus/tag_step_1:[&>path]:hover:outline-[2px] \
-                peer-focus/tag_step_1:[&>path]:hover:outline-dashed \
-                peer-focus/tag_step_1:[&>ellipse]:hover:outline-[2px] \
-                peer-focus/tag_step_1:[&>ellipse]:hover:outline-dashed \
-                peer-focus/tag_step_1:[&>path]:focus:active:outline-red-600 \
-                peer-focus/tag_step_1:[&>ellipse]:focus:active:outline-red-600 \
-                peer-focus/tag_step_1:[&>path]:focus:active:outline-[2px] \
-                peer-focus/tag_step_1:[&>path]:focus:active:outline-dashed \
-                peer-focus/tag_step_1:[&>ellipse]:focus:active:outline-[2px] \
-                peer-focus/tag_step_1:[&>ellipse]:focus:active:outline-dashed \
+                peer-focus/tag_step_1:[&>ellipse]:stroke-lime-500 \
+                peer-focus/tag_step_1:[&>ellipse]:stroke-2 \
+                peer-focus/tag_step_1:[&>ellipse]:fill-lime-200 \
             "
             .to_string()
         ))
         .as_ref(),
-        css_classes
+        css_classes,
+        "Theme warnings: `{theme_warnings:?}`",
     );
 }

@@ -1,6 +1,6 @@
 use crate::{
-    common::{EdgeId, NodeId},
-    theme::{ColorParams, CssClassesBuilder, StrokeParams},
+    common::{AnyId, EdgeId, NodeId},
+    theme::{ColorParams, CssClassesBuilder, LineParams},
 };
 
 /// Types that can be rendered into a CSS compatible format, e.g. SVG or HTML
@@ -21,11 +21,12 @@ pub trait Themeable {
     /// # Parameters
     ///
     /// * `builder`: The builder to append CSS classes.
-    /// * `stroke_params`: Parameters for the CSS utility class.
+    /// * `line_params`: Parameters for the CSS utility class.
     fn node_outline_classes(
         &self,
+        node_id: &AnyId,
         builder: &mut CssClassesBuilder,
-        stroke_params: StrokeParams<'_>,
+        line_params: LineParams<'_>,
     );
 
     /// Appends the CSS classes that sets the line / border colour and style.
@@ -38,8 +39,13 @@ pub trait Themeable {
     /// # Parameters
     ///
     /// * `builder`: The builder to append CSS classes.
-    /// * `stroke_params`: Parameters for the CSS utility class.
-    fn node_stroke_classes(&self, builder: &mut CssClassesBuilder, stroke_params: StrokeParams<'_>);
+    /// * `line_params`: Parameters for the CSS utility class.
+    fn node_stroke_classes(
+        &self,
+        node_id: &AnyId,
+        builder: &mut CssClassesBuilder,
+        line_params: LineParams<'_>,
+    );
 
     /// Appends the CSS classes that sets the background colour and style.
     ///
@@ -52,7 +58,12 @@ pub trait Themeable {
     ///
     /// * `builder`: The builder to append CSS classes.
     /// * `color_params`: Parameters for the CSS utility class.
-    fn node_fill_classes(&self, builder: &mut CssClassesBuilder, color_params: ColorParams<'_>);
+    fn node_fill_classes(
+        &self,
+        node_id: &AnyId,
+        builder: &mut CssClassesBuilder,
+        color_params: ColorParams<'_>,
+    );
 
     /// Returns the IDs of all edges of this themeable type.
     fn edge_ids(&self) -> impl Iterator<Item = &EdgeId>
@@ -69,11 +80,12 @@ pub trait Themeable {
     /// # Parameters
     ///
     /// * `builder`: The builder to append CSS classes.
-    /// * `stroke_params`: Parameters for the CSS utility class.
+    /// * `line_params`: Parameters for the CSS utility class.
     fn edge_outline_classes(
         &self,
+        edge_id: &AnyId,
         builder: &mut CssClassesBuilder,
-        stroke_params: StrokeParams<'_>,
+        line_params: LineParams<'_>,
     );
 
     /// Appends the CSS classes that sets the stroke colour and style.
@@ -86,8 +98,13 @@ pub trait Themeable {
     /// # Parameters
     ///
     /// * `builder`: The builder to append CSS classes.
-    /// * `stroke_params`: Parameters for the CSS utility class.
-    fn edge_stroke_classes(&self, builder: &mut CssClassesBuilder, stroke_params: StrokeParams<'_>);
+    /// * `line_params`: Parameters for the CSS utility class.
+    fn edge_stroke_classes(
+        &self,
+        edge_id: &AnyId,
+        builder: &mut CssClassesBuilder,
+        line_params: LineParams<'_>,
+    );
 
     /// Appends the CSS classes that sets the background colour and style.
     ///
@@ -100,5 +117,10 @@ pub trait Themeable {
     ///
     /// * `builder`: The builder to append CSS classes.
     /// * `color_params`: Parameters for the CSS utility class.
-    fn edge_fill_classes(&self, builder: &mut CssClassesBuilder, color_params: ColorParams<'_>);
+    fn edge_fill_classes(
+        &self,
+        edge_id: &AnyId,
+        builder: &mut CssClassesBuilder,
+        color_params: ColorParams<'_>,
+    );
 }

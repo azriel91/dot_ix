@@ -1,0 +1,12 @@
+# Example: Nested Nodes
+---
+hierarchy:
+  a:
+    a0: {}
+    a1: {}
+  b:
+    b0: {}
+
+edges:
+  a__b: [a, b]
+  a1__b: [a1, b0]

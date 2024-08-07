@@ -148,7 +148,7 @@ impl Default for GraphvizAttrs {
             edge_constraints: EdgeConstraints::default(),
             edge_dir_default: EdgeDir::default(),
             edge_dirs: EdgeDirs::default(),
-            edge_minlen_default: 1,
+            edge_minlen_default: 2,
             edge_minlens: EdgeMinlens::default(),
             pack_mode: PackMode::default(),
         }

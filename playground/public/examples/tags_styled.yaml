@@ -1,0 +1,87 @@
+# Example: Tags (styled)
+---
+graph_style: circle # circle / box
+direction: vertical
+hierarchy:
+  a_tasks:
+    a0: {}
+    a1: {}
+  bcd_tasks:
+    b: {}
+    c: {}
+    d: {}
+
+node_names:
+  a_tasks: ""
+  bcd_tasks: ""
+
+edges:
+  a0__b: [a0, b]
+  a1__c: [a1, c]
+  bd: [b, d]
+  cd: [c, d]
+
+# Styles when no tag is focused.
+theme:
+  styles:
+    light: &light
+      fill_shade_normal: '100'
+      fill_shade_hover: '50'
+      fill_shade_focus: '100'
+      fill_shade_active: '100'
+      stroke_shade_normal: '400'
+      stroke_shade_hover: '300'
+      stroke_shade_active: '500'
+      stroke_style: dotted
+
+    a_tasks:
+      <<: *light
+      shape_color: 'blue'
+
+    bcd_tasks:
+      <<: *light
+      shape_color: 'violet'
+
+tags:
+  tag_one:         "Group One"
+  tag_two:         "Group Two"
+  tag_one_and_two: "   Both  "
+
+tag_items:
+  tag_one: [a0, b]
+  tag_two: [b, c, d]
+  tag_one_and_two: [b]
+
+# Styles when a particular tag is focused.
+tag_styles_focus:
+  tag_one:
+    node_defaults:
+      shape_color: yellow
+    edge_defaults:
+      shape_color: yellow
+
+  tag_two:
+    node_defaults:
+      shape_color: red
+    edge_defaults:
+      shape_color: red
+
+  tag_one_and_two:
+    node_defaults:
+      shape_color: orange
+
+# Attributes to pass through to GraphViz to control layout.
+#
+# See <https://docs.rs/dot_ix_model/latest/dot_ix_model/common/graphviz_attrs/struct.GraphvizAttrs.html>.
+graphviz_attrs:
+  # "node", "cluster", "graph", "array(_flags)?(n)?"
+  #
+  # array flags:
+  #
+  # - <none>: row major order
+  # - c: column major order
+  # - t: align clusters top (horizontal graphs)
+  # - b: align clusters bottom (horizontal graphs)
+  # - l: align clusters left (vertical graphs)
+  # - r: align clusters right (vertical graphs)
+  pack_mode: array_t
