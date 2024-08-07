@@ -1,6 +1,6 @@
 # Changelog
 
-## unreleased
+## 0.8.0 (2024-08-08)
 
 * Add `TextEditor` in playground which uses [monaco][monaco] / [rust-monaco][rust-monaco].
 * Add `GraphvizAttrs.pack_mode` to specify the `packmode` for subgraphs.
