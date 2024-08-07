@@ -261,7 +261,7 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
             let example_content = example_load(&src_selection).await;
             if let Some(example_content) = example_content {
                 set_info_graph_src.set(example_content);
-                external_refresh_count_set.set(external_refresh_count.get() + 1);
+                external_refresh_count_set.set(external_refresh_count.get_untracked() + 1);
             }
         },
     );
