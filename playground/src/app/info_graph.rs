@@ -596,6 +596,7 @@ pub fn InfoGraphDiagram(
                     lg:w-auto \
                     max-w-dvw \
                     overflow-auto \
+                    touch-pinch-zoom \
                 "
             >
                 <DotSvg
