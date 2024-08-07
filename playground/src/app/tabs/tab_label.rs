@@ -25,7 +25,8 @@ pub fn TabLabel(
         {class} \
         \
         inline-block \
-        h-9 \
+        h-7 \
+        lg:h-9 \
         px-2.5 \
         \
         cursor-pointer \

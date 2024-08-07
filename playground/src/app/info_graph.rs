@@ -193,6 +193,8 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
     let editor_and_diagram_div_classes = move || {
         if diagram_only.get() {
             "
+            text-sm \
+            lg:text-base \
             basis-auto \
             grow \
             \
@@ -202,6 +204,8 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
             "
         } else {
             "\
+            text-sm \
+            lg:text-base \
             basis-auto \
             grow \
             \
@@ -424,10 +428,33 @@ pub fn InfoGraphSrcAndDotSrc(
                 label="generated.dot"
             />
 
-            <div class="float-right flex gap-x-2 px-2">
-                <label for="">"Source:"</label>
+            <div class="
+                float-right \
+                flex \
+                gap-x-2 \
+                justify-end \
+                items-center \
+                h-7 \
+                lg:h-9 \
+                pr-1 \
+                lg:pr-2 \
+                max-w-[40%] \
+                lg:max-w-none \
+            ">
+                <label class="" for="src_selection">"Source:"</label>
                 <select
-                    class="border border-slate-400 rounded focus:ring-2 focus:ring-blue-500"
+                    name="src_selection"
+                    class="\
+                        border \
+                        border-slate-400 \
+                        rounded \
+                        focus:ring-2 \
+                        focus:ring-blue-500 \
+                        max-w-[60%] \
+                        lg:max-w-none \
+                        h-5 \
+                        lg:h-7 \
+                    "
                     on:change=move |ev| {
                         let new_value = event_target_value(&ev);
                         src_selection_set.set(new_value);
@@ -450,6 +477,7 @@ pub fn InfoGraphSrcAndDotSrc(
             // tab content
             <div class="\
                 invisible \
+                clear-both \
                 h-0 \
                 peer-checked/tab_info_graph_yml:visible \
                 peer-checked/tab_info_graph_yml:h-full \
@@ -477,6 +505,7 @@ pub fn InfoGraphSrcAndDotSrc(
             // tab content
             <div class="\
                 invisible \
+                clear-both \
                 h-0 \
                 peer-checked/tab_info_graph_dot:visible \
                 peer-checked/tab_info_graph_dot:h-full \
@@ -567,6 +596,7 @@ pub fn InfoGraphDiagram(
                     lg:w-auto \
                     max-w-dvw \
                     overflow-auto \
+                    touch-pinch-zoom \
                 "
             >
                 <DotSvg

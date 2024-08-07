@@ -394,7 +394,7 @@ pub fn DotSvg(
                     onclick=SVG_WRITE_TO_CLIPBOARD
                     class=format!("
                         {button_tw_classes}
-                        top-2
+                        -top-6
                         right-8
                     ")
                     value="📄"
@@ -428,7 +428,7 @@ pub fn DotSvg(
                     }}
                     class=format!("
                         {button_tw_classes}
-                        top-2
+                        -top-6
                         right-2
                     ")
                     value="↗️"
