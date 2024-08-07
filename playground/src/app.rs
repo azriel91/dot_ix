@@ -61,14 +61,31 @@ fn diagram_only_init() -> bool {
 }
 
 #[component]
+pub fn GoogleAnalyticsHeader() -> impl IntoView {
+    view! {
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-QWXYFJ1NED"></script>
+        <script>
+            "\
+            window.dataLayer = window.dataLayer || [];\n\
+            function gtag(){dataLayer.push(arguments);}\n\
+            gtag('js', new Date());\n\
+            gtag('config', 'G-QWXYFJ1NED');\n\
+            "
+        </script>
+    }
+}
+
+#[component]
 pub fn GoogleTagManagerHeader() -> impl IntoView {
     view! {
         <script>
-        "(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':\
-        new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],\
-        j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=\
-        'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);\
-        })(window,document,'script','dataLayer','GTM-W2485ZNP');"
+            "\
+            (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':\n\
+            new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],\n\
+            j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=\n\
+            'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);\n\
+            })(window,document,'script','dataLayer','GTM-W2485ZNP');\n\
+            "
         </script>
     }
 }
@@ -104,6 +121,7 @@ pub fn App() -> impl IntoView {
     // through client side routing.
     if site_prefix.is_empty() {
         view! {
+            <GoogleAnalyticsHeader />
             <GoogleTagManagerHeader />
 
             // injects a stylesheet into the document <head>
