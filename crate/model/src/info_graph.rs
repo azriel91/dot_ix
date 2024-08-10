@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use crate::{
     common::{
         EdgeDescs, EdgeId, EdgeTagsSet, Edges, GraphvizAttrs, NodeDescs, NodeEmojis, NodeHierarchy,
-        NodeId, NodeNames, NodeTagsSet, TagItems, TagNames, TagStyles,
+        NodeId, NodeImages, NodeNames, NodeTagsSet, TagItems, TagNames, TagStyles,
     },
     theme::Theme,
 };
@@ -32,6 +32,8 @@ pub struct InfoGraph {
     pub node_descs: NodeDescs,
     /// Each node's emoji.
     pub node_emojis: NodeEmojis,
+    /// Each node's image.
+    pub node_images: NodeImages,
     /// Logical / ordering dependencies.
     pub edges: Edges,
     /// Each edge's description.
@@ -86,6 +88,12 @@ impl InfoGraph {
     /// Sets the map of node emojis.
     pub fn with_node_emojis(mut self, node_emojis: NodeEmojis) -> Self {
         self.node_emojis = node_emojis;
+        self
+    }
+
+    /// Sets the map of node images.
+    pub fn with_node_images(mut self, node_images: NodeImages) -> Self {
+        self.node_images = node_images;
         self
     }
 
@@ -209,6 +217,11 @@ impl InfoGraph {
     /// Returns the map of node emojis.
     pub fn node_emojis(&self) -> &NodeEmojis {
         &self.node_emojis
+    }
+
+    /// Returns the map of node images.
+    pub fn node_images(&self) -> &NodeImages {
+        &self.node_images
     }
 
     /// Returns the logical / ordering dependencies.

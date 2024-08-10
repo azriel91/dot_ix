@@ -10,15 +10,15 @@ use leptos::html::Div;
 #[cfg(not(feature = "server_side_graphviz"))]
 use leptos_meta::Script;
 
-#[cfg(target_arch = "wasm32")]
-use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
+cfg_if::cfg_if! { if #[cfg(target_arch = "wasm32")] {
+    use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 
-#[cfg(target_arch = "wasm32")]
-#[wasm_bindgen(module = "/public/js/graphviz_dot_svg.js")]
-extern "C" {
-    #[wasm_bindgen(catch)]
-    fn graphviz_dot_svg(dot_src: String) -> Result<String, JsValue>;
-}
+    #[wasm_bindgen(module = "/public/js/graphviz_dot_svg.js")]
+    extern "C" {
+        #[wasm_bindgen(catch)]
+        fn graphviz_dot_svg(dot_src: String, opts: &JsValue) -> Result<String, JsValue>;
+    }
+}}
 
 #[cfg(not(feature = "server_side_graphviz"))]
 const SVG_WRITE_TO_CLIPBOARD: &str = include_str!("dot_svg/svg_write_to_clipboard.js");
@@ -302,9 +302,10 @@ pub fn DotSvg(
             if !dot_src_and_styles.dot_src.is_empty() {
                 use std::borrow::Cow;
 
-                let DotSrcAndStyles { dot_src, styles, theme_warnings: _ } = dot_src_and_styles;
+                let DotSrcAndStyles { dot_src, styles, opts, theme_warnings: _ } = dot_src_and_styles;
 
-                let (dot_svg, error) = match graphviz_dot_svg(dot_src) {
+                let opts = &serde_wasm_bindgen::to_value(&opts).unwrap();
+                let (dot_svg, error) = match graphviz_dot_svg(dot_src, opts) {
                     // TODO: need to move tag nodes before all other nodes
                     //       so that tailwind peer selectors work.
                     Ok(dot_svg) => {

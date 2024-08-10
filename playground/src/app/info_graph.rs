@@ -302,6 +302,7 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
                 let DotSrcAndStyles {
                     dot_src,
                     styles: _,
+                    opts: _,
                     theme_warnings,
                 } = dot_src_and_styles;
 
