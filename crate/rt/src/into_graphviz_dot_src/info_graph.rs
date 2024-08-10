@@ -5,7 +5,9 @@ use std::{
 
 use dot_ix_model::{
     common::{
-        graphviz_attrs::EdgeDir, AnyId, DotSrcAndStyles, EdgeId, GraphvizAttrs, GraphvizDotTheme,
+        dot_src_and_styles::{GraphvizImage, GraphvizOpts},
+        graphviz_attrs::EdgeDir,
+        AnyId, DotSrcAndStyles, EdgeId, GraphvizAttrs, GraphvizDotTheme, ImageId, Images,
         NodeHierarchy, NodeId, TagId, TagNames,
     },
     info_graph::{GraphDir, GraphStyle, InfoGraph},
@@ -143,76 +145,26 @@ impl IntoGraphvizDotSrc for &InfoGraph {
             .hierarchy()
             .iter()
             .map(|(node_id, node_hierarchy)| {
-                node_cluster(
-                    self,
+                let node_cluster_args = NodeClusterArgs {
+                    info_graph: self,
                     el_css_classes,
                     tag_el_css_classes_map,
                     theme,
                     node_id,
                     node_hierarchy,
-                )
+                };
+
+                node_cluster(node_cluster_args)
             })
             .collect::<Vec<String>>()
             .join("\n");
 
-        let edge_tags_set = self.edge_tags_set();
-        let edge_tags_set = &edge_tags_set;
-        let edges = self
-            .edges()
-            .iter()
-            .map(|(edge_id, [src_node_id, target_node_id])| {
-                let edge_desc = self.edge_descs().get(edge_id).map(String::as_str);
-                let edge_constraint = graphviz_attrs.edge_constraints().get(edge_id).copied();
-                let edge_dir = graphviz_attrs.edge_dirs().get(edge_id).copied();
-                let edge_minlen = graphviz_attrs.edge_minlens().get(edge_id).copied();
-                let edge_tags = edge_tags_set.get(edge_id);
-
-                // Graphviz has a bug where setting the `headport` / `tailport` attributes
-                // causes the edge to not be rendered with spline curves if the `lhead` /
-                // `ltail` is a node. So we workaround this by still passing the
-                // compass points through as the source / target node IDs.
-                let (src_node_id_plain, src_compass_point) = match src_node_id.split_once(':') {
-                    Some((src_node_id_plain, src_compass_point)) => {
-                        (src_node_id_plain, Some(src_compass_point))
-                    }
-                    None => (src_node_id.as_str(), None),
-                };
-                let (target_node_id_plain, target_compass_point) =
-                    match target_node_id.split_once(':') {
-                        Some((target_node_id_plain, target_compass_point)) => {
-                            (target_node_id_plain, Some(target_compass_point))
-                        }
-                        None => (target_node_id.as_str(), None),
-                    };
-
-                // We need to find the node_hierarchy for both the the `src_node_id` and
-                // `target_node_id`.
-                let src_node_hierarchy = node_id_to_hierarchy.get(src_node_id_plain).copied();
-                let target_node_hierarchy = node_id_to_hierarchy.get(target_node_id_plain).copied();
-
-                let edge_args = EdgeArgs {
-                    el_css_classes,
-                    tag_el_css_classes_map,
-                    edge_tags,
-                    edge_id,
-                    edge_desc,
-                    edge_constraint,
-                    edge_dir,
-                    edge_minlen,
-                    src_node_id_with_port: src_node_id.as_str(),
-                    src_node_id_plain,
-                    src_compass_point,
-                    src_node_hierarchy,
-                    target_node_id_with_port: target_node_id.as_str(),
-                    target_node_id_plain,
-                    target_node_hierarchy,
-                    target_compass_point,
-                };
-
-                edge(edge_args)
-            })
-            .collect::<Vec<String>>()
-            .join("\n");
+        let edges = edges(
+            self,
+            node_id_to_hierarchy,
+            el_css_classes,
+            tag_el_css_classes_map,
+        );
 
         let mut tag_legend_buffer = String::with_capacity(512 * self.tags().len() + 512);
         tag_legend(
@@ -223,6 +175,20 @@ impl IntoGraphvizDotSrc for &InfoGraph {
             self.tags(),
         )
         .expect("Failed to write `tag_legend` string.");
+
+        let opts = {
+            let images = self
+                .images()
+                .iter()
+                .map(|(image_id, image)| GraphvizImage {
+                    path: image_id.as_str().to_string(),
+                    width: image.width().to_string(),
+                    height: image.height().to_string(),
+                })
+                .collect();
+
+            GraphvizOpts::new(images)
+        };
 
         let dot_src = formatdoc!(
             "digraph G {{
@@ -243,6 +209,7 @@ impl IntoGraphvizDotSrc for &InfoGraph {
         DotSrcAndStyles {
             dot_src,
             styles,
+            opts,
             theme_warnings,
         }
     }
@@ -343,44 +310,35 @@ fn edge_attrs(graphviz_attrs: &GraphvizAttrs, theme: &GraphvizDotTheme) -> Strin
     )
 }
 
-fn node_cluster(
-    info_graph: &InfoGraph,
-    el_css_classes: &ElCssClasses,
-    tag_el_css_classes_map: &IndexMap<&TagId, ElCssClasses>,
-    theme: &GraphvizDotTheme,
-    node_id: &NodeId,
-    node_hierarchy: &NodeHierarchy,
-) -> String {
+fn node_cluster(node_cluster_args: NodeClusterArgs<'_>) -> String {
     let mut buffer = String::with_capacity(1024);
 
-    node_cluster_internal(
+    node_cluster_internal(node_cluster_args, &mut buffer)
+        .expect("Failed to write node_cluster string.");
+
+    buffer
+}
+
+fn node_cluster_internal(
+    node_cluster_args: NodeClusterArgs<'_>,
+    buffer: &mut String,
+) -> fmt::Result {
+    let NodeClusterArgs {
         info_graph,
         el_css_classes,
         tag_el_css_classes_map,
         theme,
         node_id,
         node_hierarchy,
-        &mut buffer,
-    )
-    .expect("Failed to write node_cluster string.");
+    } = node_cluster_args;
 
-    buffer
-}
-
-fn node_cluster_internal(
-    info_graph: &InfoGraph,
-    el_css_classes: &ElCssClasses,
-    tag_el_css_classes_map: &IndexMap<&TagId, ElCssClasses>,
-    theme: &GraphvizDotTheme,
-    node_id: &NodeId,
-    node_hierarchy: &NodeHierarchy,
-    buffer: &mut String,
-) -> fmt::Result {
     let graph_style = info_graph.graph_style();
     let node_names = info_graph.node_names();
     let node_descs = info_graph.node_descs();
     let node_emojis = info_graph.node_emojis();
     let node_tags_set = info_graph.node_tags_set();
+    let images = info_graph.images();
+    let node_images = info_graph.node_images();
     let graph_dir = info_graph.direction();
     let node_tailwind_classes = el_css_classes
         .get(&AnyId::from(node_id.clone()))
@@ -391,68 +349,20 @@ fn node_cluster_internal(
     let node_name = node_names.get(node_id).map(String::as_str);
     let node_desc = node_descs.get(node_id).map(String::as_str);
     let node_emoji = node_emojis.get(node_id).map(String::as_str);
+    let node_image = node_images.get(node_id);
     // TODO: escape
     let node_label = node_name.unwrap_or(node_id).replace(' ', "&nbsp;");
     // TODO: escape
     let node_desc = node_desc
         .map(|desc| desc.replace('\n', "<br />"))
         .map(|desc| format!("<tr><td balign=\"left\">{desc}</td></tr>"));
+    let node_desc = node_desc.as_deref();
 
-    let emoji = node_emoji.map(|emoji| {
-        let emoji_rowspan = if node_desc.is_some() {
-            "rowspan=\"2\""
-        } else {
-            ""
-        };
-
-        // Graphviz uses one space character per byte in the emoji.
-        //
-        // Because emojis tend to be 4 bytes long, the width of the cell tends to be 4
-        // times what it should be.
-        //
-        // Specifying the following attributes, plus the nested table, is a hardcoded
-        // hack to fix that:
-        //
-        // * `align`
-        // * `balign`
-        // * `fixedsized`
-        // * `width`
-        // * `height`
-        let cell_spacing = 2;
-        let emoji_point_size = theme.emoji_point_size();
-        let emoji_point_size_spaced = emoji_point_size + cell_spacing;
-        let row_height = if node_desc.is_some() {
-            node_point_size * 2
-        } else {
-            node_point_size
-        };
-        formatdoc!(
-            "\
-            <td \
-                valign=\"top\" \
-                {emoji_rowspan}
-            >\
-                <table \
-                    border=\"0\" \
-                    cellborder=\"0\" \
-                    cellpadding=\"0\" \
-                    cellspacing=\"{cell_spacing}\" \
-                >\
-                    <tr><td \
-                        fixedsize=\"true\" \
-                        width=\"{emoji_point_size_spaced}\" \
-                        height=\"{row_height}\" \
-                        align=\"left\" \
-                        balign=\"left\" \
-                    >\
-                        <font point-size=\"{emoji_point_size}\">{emoji}</font>\
-                    </td></tr>
-                </table>
-            </td>"
-        )
-    });
-    let node_desc = node_desc.as_deref().unwrap_or("");
+    let image = image(images, node_image, node_desc);
+    let image = image.as_deref().unwrap_or("");
+    let emoji = emoji(node_emoji, node_desc, theme, node_point_size);
     let emoji = emoji.as_deref().unwrap_or("");
+    let node_desc = node_desc.unwrap_or("");
 
     let node_tag_classes = node_tags_set
         .get(node_id)
@@ -488,7 +398,7 @@ fn node_cluster_internal(
                             cellspacing="0"
                         >
                             <tr>
-                                {emoji} <td align="left" balign="left">{node_label}</td>
+                                {image}{emoji}<td align="left" balign="left">{node_label}</td>
                             </tr>
                             {node_desc}
                         </table>>
@@ -532,7 +442,7 @@ fn node_cluster_internal(
                                     cellspacing="0"
                                 >
                                     <tr>
-                                        {emoji} <td align="left" balign="left">{node_label}</td>
+                                        {image}{emoji}<td align="left" balign="left">{node_label}</td>
                                     </tr>
                                     {node_desc}
                                 </table>>
@@ -555,7 +465,7 @@ fn node_cluster_internal(
                         cellspacing="0"
                     >
                         <tr>
-                            {emoji} <td align="left" balign="left">{node_label}</td>
+                            {image}{emoji}<td align="left" balign="left">{node_label}</td>
                         </tr>
                         {node_desc}
                     </table>>
@@ -571,29 +481,31 @@ fn node_cluster_internal(
                 // layout order.
                 .rev()
                 .try_for_each(|(child_node_id, child_node_hierarchy)| {
-                    node_cluster_internal(
+                    let node_cluster_args = NodeClusterArgs {
                         info_graph,
                         el_css_classes,
                         tag_el_css_classes_map,
                         theme,
-                        child_node_id,
-                        child_node_hierarchy,
-                        buffer,
-                    )
+                        node_id: child_node_id,
+                        node_hierarchy: child_node_hierarchy,
+                    };
+
+                    node_cluster_internal(node_cluster_args, buffer)
                 })?,
             GraphDir::Vertical => {
                 node_hierarchy
                     .iter()
                     .try_for_each(|(child_node_id, child_node_hierarchy)| {
-                        node_cluster_internal(
+                        let node_cluster_args = NodeClusterArgs {
                             info_graph,
                             el_css_classes,
                             tag_el_css_classes_map,
                             theme,
-                            child_node_id,
-                            child_node_hierarchy,
-                            buffer,
-                        )
+                            node_id: child_node_id,
+                            node_hierarchy: child_node_hierarchy,
+                        };
+
+                        node_cluster_internal(node_cluster_args, buffer)
                     })?
             }
         }
@@ -602,6 +514,113 @@ fn node_cluster_internal(
     }
 
     Ok(())
+}
+
+fn image(images: &Images, node_image: Option<&ImageId>, node_desc: Option<&str>) -> Option<String> {
+    node_image
+        .and_then(|image_id| images.get(image_id).map(|image| (image_id, image)))
+        .map(|(image_id, image)| {
+            let rowspan = if node_desc.is_some() {
+                "rowspan=\"2\""
+            } else {
+                ""
+            };
+
+            let GraphvizImage {
+                path: _,
+                width,
+                height,
+            } = image;
+
+            // Extra `<td>` is for spacing
+            format!(
+                "\
+                <td \
+                    valign=\"top\" \
+                    {rowspan} \
+                    fixedsize=\"true\" \
+                    width=\"{width}\" \
+                    height=\"{height}\" \
+                >\
+                    <img src=\"{image_id}\" />\
+                </td>\
+                <td \
+                    {rowspan} \
+                    fixedsize=\"true\" \
+                    width=\"10px\" \
+                ></td>"
+            )
+        })
+}
+
+fn emoji(
+    node_emoji: Option<&str>,
+    node_desc: Option<&str>,
+    theme: &GraphvizDotTheme,
+    node_point_size: u32,
+) -> Option<String> {
+    node_emoji.map(|emoji| {
+        let rowspan = if node_desc.is_some() {
+            "rowspan=\"2\""
+        } else {
+            ""
+        };
+
+        // Graphviz uses one space character per byte in the emoji.
+        //
+        // Because emojis tend to be 4 bytes long, the width of the cell tends to be 4
+        // times what it should be.
+        //
+        // Specifying the following attributes, plus the nested table, is a hardcoded
+        // hack to fix that:
+        //
+        // * `align`
+        // * `balign`
+        // * `fixedsized`
+        // * `width`
+        // * `height`
+        let cell_spacing = 2;
+        let emoji_point_size = theme.emoji_point_size();
+        let emoji_point_size_spaced = emoji_point_size + cell_spacing;
+        let row_height = if node_desc.is_some() {
+            node_point_size * 2
+        } else {
+            node_point_size
+        };
+        formatdoc!(
+            "\
+            <td \
+                valign=\"top\" \
+                {rowspan}
+            >\
+                <table \
+                    border=\"0\" \
+                    cellborder=\"0\" \
+                    cellpadding=\"0\" \
+                    cellspacing=\"{cell_spacing}\" \
+                >\
+                    <tr><td \
+                        fixedsize=\"true\" \
+                        width=\"{emoji_point_size_spaced}\" \
+                        height=\"{row_height}\" \
+                        align=\"left\" \
+                        balign=\"left\" \
+                    >\
+                        <font point-size=\"{emoji_point_size}\">{emoji}</font>\
+                    </td></tr>
+                </table>
+            </td>"
+        )
+    })
+}
+
+struct NodeClusterArgs<'args> {
+    info_graph: &'args InfoGraph,
+    el_css_classes: &'args ElCssClasses,
+    tag_el_css_classes_map: &'args IndexMap<&'args TagId, ElCssClasses>,
+    theme: &'args GraphvizDotTheme,
+    node_id: &'args NodeId,
+    node_hierarchy: &'args NodeHierarchy,
 }
 
 struct EdgeArgs<'args> {
@@ -621,6 +640,74 @@ struct EdgeArgs<'args> {
     target_node_id_plain: &'args str,
     target_node_hierarchy: Option<&'args NodeHierarchy>,
     target_compass_point: Option<&'args str>,
+}
+
+fn edges(
+    info_graph: &InfoGraph,
+    node_id_to_hierarchy: &std::collections::HashMap<&NodeId, &NodeHierarchy>,
+    el_css_classes: &ElCssClasses,
+    tag_el_css_classes_map: &IndexMap<&TagId, ElCssClasses>,
+) -> String {
+    let graphviz_attrs = info_graph.graphviz_attrs();
+    let edge_tags_set = info_graph.edge_tags_set();
+    let edge_tags_set = &edge_tags_set;
+
+    info_graph
+        .edges()
+        .iter()
+        .map(|(edge_id, [src_node_id, target_node_id])| {
+            let edge_desc = info_graph.edge_descs().get(edge_id).map(String::as_str);
+            let edge_constraint = graphviz_attrs.edge_constraints().get(edge_id).copied();
+            let edge_dir = graphviz_attrs.edge_dirs().get(edge_id).copied();
+            let edge_minlen = graphviz_attrs.edge_minlens().get(edge_id).copied();
+            let edge_tags = edge_tags_set.get(edge_id);
+
+            // Graphviz has a bug where setting the `headport` / `tailport` attributes
+            // causes the edge to not be rendered with spline curves if the `lhead` /
+            // `ltail` is a node. So we workaround this by still passing the
+            // compass points through as the source / target node IDs.
+            let (src_node_id_plain, src_compass_point) = match src_node_id.split_once(':') {
+                Some((src_node_id_plain, src_compass_point)) => {
+                    (src_node_id_plain, Some(src_compass_point))
+                }
+                None => (src_node_id.as_str(), None),
+            };
+            let (target_node_id_plain, target_compass_point) = match target_node_id.split_once(':')
+            {
+                Some((target_node_id_plain, target_compass_point)) => {
+                    (target_node_id_plain, Some(target_compass_point))
+                }
+                None => (target_node_id.as_str(), None),
+            };
+
+            // We need to find the node_hierarchy for both the the `src_node_id` and
+            // `target_node_id`.
+            let src_node_hierarchy = node_id_to_hierarchy.get(src_node_id_plain).copied();
+            let target_node_hierarchy = node_id_to_hierarchy.get(target_node_id_plain).copied();
+
+            let edge_args = EdgeArgs {
+                el_css_classes,
+                tag_el_css_classes_map,
+                edge_tags,
+                edge_id,
+                edge_desc,
+                edge_constraint,
+                edge_dir,
+                edge_minlen,
+                src_node_id_with_port: src_node_id.as_str(),
+                src_node_id_plain,
+                src_compass_point,
+                src_node_hierarchy,
+                target_node_id_with_port: target_node_id.as_str(),
+                target_node_id_plain,
+                target_node_hierarchy,
+                target_compass_point,
+            };
+
+            edge(edge_args)
+        })
+        .collect::<Vec<String>>()
+        .join("\n")
 }
 
 fn edge(edge_args: EdgeArgs<'_>) -> String {

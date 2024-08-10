@@ -6,8 +6,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     common::{
-        EdgeDescs, EdgeId, EdgeTagsSet, Edges, GraphvizAttrs, NodeDescs, NodeEmojis, NodeHierarchy,
-        NodeId, NodeNames, NodeTagsSet, TagItems, TagNames, TagStyles,
+        EdgeDescs, EdgeId, EdgeTagsSet, Edges, GraphvizAttrs, Images, NodeDescs, NodeEmojis,
+        NodeHierarchy, NodeId, NodeImages, NodeNames, NodeTagsSet, TagItems, TagNames, TagStyles,
     },
     theme::Theme,
 };
@@ -24,6 +24,8 @@ pub struct InfoGraph {
     pub graph_style: GraphStyle,
     /// Direction of the graph, `vertical` or `horizontal`.
     pub direction: GraphDir,
+    /// Images stored in the diagram.
+    pub images: Images,
     /// Nested nodes.
     pub hierarchy: NodeHierarchy,
     /// Each node's name.
@@ -32,6 +34,8 @@ pub struct InfoGraph {
     pub node_descs: NodeDescs,
     /// Each node's emoji.
     pub node_emojis: NodeEmojis,
+    /// Each node's image.
+    pub node_images: NodeImages,
     /// Logical / ordering dependencies.
     pub edges: Edges,
     /// Each edge's description.
@@ -65,6 +69,12 @@ impl InfoGraph {
         self
     }
 
+    /// Sets the images stored in the diagram.
+    pub fn with_images(mut self, images: Images) -> Self {
+        self.images = images;
+        self
+    }
+
     /// Sets the nested nodes.
     pub fn with_hierarchy(mut self, hierarchy: NodeHierarchy) -> Self {
         self.hierarchy = hierarchy;
@@ -86,6 +96,12 @@ impl InfoGraph {
     /// Sets the map of node emojis.
     pub fn with_node_emojis(mut self, node_emojis: NodeEmojis) -> Self {
         self.node_emojis = node_emojis;
+        self
+    }
+
+    /// Sets the map of node images.
+    pub fn with_node_images(mut self, node_images: NodeImages) -> Self {
+        self.node_images = node_images;
         self
     }
 
@@ -153,6 +169,11 @@ impl InfoGraph {
         self.direction
     }
 
+    /// Returns the images stored in the diagram.
+    pub fn images(&self) -> &Images {
+        &self.images
+    }
+
     /// Returns the nested nodes.
     pub fn hierarchy(&self) -> &NodeHierarchy {
         &self.hierarchy
@@ -209,6 +230,11 @@ impl InfoGraph {
     /// Returns the map of node emojis.
     pub fn node_emojis(&self) -> &NodeEmojis {
         &self.node_emojis
+    }
+
+    /// Returns the map of node images.
+    pub fn node_images(&self) -> &NodeImages {
+        &self.node_images
     }
 
     /// Returns the logical / ordering dependencies.

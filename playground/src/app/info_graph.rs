@@ -263,6 +263,15 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
     );
 
     create_effect(move |_| {
+        let dot_src = dot_src.get();
+        let dot_src_and_styles = dot_src_and_styles.get_untracked();
+        if let Some((dot_src, mut dot_src_and_styles)) = dot_src.zip(dot_src_and_styles) {
+            dot_src_and_styles.dot_src = dot_src;
+            dot_src_and_styles_set.set(Some(dot_src_and_styles));
+        }
+    });
+
+    create_effect(move |_| {
         let info_graph_src = info_graph_src.get();
 
         let merge_key_exists = info_graph_src.lines().any(|line| {
@@ -293,6 +302,7 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
                 let DotSrcAndStyles {
                     dot_src,
                     styles: _,
+                    opts: _,
                     theme_warnings,
                 } = dot_src_and_styles;
 
@@ -463,14 +473,16 @@ pub fn InfoGraphSrcAndDotSrc(
                 >
                     <option value="custom" selected></option>
                     <option value="demo">"Demo"</option>
-                    <option value="process_simple">      "Ex 1: Process (simple)"</option>
-                    <option value="process_with_info">   "Ex 2: Process with info"</option>
-                    <option value="nested_nodes">        "Ex 3: Nested nodes"</option>
-                    <option value="styles_simple">       "Ex 4: Styles (simple)"</option>
-                    <option value="styles_animated">     "Ex 5: Styles (animated)"</option>
-                    <option value="tags_simple">         "Ex 6: Tags (simple)"</option>
-                    <option value="tags_styled">         "Ex 7: Tags (styled)"</option>
-                    <option value="cloud_infrastructure">"Ex 8: Cloud Infrastructure"</option>
+                    <option value="process_simple">      "Ex  1: Process (simple)"</option>
+                    <option value="process_with_info">   "Ex  2: Process with info"</option>
+                    <option value="nested_nodes">        "Ex  3: Nested nodes"</option>
+                    <option value="styles_simple">       "Ex  4: Styles (simple)"</option>
+                    <option value="styles_animated">     "Ex  5: Styles (animated)"</option>
+                    <option value="tags_simple">         "Ex  6: Tags (simple)"</option>
+                    <option value="tags_styled">         "Ex  7: Tags (styled)"</option>
+                    <option value="cloud_infrastructure">"Ex  8: Cloud Infrastructure"</option>
+                    <option value="images_simple">       "Ex  9: Images (simple)"</option>
+                    <option value="images_animated">     "Ex 10: Images (animated)"</option>
                 </select>
             </div>
 

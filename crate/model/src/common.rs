@@ -9,10 +9,13 @@ pub use self::{
     edges::Edges,
     graphviz_attrs::GraphvizAttrs,
     graphviz_dot_theme::GraphvizDotTheme,
+    image_id::{ImageId, ImageIdInvalidFmt},
+    images::Images,
     node_descs::NodeDescs,
     node_emojis::NodeEmojis,
     node_hierarchy::NodeHierarchy,
     node_id::{NodeId, NodeIdInvalidFmt},
+    node_images::NodeImages,
     node_names::NodeNames,
     node_tags_set::NodeTagsSet,
     tag_id::{TagId, TagIdInvalidFmt},
@@ -21,21 +24,24 @@ pub use self::{
     tag_styles::TagStyles,
 };
 
+pub mod dot_src_and_styles;
 pub mod graphviz_attrs;
 pub mod graphviz_dot_theme;
 
 mod any_id;
-mod dot_src_and_styles;
 mod edge;
 mod edge_descs;
 mod edge_id;
 mod edge_tags_set;
 mod edges;
 mod id_newtype;
+mod image_id;
+mod images;
 mod node_descs;
 mod node_emojis;
 mod node_hierarchy;
 mod node_id;
+mod node_images;
 mod node_names;
 mod node_tags_set;
 mod tag_id;
