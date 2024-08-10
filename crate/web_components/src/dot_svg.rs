@@ -5,7 +5,10 @@ use dot_ix_model::{common::DotSrcAndStyles, info_graph::InfoGraph};
 #[cfg(feature = "server_side_graphviz")]
 use leptos::{server, server_fn::error::NoCustomError, ServerFnError, Suspense};
 
-#[cfg(any(feature = "server_side_graphviz", target_arch = "wasm32"))]
+#[cfg(any(
+    all(feature = "ssr", feature = "server_side_graphviz"),
+    target_arch = "wasm32"
+))]
 use dot_ix_model::common::{dot_src_and_styles::GraphvizImage, Images};
 
 #[cfg(not(feature = "server_side_graphviz"))]
@@ -88,7 +91,10 @@ pub async fn dot_svg(
     Ok((dot_svg, dot_stderr))
 }
 
-#[cfg(any(feature = "server_side_graphviz", target_arch = "wasm32"))]
+#[cfg(any(
+    all(feature = "ssr", feature = "server_side_graphviz"),
+    target_arch = "wasm32"
+))]
 fn svg_image_defs(images: &Images) -> String {
     images
         .iter()

@@ -9,7 +9,7 @@ use crate::common::dot_src_and_styles::GraphvizImage;
 /// See [`Options`].
 ///
 /// [`Options`]: https://hpcc-systems.github.io/hpcc-js-wasm/graphviz/interfaces/Options.html
-#[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(default)]
 pub struct GraphvizOpts {
     /// The list of [`images`] to pass to `graphviz.layout`.
@@ -29,13 +29,5 @@ impl GraphvizOpts {
     /// [`images`]: https://hpcc-systems.github.io/hpcc-js-wasm/graphviz/interfaces/Image.html
     pub fn images(&self) -> &[GraphvizImage] {
         &self.images
-    }
-}
-
-impl Default for GraphvizOpts {
-    fn default() -> Self {
-        Self {
-            images: Vec::default(),
-        }
     }
 }

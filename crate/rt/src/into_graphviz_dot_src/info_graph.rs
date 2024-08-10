@@ -358,7 +358,7 @@ fn node_cluster_internal(
         .map(|desc| format!("<tr><td balign=\"left\">{desc}</td></tr>"));
     let node_desc = node_desc.as_deref();
 
-    let image = image(&images, node_image, node_desc);
+    let image = image(images, node_image, node_desc);
     let image = image.as_deref().unwrap_or("");
     let emoji = emoji(node_emoji, node_desc, theme, node_point_size);
     let emoji = emoji.as_deref().unwrap_or("");
