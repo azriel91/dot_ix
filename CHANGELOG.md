@@ -1,5 +1,13 @@
 # Changelog
 
+## unreleased
+
+* Support inline images ([#33]).
+
+
+[#33]: https://github.com/azriel91/dot_ix/issues/33
+
+
 ## 0.8.0 (2024-08-08)
 
 * Add `TextEditor` in playground which uses [monaco][monaco] / [rust-monaco][rust-monaco].
