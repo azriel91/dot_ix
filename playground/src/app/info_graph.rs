@@ -263,6 +263,15 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
     );
 
     create_effect(move |_| {
+        let dot_src = dot_src.get();
+        let dot_src_and_styles = dot_src_and_styles.get_untracked();
+        if let Some((dot_src, mut dot_src_and_styles)) = dot_src.zip(dot_src_and_styles) {
+            dot_src_and_styles.dot_src = dot_src;
+            dot_src_and_styles_set.set(Some(dot_src_and_styles));
+        }
+    });
+
+    create_effect(move |_| {
         let info_graph_src = info_graph_src.get();
 
         let merge_key_exists = info_graph_src.lines().any(|line| {
