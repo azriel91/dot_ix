@@ -3,9 +3,9 @@ use std::ops::{Deref, DerefMut};
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 
-use crate::common::{ImageId, NodeId};
+use crate::common::{dot_src_and_styles::GraphvizImage, ImageId};
 
-/// Image to insert for each node. `IndexMap<NodeId, ImageId>` newtype.
+/// Images available for . `IndexMap<ImageId, GraphvizImage>` newtype.
 ///
 /// # Examples
 ///
@@ -36,48 +36,48 @@ use crate::common::{ImageId, NodeId};
 ///   blue: blue_inline
 /// ```
 #[derive(Clone, Debug, Default, PartialEq, Eq, Deserialize, Serialize)]
-pub struct NodeImages(IndexMap<NodeId, ImageId>);
+pub struct Images(IndexMap<ImageId, GraphvizImage>);
 
-impl NodeImages {
-    /// Returns a new `NodeImages` map.
+impl Images {
+    /// Returns a new `Images` map.
     pub fn new() -> Self {
         Self::default()
     }
 
-    /// Returns a new `NodeImages` map with the given preallocated
+    /// Returns a new `Images` map with the given preallocated
     /// capacity.
     pub fn with_capacity(capacity: usize) -> Self {
         Self(IndexMap::with_capacity(capacity))
     }
 
     /// Returns the underlying map.
-    pub fn into_inner(self) -> IndexMap<NodeId, ImageId> {
+    pub fn into_inner(self) -> IndexMap<ImageId, GraphvizImage> {
         self.0
     }
 }
 
-impl Deref for NodeImages {
-    type Target = IndexMap<NodeId, ImageId>;
+impl Deref for Images {
+    type Target = IndexMap<ImageId, GraphvizImage>;
 
     fn deref(&self) -> &Self::Target {
         &self.0
     }
 }
 
-impl DerefMut for NodeImages {
+impl DerefMut for Images {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.0
     }
 }
 
-impl From<IndexMap<NodeId, ImageId>> for NodeImages {
-    fn from(inner: IndexMap<NodeId, ImageId>) -> Self {
+impl From<IndexMap<ImageId, GraphvizImage>> for Images {
+    fn from(inner: IndexMap<ImageId, GraphvizImage>) -> Self {
         Self(inner)
     }
 }
 
-impl FromIterator<(NodeId, ImageId)> for NodeImages {
-    fn from_iter<I: IntoIterator<Item = (NodeId, ImageId)>>(iter: I) -> Self {
+impl FromIterator<(ImageId, GraphvizImage)> for Images {
+    fn from_iter<I: IntoIterator<Item = (ImageId, GraphvizImage)>>(iter: I) -> Self {
         Self(IndexMap::from_iter(iter))
     }
 }

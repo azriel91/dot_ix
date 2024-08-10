@@ -2,8 +2,7 @@ use serde::{Deserialize, Serialize};
 
 /// Defines the path, width, and height of an image for GraphViz.
 ///
-/// Currently this is used to pass inline images. Without this, the `<image>`
-/// element is not rendered for a node.
+/// Without this, the `<image>` element is not rendered for a node.
 ///
 /// See [`Image`].
 ///

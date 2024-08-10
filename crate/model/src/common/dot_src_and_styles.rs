@@ -2,8 +2,9 @@ use serde::{Deserialize, Serialize};
 
 use crate::theme::ThemeWarnings;
 
-pub use self::graphviz_opts::GraphvizOpts;
+pub use self::{graphviz_image::GraphvizImage, graphviz_opts::GraphvizOpts};
 
+mod graphviz_image;
 mod graphviz_opts;
 
 /// Graphviz dot source and CSS styles.

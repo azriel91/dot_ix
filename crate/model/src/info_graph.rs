@@ -6,8 +6,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     common::{
-        EdgeDescs, EdgeId, EdgeTagsSet, Edges, GraphvizAttrs, NodeDescs, NodeEmojis, NodeHierarchy,
-        NodeId, NodeImages, NodeNames, NodeTagsSet, TagItems, TagNames, TagStyles,
+        EdgeDescs, EdgeId, EdgeTagsSet, Edges, GraphvizAttrs, Images, NodeDescs, NodeEmojis,
+        NodeHierarchy, NodeId, NodeImages, NodeNames, NodeTagsSet, TagItems, TagNames, TagStyles,
     },
     theme::Theme,
 };
@@ -24,6 +24,8 @@ pub struct InfoGraph {
     pub graph_style: GraphStyle,
     /// Direction of the graph, `vertical` or `horizontal`.
     pub direction: GraphDir,
+    /// Images stored in the diagram.
+    pub images: Images,
     /// Nested nodes.
     pub hierarchy: NodeHierarchy,
     /// Each node's name.
@@ -64,6 +66,12 @@ impl InfoGraph {
     /// Sets the direction of the graph, `vertical` or `horizontal`.
     pub fn with_direction(mut self, direction: GraphDir) -> Self {
         self.direction = direction;
+        self
+    }
+
+    /// Sets the images stored in the diagram.
+    pub fn with_images(mut self, images: Images) -> Self {
+        self.images = images;
         self
     }
 
@@ -159,6 +167,11 @@ impl InfoGraph {
     /// Returns the direction of the graph, `vertical` or `horizontal`.
     pub fn direction(&self) -> GraphDir {
         self.direction
+    }
+
+    /// Returns the images stored in the diagram.
+    pub fn images(&self) -> &Images {
+        &self.images
     }
 
     /// Returns the nested nodes.

@@ -9,7 +9,8 @@ pub use self::{
     edges::Edges,
     graphviz_attrs::GraphvizAttrs,
     graphviz_dot_theme::GraphvizDotTheme,
-    graphviz_image::GraphvizImage,
+    image_id::{ImageId, ImageIdInvalidFmt},
+    images::Images,
     node_descs::NodeDescs,
     node_emojis::NodeEmojis,
     node_hierarchy::NodeHierarchy,
@@ -33,8 +34,9 @@ mod edge_descs;
 mod edge_id;
 mod edge_tags_set;
 mod edges;
-mod graphviz_image;
 mod id_newtype;
+mod image_id;
+mod images;
 mod node_descs;
 mod node_emojis;
 mod node_hierarchy;

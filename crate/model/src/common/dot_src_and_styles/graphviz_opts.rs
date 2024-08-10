@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::common::GraphvizImage;
+use crate::common::dot_src_and_styles::GraphvizImage;
 
 /// Options to pass to graphviz when rendering.
 ///

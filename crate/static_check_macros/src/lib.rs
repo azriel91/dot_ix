@@ -156,6 +156,56 @@ pub fn tag_id(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     ensure_valid_id(&parse_macro_input!(input as LitStrMaybe), "TagId", None).into()
 }
 
+/// Returns a `const ImageId` validated at compile time.
+///
+/// # Examples
+///
+/// Instantiate a valid `ImageId` at compile time:
+///
+/// ```rust,ignore
+/// # use dot_ix_static_check_macros::image_id;
+/// #
+/// let _my_flow: dot_ix::model::common::ImageId = image_id!("valid_id"); // Ok!
+/// //
+/// #
+/// # pub mod dot_ix {
+/// #     pub mod model {
+/// #         pub mod common {
+/// #             pub struct ImageId(&'static str);
+/// #             impl ImageId {
+/// #                 pub fn new_unchecked(s: &'static str) -> Self { Self(s) }
+/// #             }
+/// #         }
+/// #     }
+/// # }
+/// ```
+///
+/// If the ID is invalid, a compilation error is produced:
+///
+/// ```rust,ignore
+/// # use dot_ix_static_check_macros::image_id;
+///
+/// let _my_flow: dot_ix::model::common::ImageId = image_id!("-invalid_id"); // Compile error
+/// //                                           ^^^^^^^^^^^^^^^^^^^^^^^
+/// // error: "-invalid_id" is not a valid `ImageId`.
+/// //        `ImageId`s must begin with a letter or underscore, and contain only letters, numbers, or underscores.
+/// #
+/// # pub mod dot_ix {
+/// #     pub mod model {
+/// #         pub mod common {
+/// #             pub struct ImageId(&'static str);
+/// #             impl ImageId {
+/// #                 pub fn new_unchecked(s: &'static str) -> Self { Self(s) }
+/// #             }
+/// #         }
+/// #     }
+/// # }
+/// ```
+#[proc_macro]
+pub fn image_id(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    ensure_valid_id(&parse_macro_input!(input as LitStrMaybe), "ImageId", None).into()
+}
+
 fn ensure_valid_id(
     proposed_id: &LitStrMaybe,
     ty_name: &str,

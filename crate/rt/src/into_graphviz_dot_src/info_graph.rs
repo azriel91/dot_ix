@@ -5,8 +5,10 @@ use std::{
 
 use dot_ix_model::{
     common::{
-        dot_src_and_styles::GraphvizOpts, graphviz_attrs::EdgeDir, AnyId, DotSrcAndStyles, EdgeId,
-        GraphvizAttrs, GraphvizDotTheme, GraphvizImage, NodeHierarchy, NodeId, TagId, TagNames,
+        dot_src_and_styles::{GraphvizImage, GraphvizOpts},
+        graphviz_attrs::EdgeDir,
+        AnyId, DotSrcAndStyles, EdgeId, GraphvizAttrs, GraphvizDotTheme, ImageId, Images,
+        NodeHierarchy, NodeId, TagId, TagNames,
     },
     info_graph::{GraphDir, GraphStyle, InfoGraph},
     theme::{ElCssClasses, Theme},
@@ -175,7 +177,15 @@ impl IntoGraphvizDotSrc for &InfoGraph {
         .expect("Failed to write `tag_legend` string.");
 
         let opts = {
-            let images = self.node_images().values().cloned().collect();
+            let images = self
+                .images()
+                .iter()
+                .map(|(image_id, image)| GraphvizImage {
+                    path: image_id.as_str().to_string(),
+                    width: image.width().to_string(),
+                    height: image.height().to_string(),
+                })
+                .collect();
 
             GraphvizOpts::new(images)
         };
@@ -327,6 +337,7 @@ fn node_cluster_internal(
     let node_descs = info_graph.node_descs();
     let node_emojis = info_graph.node_emojis();
     let node_tags_set = info_graph.node_tags_set();
+    let images = info_graph.images();
     let node_images = info_graph.node_images();
     let graph_dir = info_graph.direction();
     let node_tailwind_classes = el_css_classes
@@ -347,7 +358,7 @@ fn node_cluster_internal(
         .map(|desc| format!("<tr><td balign=\"left\">{desc}</td></tr>"));
     let node_desc = node_desc.as_deref();
 
-    let image = image(node_image, node_desc);
+    let image = image(&images, node_image, node_desc);
     let image = image.as_deref().unwrap_or("");
     let emoji = emoji(node_emoji, node_desc, theme, node_point_size);
     let emoji = emoji.as_deref().unwrap_or("");
@@ -505,21 +516,41 @@ fn node_cluster_internal(
     Ok(())
 }
 
-fn image(node_image: Option<&GraphvizImage>, node_desc: Option<&str>) -> Option<String> {
-    node_image.map(|image| {
-        let rowspan = if node_desc.is_some() {
-            "rowspan=\"2\""
-        } else {
-            ""
-        };
+fn image(images: &Images, node_image: Option<&ImageId>, node_desc: Option<&str>) -> Option<String> {
+    node_image
+        .and_then(|image_id| images.get(image_id).map(|image| (image_id, image)))
+        .map(|(image_id, image)| {
+            let rowspan = if node_desc.is_some() {
+                "rowspan=\"2\""
+            } else {
+                ""
+            };
 
-        let GraphvizImage {
-            path,
-            width: _,
-            height: _,
-        } = image;
-        format!("<td valign=\"top\" {rowspan}><img src=\"{path}\" /></td>")
-    })
+            let GraphvizImage {
+                path: _,
+                width,
+                height,
+            } = image;
+
+            // Extra `<td>` is for spacing
+            format!(
+                "\
+                <td \
+                    valign=\"top\" \
+                    {rowspan} \
+                    fixedsize=\"true\" \
+                    width=\"{width}\" \
+                    height=\"{height}\" \
+                >\
+                    <img src=\"{image_id}\" />\
+                </td>\
+                <td \
+                    {rowspan} \
+                    fixedsize=\"true\" \
+                    width=\"10px\" \
+                ></td>"
+            )
+        })
 }
 
 fn emoji(
