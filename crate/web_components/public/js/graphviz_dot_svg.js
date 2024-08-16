@@ -1,4 +1,4 @@
-import { Graphviz } from "https://cdn.jsdelivr.net/npm/@hpcc-js/wasm@2.18.2/dist/graphviz.js";
+import { Graphviz } from "https://cdn.jsdelivr.net/npm/@hpcc-js/wasm@2.20.0/dist/graphviz.js";
 
 const graphviz = await Graphviz.load();
 
