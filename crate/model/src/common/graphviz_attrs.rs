@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 pub use self::{
     edge_constraints::EdgeConstraints, edge_dir::EdgeDir, edge_dirs::EdgeDirs,
-    edge_minlens::EdgeMinlens, pack_mode::PackMode, pack_mode_flag::PackModeFlag,
+    edge_minlens::EdgeMinlens, pack_mode::PackMode, pack_mode_flag::PackModeFlag, splines::Splines,
 };
 
 mod edge_constraints;
@@ -11,11 +11,16 @@ mod edge_dirs;
 mod edge_minlens;
 mod pack_mode;
 mod pack_mode_flag;
+mod splines;
 
 /// Additional attributes specifically for GraphViz.
 #[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 #[serde(default)]
 pub struct GraphvizAttrs {
+    /// How to render edge lines. See [`splines`].
+    ///
+    /// [`splines`]: https://graphviz.org/docs/attrs/splines/
+    pub splines: Splines,
     /// The default [`constraint`] value for edges, defaults to `true`.
     ///
     /// [`constraint`]: https://graphviz.org/docs/attrs/constraint/
@@ -48,6 +53,14 @@ impl GraphvizAttrs {
     /// Returns a new `GraphvizOpts` map.
     pub fn new() -> Self {
         Self::default()
+    }
+
+    /// Sets how to render edge lines. See [`splines`].
+    ///
+    /// [`splines`]: https://graphviz.org/docs/attrs/splines/
+    pub fn with_splines(mut self, splines: Splines) -> Self {
+        self.splines = splines;
+        self
     }
 
     /// Sets the default [`constraint`] value for edges.
@@ -98,6 +111,13 @@ impl GraphvizAttrs {
         self
     }
 
+    /// Returns how to render edge lines. See [`splines`].
+    ///
+    /// [`splines`]: https://graphviz.org/docs/attrs/splines/
+    pub fn splines(&self) -> Splines {
+        self.splines
+    }
+
     /// Returns the default [`constraint`] value for edges.
     ///
     /// [`constraint`]: https://graphviz.org/docs/attrs/constraint/
@@ -144,6 +164,7 @@ impl GraphvizAttrs {
 impl Default for GraphvizAttrs {
     fn default() -> Self {
         Self {
+            splines: Splines::default(),
             edge_constraint_default: true,
             edge_constraints: EdgeConstraints::default(),
             edge_dir_default: EdgeDir::default(),

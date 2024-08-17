@@ -6,7 +6,7 @@ use std::{
 use dot_ix_model::{
     common::{
         dot_src_and_styles::{GraphvizImage, GraphvizOpts},
-        graphviz_attrs::EdgeDir,
+        graphviz_attrs::{EdgeDir, Splines},
         AnyId, DotSrcAndStyles, EdgeId, GraphvizAttrs, GraphvizDotTheme, ImageId, Images,
         NodeHierarchy, NodeId, TagId, TagNames,
     },
@@ -234,6 +234,17 @@ fn graph_attrs(
         GraphDir::Vertical => "TB",
     };
 
+    let splines = graphviz_attrs.splines();
+    let splines = match splines {
+        Splines::Unset => Cow::Borrowed(""),
+        Splines::None
+        | Splines::Line
+        | Splines::Polyline
+        | Splines::Curved
+        | Splines::Ortho
+        | Splines::Spline => Cow::Owned(format!("splines = {splines}")),
+    };
+
     formatdoc!(
         r#"
         compound  = true
@@ -248,6 +259,7 @@ fn graph_attrs(
             fontcolor = "{plain_text_color}"
             fontsize  = {node_point_size}
             rankdir   = {rankdir}
+            {splines}
         ]
         "#
     )

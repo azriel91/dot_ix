@@ -3,6 +3,7 @@
 ## unreleased
 
 * Support inline images ([#33]).
+* Support `splines` in `GraphvizAttrs`.
 
 
 [#33]: https://github.com/azriel91/dot_ix/issues/33
