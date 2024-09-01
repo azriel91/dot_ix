@@ -58,7 +58,7 @@ jobs:
 
       - name: cargo-release Cache
         id: cargo_release_cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.cargo/bin/cargo-release
           key: ${{ runner.os }}-cargo-release
