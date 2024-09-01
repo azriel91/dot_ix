@@ -78,7 +78,7 @@ jobs:
         run: ../trunk build --release --public-url "/${GITHUB_REPOSITORY#*/}"
 
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v2
+        uses: actions/upload-pages-artifact@v3
         with:
           # Upload playground/dist directory
           path: 'playground/dist'
