@@ -252,7 +252,6 @@ fn graph_attrs(
         compound  = true
         graph [
             margin    = 0.1
-            penwidth  = 0
             nodesep   = {nodesep}
             ranksep   = {ranksep}
             bgcolor   = "transparent"
