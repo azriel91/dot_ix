@@ -235,6 +235,7 @@ fn graph_attrs(
     };
 
     let nodesep = graphviz_attrs.nodesep();
+    let ranksep = graphviz_attrs.ranksep();
     let splines = graphviz_attrs.splines();
     let splines = match splines {
         Splines::Unset => Cow::Borrowed(""),
@@ -253,7 +254,7 @@ fn graph_attrs(
             margin    = 0.1
             penwidth  = 0
             nodesep   = {nodesep}
-            ranksep   = 0.02
+            ranksep   = {ranksep}
             bgcolor   = "transparent"
             fontname  = "helvetica"
             packmode  = "{pack_mode}"
