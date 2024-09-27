@@ -1,6 +1,6 @@
 # Changelog
 
-## unreleased
+## 0.8.1 (2024-09-27)
 
 * Support inline images ([#33]).
 * Support `splines` in `GraphvizAttrs`.
