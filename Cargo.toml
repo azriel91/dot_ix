@@ -62,7 +62,7 @@ dot_ix_static_check_macros = { version = "0.8.0", path = "crate/static_check_mac
 dot_ix_web_components = { version = "0.8.0", path = "crate/web_components" }
 
 # external crates
-axum = "0.7.5"
+axum = "0.7.6"
 console_error_panic_hook = "0.1"
 console_log = "1"
 cfg-if = "1"
@@ -75,7 +75,7 @@ leptos = { version = "0.6" }
 leptos_axum = "0.6"
 leptos_meta = { version = "0.6" }
 leptos_router = { version = "0.6" }
-leptos-use = "0.13.4"
+leptos-use = "0.13.5"
 log = "0.4"
 log4rs = { version = "1.3.0", default-features = false }
 monaco = "0.4.0"
@@ -85,7 +85,7 @@ tokio = "1.40.0"
 tower = "0.5.1"
 wasm-bindgen = "0.2.93"
 tailwind-css = "0.13.0"
-thiserror = "1.0.63"
+thiserror = "1.0.64"
 tracing = "0.1.40"
 http = "1.1.0"
 proc-macro2 = "1.0.86"
