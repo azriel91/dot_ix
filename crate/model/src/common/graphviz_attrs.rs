@@ -17,6 +17,26 @@ mod splines;
 #[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 #[serde(default)]
 pub struct GraphvizAttrs {
+    /// Minimum space between two adjacent nodes in the same rank, in
+    /// inches. Also controls the spacing between multiple edges between the
+    /// same pair of nodes.
+    ///
+    /// Defaults to `0.25`. Minimum `0.02`.
+    ///
+    /// See [`nodesep`].
+    ///
+    /// [`nodesep`]: https://graphviz.org/docs/attrs/nodesep/
+    pub nodesep: f64,
+    /// The desired separation between nodes of different ranks, in inches. See
+    /// [`ranksep`].
+    ///
+    /// Defaults to `0.25`. Minimum `0.02`.
+    ///
+    /// This does not support the `equally` string (yet). I'm not sure if it is
+    /// used.
+    ///
+    /// [`ranksep`]: https://graphviz.org/docs/attrs/ranksep/
+    pub ranksep: f64,
     /// How to render edge lines. See [`splines`].
     ///
     /// [`splines`]: https://graphviz.org/docs/attrs/splines/
@@ -53,6 +73,34 @@ impl GraphvizAttrs {
     /// Returns a new `GraphvizOpts` map.
     pub fn new() -> Self {
         Self::default()
+    }
+
+    /// Sets the minimum space between two adjacent nodes in the same rank, in
+    /// inches. Also controls the spacing between multiple edges between the
+    /// same pair of nodes.
+    ///
+    /// Defaults to `0.25`. Minimum `0.02`.
+    ///
+    /// See [`nodesep`].
+    ///
+    /// [`nodesep`]: https://graphviz.org/docs/attrs/nodesep/
+    pub fn with_nodesep(mut self, nodesep: f64) -> Self {
+        self.nodesep = nodesep;
+        self
+    }
+
+    /// Sets the desired separation between nodes of different ranks, in inches.
+    /// See [`ranksep`].
+    ///
+    /// Defaults to `0.25`. Minimum `0.02`.
+    ///
+    /// This does not support the `equally` string (yet). I'm not sure if it is
+    /// used.
+    ///
+    /// [`ranksep`]: https://graphviz.org/docs/attrs/ranksep/
+    pub fn with_ranksep(mut self, ranksep: f64) -> Self {
+        self.ranksep = ranksep;
+        self
     }
 
     /// Sets how to render edge lines. See [`splines`].
@@ -111,6 +159,29 @@ impl GraphvizAttrs {
         self
     }
 
+    /// Returns the minimum space between two adjacent nodes in the same rank,
+    /// in inches. Also controls the spacing between multiple edges between
+    /// the same pair of nodes.
+    ///
+    /// Defaults to `0.25`. Minimum `0.02`.
+    ///
+    /// See [`nodesep`].
+    ///
+    /// [`nodesep`]: https://graphviz.org/docs/attrs/nodesep/
+    pub fn nodesep(&self) -> f64 {
+        self.nodesep
+    }
+
+    /// Returns the desired separation between nodes of different ranks, in
+    /// inches. See [`ranksep`].
+    ///
+    /// Defaults to `0.25`. Minimum `0.02`.
+    ///
+    /// [`ranksep`]: https://graphviz.org/docs/attrs/ranksep/
+    pub fn ranksep(&self) -> f64 {
+        self.ranksep
+    }
+
     /// Returns how to render edge lines. See [`splines`].
     ///
     /// [`splines`]: https://graphviz.org/docs/attrs/splines/
@@ -164,6 +235,8 @@ impl GraphvizAttrs {
 impl Default for GraphvizAttrs {
     fn default() -> Self {
         Self {
+            nodesep: 0.25,
+            ranksep: 0.25,
             splines: Splines::default(),
             edge_constraint_default: true,
             edge_constraints: EdgeConstraints::default(),

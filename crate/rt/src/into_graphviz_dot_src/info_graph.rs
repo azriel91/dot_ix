@@ -234,6 +234,8 @@ fn graph_attrs(
         GraphDir::Vertical => "TB",
     };
 
+    let nodesep = graphviz_attrs.nodesep();
+    let ranksep = graphviz_attrs.ranksep();
     let splines = graphviz_attrs.splines();
     let splines = match splines {
         Splines::Unset => Cow::Borrowed(""),
@@ -250,9 +252,8 @@ fn graph_attrs(
         compound  = true
         graph [
             margin    = 0.1
-            penwidth  = 0
-            nodesep   = 0.0
-            ranksep   = 0.02
+            nodesep   = {nodesep}
+            ranksep   = {ranksep}
             bgcolor   = "transparent"
             fontname  = "helvetica"
             packmode  = "{pack_mode}"

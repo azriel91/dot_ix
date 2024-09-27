@@ -4,6 +4,8 @@
 
 * Support inline images ([#33]).
 * Support `splines` in `GraphvizAttrs`.
+* Support `nodesep` in `GraphvizAttrs`.
+* Support `ranksep` in `GraphvizAttrs`.
 
 
 [#33]: https://github.com/azriel91/dot_ix/issues/33
