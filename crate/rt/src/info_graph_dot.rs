@@ -14,7 +14,7 @@ pub struct InfoGraphDot<'graph> {
     pub edge_ids: Vec<&'graph EdgeId>,
 }
 
-impl<'graph> InfoGraphDot<'graph> {
+impl InfoGraphDot<'_> {
     fn el_prefix(&self, node_id: &AnyId) -> &str {
         let is_cluster = self
             .node_id_to_hierarchy
