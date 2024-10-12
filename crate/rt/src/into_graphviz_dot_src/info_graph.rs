@@ -6,7 +6,7 @@ use std::{
 use dot_ix_model::{
     common::{
         dot_src_and_styles::{GraphvizImage, GraphvizOpts},
-        graphviz_attrs::{EdgeDir, Splines},
+        graphviz_attrs::{EdgeDir, FixedSize, NodeHeights, NodeWidths, Splines},
         AnyId, DotSrcAndStyles, EdgeId, GraphvizAttrs, GraphvizDotTheme, ImageId, Images,
         NodeHierarchy, NodeId, TagId, TagNames,
     },
@@ -98,7 +98,7 @@ impl IntoGraphvizDotSrc for &InfoGraph {
         let graph_style = self.graph_style();
         let graphviz_attrs = self.graphviz_attrs();
         let graph_attrs = graph_attrs(theme, self.direction(), graphviz_attrs);
-        let node_attrs = node_attrs(graph_style, theme);
+        let node_attrs = node_attrs(graph_style, graphviz_attrs, theme);
         let edge_attrs = edge_attrs(graphviz_attrs, theme);
         let diagram_theme = self.theme();
 
@@ -141,6 +141,8 @@ impl IntoGraphvizDotSrc for &InfoGraph {
         );
         let tag_el_css_classes_map = &tag_el_css_classes_map;
 
+        let node_widths = graphviz_attrs.node_widths();
+        let node_heights = graphviz_attrs.node_heights();
         let node_clusters = self
             .hierarchy()
             .iter()
@@ -152,6 +154,8 @@ impl IntoGraphvizDotSrc for &InfoGraph {
                     theme,
                     node_id,
                     node_hierarchy,
+                    node_widths,
+                    node_heights,
                 };
 
                 node_cluster(node_cluster_args)
@@ -266,7 +270,11 @@ fn graph_attrs(
     )
 }
 
-fn node_attrs(graph_style: GraphStyle, theme: &GraphvizDotTheme) -> String {
+fn node_attrs(
+    graph_style: GraphStyle,
+    graphviz_attrs: &GraphvizAttrs,
+    theme: &GraphvizDotTheme,
+) -> String {
     let node_style_and_shape = match graph_style {
         GraphStyle::Box => {
             "shape     = \"rect\"
@@ -279,10 +287,16 @@ fn node_attrs(graph_style: GraphStyle, theme: &GraphvizDotTheme) -> String {
     };
     let node_text_color = theme.node_text_color();
     let node_point_size = theme.node_point_size();
-    let node_width = theme.node_width();
-    let node_height = theme.node_height();
     let node_margin_x = theme.node_margin_x();
     let node_margin_y = theme.node_margin_y();
+
+    let node_width = graphviz_attrs.node_width_default();
+    let node_height = graphviz_attrs.node_height_default();
+    let fixed_size = graphviz_attrs.fixed_size();
+    let fixed_size = match fixed_size {
+        FixedSize::False => Cow::Borrowed(""),
+        FixedSize::True | FixedSize::Shape => Cow::Owned(format!(r#"fixedsize = {fixed_size}"#)),
+    };
 
     formatdoc!(
         r#"
@@ -294,6 +308,7 @@ fn node_attrs(graph_style: GraphStyle, theme: &GraphvizDotTheme) -> String {
             width     = {node_width}
             height    = {node_height}
             margin    = "{node_margin_x:.3},{node_margin_y:.3}"
+            {fixed_size}
         ]
         "#
     )
@@ -343,6 +358,8 @@ fn node_cluster_internal(
         theme,
         node_id,
         node_hierarchy,
+        node_widths,
+        node_heights,
     } = node_cluster_args;
 
     let graph_style = info_graph.graph_style();
@@ -393,6 +410,15 @@ fn node_cluster_internal(
         })
         .unwrap_or_default();
 
+    let node_width = node_widths
+        .get(node_id)
+        .map(|node_width| Cow::<str>::Owned(format!("width = {node_width}")))
+        .unwrap_or_default();
+    let node_height = node_heights
+        .get(node_id)
+        .map(|node_height| Cow::<str>::Owned(format!("height = {node_height}")))
+        .unwrap_or_default();
+
     // Note: There's no space between `{node_tailwind_classes}{node_tag_classes}`
     // because for some reason spaces before `{node_tag_classes}` are translated
     // into the `0xa0` byte.
@@ -416,6 +442,8 @@ fn node_cluster_internal(
                             {node_desc}
                         </table>>
                         class = "{OUTLINE_NONE} {node_tailwind_classes}{node_tag_classes}"
+                        {node_width}
+                        {node_height}
                     ]
                 "#
             )?,
@@ -438,6 +466,8 @@ fn node_cluster_internal(
                             label = <>
                             margin = 0.0
                             class = "{OUTLINE_NONE}"
+                            {node_width}
+                            {node_height}
 
                             {node_id} [
                                 label = ""
@@ -484,6 +514,8 @@ fn node_cluster_internal(
                     </table>>
                     style = "filled,rounded"
                     class = "{OUTLINE_NONE} {node_tailwind_classes}{node_tag_classes}"
+                    {node_width}
+                    {node_height}
             "#
         )?;
 
@@ -501,6 +533,8 @@ fn node_cluster_internal(
                         theme,
                         node_id: child_node_id,
                         node_hierarchy: child_node_hierarchy,
+                        node_widths,
+                        node_heights,
                     };
 
                     node_cluster_internal(node_cluster_args, buffer)
@@ -516,6 +550,8 @@ fn node_cluster_internal(
                             theme,
                             node_id: child_node_id,
                             node_hierarchy: child_node_hierarchy,
+                            node_widths,
+                            node_heights,
                         };
 
                         node_cluster_internal(node_cluster_args, buffer)
@@ -634,6 +670,8 @@ struct NodeClusterArgs<'args> {
     theme: &'args GraphvizDotTheme,
     node_id: &'args NodeId,
     node_hierarchy: &'args NodeHierarchy,
+    node_widths: &'args NodeWidths,
+    node_heights: &'args NodeHeights,
 }
 
 struct EdgeArgs<'args> {

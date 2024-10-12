@@ -2,13 +2,17 @@ use serde::{Deserialize, Serialize};
 
 pub use self::{
     edge_constraints::EdgeConstraints, edge_dir::EdgeDir, edge_dirs::EdgeDirs,
-    edge_minlens::EdgeMinlens, pack_mode::PackMode, pack_mode_flag::PackModeFlag, splines::Splines,
+    edge_minlens::EdgeMinlens, fixed_size::FixedSize, node_heights::NodeHeights,
+    node_widths::NodeWidths, pack_mode::PackMode, pack_mode_flag::PackModeFlag, splines::Splines,
 };
 
 mod edge_constraints;
 mod edge_dir;
 mod edge_dirs;
 mod edge_minlens;
+mod fixed_size;
+mod node_heights;
+mod node_widths;
 mod pack_mode;
 mod pack_mode_flag;
 mod splines;
@@ -65,6 +69,40 @@ pub struct GraphvizAttrs {
     ///
     /// [`minlen`]: https://graphviz.org/docs/attrs/minlen/
     pub edge_minlens: EdgeMinlens,
+    /// Minimum / initial [`width`] for nodes, defaults to `0.3`.
+    ///
+    /// If `fixedsize` is true, this will be the exact / maximum width for
+    /// nodes.
+    ///
+    /// [`width`]: https://graphviz.org/docs/attrs/width/
+    pub node_width_default: f64,
+    /// Each node's [`width`].
+    ///
+    /// If `fixedsize` is true, this will be the exact / maximum width for
+    /// nodes.
+    ///
+    /// [`width`]: https://graphviz.org/docs/attrs/width/
+    pub node_widths: NodeWidths,
+    /// Minimum / initial [`height`] for nodes, defaults to `0.1`.
+    ///
+    /// If `fixedsize` is true, this will be the exact / maximum height for
+    /// nodes.
+    ///
+    /// [`height`]: https://graphviz.org/docs/attrs/height/
+    pub node_height_default: f64,
+    /// Each node's [`height`].
+    ///
+    /// If `fixedsize` is true, this will be the exact / maximum height for
+    /// nodes.
+    ///
+    /// [`height`]: https://graphviz.org/docs/attrs/height/
+    pub node_heights: NodeHeights,
+    /// Whether a node's `width` and `height` are fixed dimensions.
+    ///
+    /// See [`fixedsize`].
+    ///
+    /// [`fixedsize`]: https://graphviz.org/docs/attrs/fixedsize/
+    pub fixed_size: FixedSize,
     /// How closely to pack together graph components.
     pub pack_mode: PackMode,
 }
@@ -159,6 +197,60 @@ impl GraphvizAttrs {
         self
     }
 
+    /// Sets the minimum / initial [`width`] for nodes, defaults to `0.3`.
+    ///
+    /// If `fixedsize` is true, this will be the exact / maximum width for
+    /// nodes.
+    ///
+    /// [`width`]: https://graphviz.org/docs/attrs/width/
+    pub fn with_node_width_default(mut self, node_width_default: f64) -> Self {
+        self.node_width_default = node_width_default;
+        self
+    }
+
+    /// Sets each node's [`width`].
+    ///
+    /// If `fixedsize` is true, this will be the exact / maximum width for
+    /// nodes.
+    ///
+    /// [`width`]: https://graphviz.org/docs/attrs/width/
+    pub fn with_node_widths(mut self, node_widths: NodeWidths) -> Self {
+        self.node_widths = node_widths;
+        self
+    }
+
+    /// Sets the minimum / initial [`height`] for nodes, defaults to `0.1`.
+    ///
+    /// If `fixedsize` is true, this will be the exact / maximum height for
+    /// nodes.
+    ///
+    /// [`height`]: https://graphviz.org/docs/attrs/height/
+    pub fn with_node_height_default(mut self, node_height_default: f64) -> Self {
+        self.node_height_default = node_height_default;
+        self
+    }
+
+    /// Sets each node's [`height`].
+    ///
+    /// If `fixedsize` is true, this will be the exact / maximum height for
+    /// nodes.
+    ///
+    /// [`height`]: https://graphviz.org/docs/attrs/height/
+    pub fn with_node_heights(mut self, node_heights: NodeHeights) -> Self {
+        self.node_heights = node_heights;
+        self
+    }
+
+    /// Sets whether a node's `width` and `height` are fixed dimensions.
+    ///
+    /// See [`fixedsize`].
+    ///
+    /// [`fixedsize`]: https://graphviz.org/docs/attrs/fixedsize/
+    pub fn with_fixed_size(mut self, fixed_size: FixedSize) -> Self {
+        self.fixed_size = fixed_size;
+        self
+    }
+
     /// Returns the minimum space between two adjacent nodes in the same rank,
     /// in inches. Also controls the spacing between multiple edges between
     /// the same pair of nodes.
@@ -230,6 +322,55 @@ impl GraphvizAttrs {
     pub fn edge_minlens(&self) -> &EdgeMinlens {
         &self.edge_minlens
     }
+
+    /// Returns the minimum / initial [`width`] for nodes.
+    ///
+    /// If `fixedsize` is true, this will be the exact / maximum width for
+    /// nodes.
+    ///
+    /// [`width`]: https://graphviz.org/docs/attrs/width/
+    pub fn node_width_default(&self) -> f64 {
+        self.node_width_default
+    }
+
+    /// Returns each node's [`width`].
+    ///
+    /// If `fixedsize` is true, this will be the exact / maximum width for
+    /// nodes.
+    ///
+    /// [`width`]: https://graphviz.org/docs/attrs/width/
+    pub fn node_widths(&self) -> &NodeWidths {
+        &self.node_widths
+    }
+
+    /// Returns the minimum / initial [`height`] for nodes.
+    ///
+    /// If `fixedsize` is true, this will be the exact / maximum height for
+    /// nodes.
+    ///
+    /// [`height`]: https://graphviz.org/docs/attrs/height/
+    pub fn node_height_default(&self) -> f64 {
+        self.node_height_default
+    }
+
+    /// Returns each node's [`height`].
+    ///
+    /// If `fixedsize` is true, this will be the exact / maximum height for
+    /// nodes.
+    ///
+    /// [`height`]: https://graphviz.org/docs/attrs/height/
+    pub fn node_heights(&self) -> &NodeHeights {
+        &self.node_heights
+    }
+
+    /// Returns whether a node's `width` and `height` are fixed dimensions.
+    ///
+    /// See [`fixedsize`].
+    ///
+    /// [`fixedsize`]: https://graphviz.org/docs/attrs/fixedsize/
+    pub fn fixed_size(&self) -> FixedSize {
+        self.fixed_size
+    }
 }
 
 impl Default for GraphvizAttrs {
@@ -244,6 +385,11 @@ impl Default for GraphvizAttrs {
             edge_dirs: EdgeDirs::default(),
             edge_minlen_default: 2,
             edge_minlens: EdgeMinlens::default(),
+            node_width_default: 0.3,
+            node_widths: NodeWidths::default(),
+            node_height_default: 0.1,
+            node_heights: NodeHeights::default(),
+            fixed_size: FixedSize::default(),
             pack_mode: PackMode::default(),
         }
     }

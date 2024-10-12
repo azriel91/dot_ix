@@ -7,10 +7,6 @@ pub struct GraphvizDotTheme {
     //
     // <https://graphviz.org/docs/nodes/>
     pub node_text_color: &'static str,
-    /// Width of a node, but it is allowed to expand.
-    pub node_width: f64,
-    /// Height of a node, but it is allowed to expand.
-    pub node_height: f64,
     /// Left and right margin in inches.
     ///
     /// Default: `0.04`.
@@ -59,16 +55,6 @@ impl GraphvizDotTheme {
 
     pub fn with_node_text_color(mut self, node_text_color: &'static str) -> Self {
         self.node_text_color = node_text_color;
-        self
-    }
-
-    pub fn with_node_width(mut self, node_width: f64) -> Self {
-        self.node_width = node_width;
-        self
-    }
-
-    pub fn with_node_height(mut self, node_height: f64) -> Self {
-        self.node_height = node_height;
         self
     }
 
@@ -140,14 +126,6 @@ impl GraphvizDotTheme {
         self.node_text_color
     }
 
-    pub fn node_width(&self) -> f64 {
-        self.node_width
-    }
-
-    pub fn node_height(&self) -> f64 {
-        self.node_height
-    }
-
     pub fn node_margin_x(&self) -> f64 {
         self.node_margin_x
     }
@@ -202,8 +180,6 @@ impl Default for GraphvizDotTheme {
         Self {
             edge_color: "#333333",
             node_text_color: "#111111",
-            node_width: 0.3,
-            node_height: 0.1,
             node_margin_x: 0.04,
             node_margin_y: 0.04,
             plain_text_color: "#222222",
