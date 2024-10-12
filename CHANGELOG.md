@@ -1,5 +1,14 @@
 # Changelog
 
+## unreleased
+
+* Support `node_width_default` in `GraphvizAttrs`.
+* Support `node_widths` in `GraphvizAttrs`.
+* Support `node_height_default` in `GraphvizAttrs`.
+* Support `node_heights` in `GraphvizAttrs`.
+* Support `fixed_size` in `GraphvizAttrs`.
+
+
 ## 0.8.1 (2024-09-27)
 
 * Support inline images ([#33]).
