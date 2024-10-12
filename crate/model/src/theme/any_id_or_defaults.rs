@@ -57,7 +57,7 @@ impl<'de> Deserialize<'de> for AnyIdOrDefaults {
 
 struct AnyIdOrDefaultsVisitor;
 
-impl<'de> Visitor<'de> for AnyIdOrDefaultsVisitor {
+impl Visitor<'_> for AnyIdOrDefaultsVisitor {
     type Value = AnyIdOrDefaults;
 
     fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
