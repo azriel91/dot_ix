@@ -2,13 +2,15 @@ use serde::{Deserialize, Serialize};
 
 pub use self::{
     edge_constraints::EdgeConstraints, edge_dir::EdgeDir, edge_dirs::EdgeDirs,
-    edge_minlens::EdgeMinlens, pack_mode::PackMode, pack_mode_flag::PackModeFlag, splines::Splines,
+    edge_minlens::EdgeMinlens, fixed_size::FixedSize, pack_mode::PackMode,
+    pack_mode_flag::PackModeFlag, splines::Splines,
 };
 
 mod edge_constraints;
 mod edge_dir;
 mod edge_dirs;
 mod edge_minlens;
+mod fixed_size;
 mod pack_mode;
 mod pack_mode_flag;
 mod splines;
@@ -79,6 +81,12 @@ pub struct GraphvizAttrs {
     ///
     /// [`height`]: https://graphviz.org/docs/attrs/height/
     pub node_height_default: f64,
+    /// Whether a node's `width` and `height` are fixed dimensions.
+    ///
+    /// See [`fixedsize`].
+    ///
+    /// [`fixedsize`]: https://graphviz.org/docs/attrs/fixedsize/
+    pub fixed_size: FixedSize,
     /// How closely to pack together graph components.
     pub pack_mode: PackMode,
 }
@@ -195,6 +203,16 @@ impl GraphvizAttrs {
         self
     }
 
+    /// Sets whether a node's `width` and `height` are fixed dimensions.
+    ///
+    /// See [`fixedsize`].
+    ///
+    /// [`fixedsize`]: https://graphviz.org/docs/attrs/fixedsize/
+    pub fn with_fixed_size(mut self, fixed_size: FixedSize) -> Self {
+        self.fixed_size = fixed_size;
+        self
+    }
+
     /// Returns the minimum space between two adjacent nodes in the same rank,
     /// in inches. Also controls the spacing between multiple edges between
     /// the same pair of nodes.
@@ -286,6 +304,15 @@ impl GraphvizAttrs {
     pub fn node_height_default(&self) -> f64 {
         self.node_height_default
     }
+
+    /// Returns whether a node's `width` and `height` are fixed dimensions.
+    ///
+    /// See [`fixedsize`].
+    ///
+    /// [`fixedsize`]: https://graphviz.org/docs/attrs/fixedsize/
+    pub fn fixed_size(&self) -> FixedSize {
+        self.fixed_size
+    }
 }
 
 impl Default for GraphvizAttrs {
@@ -302,6 +329,7 @@ impl Default for GraphvizAttrs {
             edge_minlens: EdgeMinlens::default(),
             node_width_default: 0.3,
             node_height_default: 0.1,
+            fixed_size: FixedSize::default(),
             pack_mode: PackMode::default(),
         }
     }

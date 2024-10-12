@@ -6,7 +6,7 @@ use std::{
 use dot_ix_model::{
     common::{
         dot_src_and_styles::{GraphvizImage, GraphvizOpts},
-        graphviz_attrs::{EdgeDir, Splines},
+        graphviz_attrs::{EdgeDir, FixedSize, Splines},
         AnyId, DotSrcAndStyles, EdgeId, GraphvizAttrs, GraphvizDotTheme, ImageId, Images,
         NodeHierarchy, NodeId, TagId, TagNames,
     },
@@ -288,6 +288,11 @@ fn node_attrs(
 
     let node_width = graphviz_attrs.node_width_default();
     let node_height = graphviz_attrs.node_height_default();
+    let fixed_size = graphviz_attrs.fixed_size();
+    let fixed_size = match fixed_size {
+        FixedSize::False => Cow::Borrowed(""),
+        FixedSize::True | FixedSize::Shape => Cow::Owned(format!(r#"fixedsize = {fixed_size}"#)),
+    };
 
     formatdoc!(
         r#"
@@ -299,6 +304,7 @@ fn node_attrs(
             width     = {node_width}
             height    = {node_height}
             margin    = "{node_margin_x:.3},{node_margin_y:.3}"
+            {fixed_size}
         ]
         "#
     )
