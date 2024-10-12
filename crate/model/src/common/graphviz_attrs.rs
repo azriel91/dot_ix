@@ -65,6 +65,20 @@ pub struct GraphvizAttrs {
     ///
     /// [`minlen`]: https://graphviz.org/docs/attrs/minlen/
     pub edge_minlens: EdgeMinlens,
+    /// Minimum / initial [`width`] for nodes, defaults to `0.3`.
+    ///
+    /// If `fixedsize` is true, this will be the exact / maximum width for
+    /// nodes.
+    ///
+    /// [`width`]: https://graphviz.org/docs/attrs/width/
+    pub node_width_default: f64,
+    /// Minimum / initial [`height`] for nodes, defaults to `0.1`.
+    ///
+    /// If `fixedsize` is true, this will be the exact / maximum height for
+    /// nodes.
+    ///
+    /// [`height`]: https://graphviz.org/docs/attrs/height/
+    pub node_height_default: f64,
     /// How closely to pack together graph components.
     pub pack_mode: PackMode,
 }
@@ -159,6 +173,28 @@ impl GraphvizAttrs {
         self
     }
 
+    /// Sets the minimum / initial [`width`] for nodes, defaults to `0.3`.
+    ///
+    /// If `fixedsize` is true, this will be the exact / maximum width for
+    /// nodes.
+    ///
+    /// [`width`]: https://graphviz.org/docs/attrs/width/
+    pub fn with_node_width_default(mut self, node_width_default: f64) -> Self {
+        self.node_width_default = node_width_default;
+        self
+    }
+
+    /// Sets the minimum / initial [`height`] for nodes, defaults to `0.1`.
+    ///
+    /// If `fixedsize` is true, this will be the exact / maximum height for
+    /// nodes.
+    ///
+    /// [`height`]: https://graphviz.org/docs/attrs/height/
+    pub fn with_node_height_default(mut self, node_height_default: f64) -> Self {
+        self.node_height_default = node_height_default;
+        self
+    }
+
     /// Returns the minimum space between two adjacent nodes in the same rank,
     /// in inches. Also controls the spacing between multiple edges between
     /// the same pair of nodes.
@@ -230,6 +266,26 @@ impl GraphvizAttrs {
     pub fn edge_minlens(&self) -> &EdgeMinlens {
         &self.edge_minlens
     }
+
+    /// Returns the minimum / initial [`width`] for nodes.
+    ///
+    /// If `fixedsize` is true, this will be the exact / maximum width for
+    /// nodes.
+    ///
+    /// [`width`]: https://graphviz.org/docs/attrs/width/
+    pub fn node_width_default(&self) -> f64 {
+        self.node_width_default
+    }
+
+    /// Returns the minimum / initial [`height`] for nodes.
+    ///
+    /// If `fixedsize` is true, this will be the exact / maximum height for
+    /// nodes.
+    ///
+    /// [`height`]: https://graphviz.org/docs/attrs/height/
+    pub fn node_height_default(&self) -> f64 {
+        self.node_height_default
+    }
 }
 
 impl Default for GraphvizAttrs {
@@ -244,6 +300,8 @@ impl Default for GraphvizAttrs {
             edge_dirs: EdgeDirs::default(),
             edge_minlen_default: 2,
             edge_minlens: EdgeMinlens::default(),
+            node_width_default: 0.3,
+            node_height_default: 0.1,
             pack_mode: PackMode::default(),
         }
     }

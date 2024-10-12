@@ -98,7 +98,7 @@ impl IntoGraphvizDotSrc for &InfoGraph {
         let graph_style = self.graph_style();
         let graphviz_attrs = self.graphviz_attrs();
         let graph_attrs = graph_attrs(theme, self.direction(), graphviz_attrs);
-        let node_attrs = node_attrs(graph_style, theme);
+        let node_attrs = node_attrs(graph_style, graphviz_attrs, theme);
         let edge_attrs = edge_attrs(graphviz_attrs, theme);
         let diagram_theme = self.theme();
 
@@ -266,7 +266,11 @@ fn graph_attrs(
     )
 }
 
-fn node_attrs(graph_style: GraphStyle, theme: &GraphvizDotTheme) -> String {
+fn node_attrs(
+    graph_style: GraphStyle,
+    graphviz_attrs: &GraphvizAttrs,
+    theme: &GraphvizDotTheme,
+) -> String {
     let node_style_and_shape = match graph_style {
         GraphStyle::Box => {
             "shape     = \"rect\"
@@ -279,10 +283,11 @@ fn node_attrs(graph_style: GraphStyle, theme: &GraphvizDotTheme) -> String {
     };
     let node_text_color = theme.node_text_color();
     let node_point_size = theme.node_point_size();
-    let node_width = theme.node_width();
-    let node_height = theme.node_height();
     let node_margin_x = theme.node_margin_x();
     let node_margin_y = theme.node_margin_y();
+
+    let node_width = graphviz_attrs.node_width_default();
+    let node_height = graphviz_attrs.node_height_default();
 
     formatdoc!(
         r#"
