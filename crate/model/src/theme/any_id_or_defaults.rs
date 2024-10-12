@@ -27,6 +27,12 @@ impl AnyIdOrDefaults {
     }
 }
 
+impl From<AnyId> for AnyIdOrDefaults {
+    fn from(any_id: AnyId) -> Self {
+        Self::AnyId(any_id)
+    }
+}
+
 impl Serialize for AnyIdOrDefaults {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
