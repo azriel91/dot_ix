@@ -10,12 +10,15 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum FixedSize {
-    /// Nodes are not fixed size, and `width`/`height` indicate their minimum dimensions.
+    /// Nodes are not fixed size, and `width`/`height` indicate their minimum
+    /// dimensions.
     #[default]
     False,
-    /// Nodes are fixed size, and `width`/`height` indicate their maximum dimensions.
+    /// Nodes are fixed size, and `width`/`height` indicate their maximum
+    /// dimensions.
     True,
-    /// `width` and `height` determine the dimensions of the node's shape, but not its label.
+    /// `width` and `height` determine the dimensions of the node's shape, but
+    /// not its label.
     Shape,
 }
 
