@@ -7,18 +7,6 @@ pub struct GraphvizDotTheme {
     //
     // <https://graphviz.org/docs/nodes/>
     pub node_text_color: &'static str,
-    /// Left and right margin in inches.
-    ///
-    /// Default: `0.04`.
-    ///
-    /// Graphviz default: `0.11`.
-    pub node_margin_x: f64,
-    /// Top and bottom margin in inches.
-    ///
-    /// Default: `0.04`.
-    ///
-    /// Graphviz default: `0.055`.
-    pub node_margin_y: f64,
     pub plain_text_color: &'static str,
     pub emoji_point_size: u32,
     /// Default font point size for node labels.
@@ -55,16 +43,6 @@ impl GraphvizDotTheme {
 
     pub fn with_node_text_color(mut self, node_text_color: &'static str) -> Self {
         self.node_text_color = node_text_color;
-        self
-    }
-
-    pub fn with_node_margin_x(mut self, node_margin_x: f64) -> Self {
-        self.node_margin_x = node_margin_x;
-        self
-    }
-
-    pub fn with_node_margin_y(mut self, node_margin_y: f64) -> Self {
-        self.node_margin_y = node_margin_y;
         self
     }
 
@@ -126,14 +104,6 @@ impl GraphvizDotTheme {
         self.node_text_color
     }
 
-    pub fn node_margin_x(&self) -> f64 {
-        self.node_margin_x
-    }
-
-    pub fn node_margin_y(&self) -> f64 {
-        self.node_margin_y
-    }
-
     pub fn plain_text_color(&self) -> &str {
         self.plain_text_color
     }
@@ -180,8 +150,6 @@ impl Default for GraphvizDotTheme {
         Self {
             edge_color: "#333333",
             node_text_color: "#111111",
-            node_margin_x: 0.04,
-            node_margin_y: 0.04,
             plain_text_color: "#222222",
             emoji_point_size: 14,
             node_point_size: 10,
