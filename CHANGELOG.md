@@ -2,6 +2,9 @@
 
 ## unreleased
 
+* Support `margins` in `GraphvizAttrs`.
+* Support `margin_cluster_default` in `GraphvizAttrs`.
+* Support `margin_node_default` in `GraphvizAttrs`.
 * Support `node_width_default` in `GraphvizAttrs`.
 * Support `node_widths` in `GraphvizAttrs`.
 * Support `node_height_default` in `GraphvizAttrs`.
