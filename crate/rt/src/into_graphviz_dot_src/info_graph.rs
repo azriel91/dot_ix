@@ -287,9 +287,8 @@ fn node_attrs(
     };
     let node_text_color = theme.node_text_color();
     let node_point_size = theme.node_point_size();
-    let node_margin_x = theme.node_margin_x();
-    let node_margin_y = theme.node_margin_y();
 
+    let node_margin = graphviz_attrs.margin_node_default();
     let node_width = graphviz_attrs.node_width_default();
     let node_height = graphviz_attrs.node_height_default();
     let fixed_size = graphviz_attrs.fixed_size();
@@ -307,7 +306,7 @@ fn node_attrs(
             {node_style_and_shape}
             width     = {node_width}
             height    = {node_height}
-            margin    = "{node_margin_x:.3},{node_margin_y:.3}"
+            margin    = "{node_margin}"
             {fixed_size}
         ]
         "#
@@ -374,6 +373,8 @@ fn node_cluster_internal(
         .get(&AnyId::from(node_id.clone()))
         .map(AsRef::<str>::as_ref)
         .unwrap_or_default();
+    let graphviz_attrs = info_graph.graphviz_attrs();
+    let margins = graphviz_attrs.margins();
 
     let node_point_size = theme.node_point_size();
     let node_name = node_names.get(node_id).map(String::as_str);
@@ -426,31 +427,44 @@ fn node_cluster_internal(
     // Same thing happens for `{edge_tag_classes}`
     if node_hierarchy.is_empty() {
         match graph_style {
-            GraphStyle::Box => writedoc!(
-                buffer,
-                r#"
-                    {node_id} [
-                        label = <<table
-                            border="0"
-                            cellborder="0"
-                            cellpadding="0"
-                            cellspacing="0"
-                        >
-                            <tr>
-                                {image}{emoji}<td align="left" balign="left">{node_label}</td>
-                            </tr>
-                            {node_desc}
-                        </table>>
-                        class = "{OUTLINE_NONE} {node_tailwind_classes}{node_tag_classes}"
-                        {node_width}
-                        {node_height}
-                    ]
-                "#
-            )?,
+            GraphStyle::Box => {
+                let margin = margins
+                    .get(node_id)
+                    .copied()
+                    .map(|margin| Cow::<str>::Owned(format!(r#"margin = "{margin}""#)))
+                    .unwrap_or_default();
+
+                writedoc!(
+                    buffer,
+                    r#"
+                        {node_id} [
+                            label = <<table
+                                border="0"
+                                cellborder="0"
+                                cellpadding="0"
+                                cellspacing="0"
+                            >
+                                <tr>
+                                    {image}{emoji}<td align="left" balign="left">{node_label}</td>
+                                </tr>
+                                {node_desc}
+                            </table>>
+                            class = "{OUTLINE_NONE} {node_tailwind_classes}{node_tag_classes}"
+                            {node_width}
+                            {node_height}
+                            {margin}
+                        ]
+                    "#
+                )?
+            }
             GraphStyle::Circle => {
                 // `margin` doesn't apply to `plain` shaped nodes, so we use rectangle and use
                 // an invisible colour.
-                let margin = match graph_dir {
+                let margin_outer = margins
+                    .get(node_id)
+                    .copied()
+                    .unwrap_or_else(|| graphviz_attrs.margin_node_default().into_inner());
+                let margin_inner = match graph_dir {
                     GraphDir::Horizontal => "margin = \"0.11,0.07\"",
                     GraphDir::Vertical => "margin = \"0.13,0.055\"",
                 };
@@ -464,7 +478,7 @@ fn node_cluster_internal(
                     r#"
                         subgraph cluster_{node_id} {{
                             label = <>
-                            margin = 0.0
+                            margin = "{margin_outer}"
                             class = "{OUTLINE_NONE}"
                             {node_width}
                             {node_height}
@@ -472,12 +486,12 @@ fn node_cluster_internal(
                             {node_id} [
                                 label = ""
                                 class = "{OUTLINE_NONE} {node_tailwind_classes}{node_tag_classes}"
-                                {margin}
+                                {margin_inner}
                             ]
                             {node_id}_text [
                                 fillcolor="{no_color}"
                                 shape="rectangle"
-                                {margin}
+                                {margin_inner}
                                 label = <<table
                                     border="0"
                                     cellborder="0"
@@ -496,11 +510,16 @@ fn node_cluster_internal(
             }
         }
     } else {
+        let margin = margins
+            .get(node_id)
+            .copied()
+            .unwrap_or_else(|| graphviz_attrs.margin_cluster_default().into_inner());
+
         writedoc!(
             buffer,
             r#"
                 subgraph cluster_{node_id} {{
-                    margin = {node_point_size}
+                    margin = "{margin}"
                     label = <<table
                         border="0"
                         cellborder="0"

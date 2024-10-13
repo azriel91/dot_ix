@@ -1,17 +1,22 @@
 use serde::{Deserialize, Serialize};
 
 pub use self::{
-    edge_constraints::EdgeConstraints, edge_dir::EdgeDir, edge_dirs::EdgeDirs,
-    edge_minlens::EdgeMinlens, fixed_size::FixedSize, node_heights::NodeHeights,
-    node_widths::NodeWidths, pack_mode::PackMode, pack_mode_flag::PackModeFlag, splines::Splines,
+    cluster_margin::ClusterMargin, edge_constraints::EdgeConstraints, edge_dir::EdgeDir,
+    edge_dirs::EdgeDirs, edge_minlens::EdgeMinlens, fixed_size::FixedSize, margin::Margin,
+    margins::Margins, node_heights::NodeHeights, node_margin::NodeMargin, node_widths::NodeWidths,
+    pack_mode::PackMode, pack_mode_flag::PackModeFlag, splines::Splines,
 };
 
+mod cluster_margin;
 mod edge_constraints;
 mod edge_dir;
 mod edge_dirs;
 mod edge_minlens;
 mod fixed_size;
+mod margin;
+mod margins;
 mod node_heights;
+mod node_margin;
 mod node_widths;
 mod pack_mode;
 mod pack_mode_flag;
@@ -69,6 +74,24 @@ pub struct GraphvizAttrs {
     ///
     /// [`minlen`]: https://graphviz.org/docs/attrs/minlen/
     pub edge_minlens: EdgeMinlens,
+    /// The default value for each node's [`margin`], defaults to `0.11,0.055`.
+    ///
+    /// May be a single float, or two floats separated by a comma.
+    ///
+    /// [`margin`]: https://graphviz.org/docs/attrs/margin/
+    pub margin_cluster_default: ClusterMargin,
+    /// The default value for each cluster's [`margin`], defaults to `8.0`.
+    ///
+    /// May be a single float, or two floats separated by a comma.
+    ///
+    /// [`margin`]: https://graphviz.org/docs/attrs/margin/
+    pub margin_node_default: NodeMargin,
+    /// Each node or cluster's [`margin`].
+    ///
+    /// May be a single float, or two floats separated by a comma.
+    ///
+    /// [`margin`]: https://graphviz.org/docs/attrs/margin/
+    pub margins: Margins,
     /// Minimum / initial [`width`] for nodes, defaults to `0.3`.
     ///
     /// If `fixedsize` is true, this will be the exact / maximum width for
@@ -194,6 +217,37 @@ impl GraphvizAttrs {
     /// [`minlen`]: https://graphviz.org/docs/attrs/minlen/
     pub fn with_edge_minlens(mut self, edge_minlens: EdgeMinlens) -> Self {
         self.edge_minlens = edge_minlens;
+        self
+    }
+
+    /// Sets the default value for each node's [`margin`], defaults to
+    /// `0.11,0.055`.
+    ///
+    /// May be a single float, or two floats separated by a comma.
+    ///
+    /// [`margin`]: https://graphviz.org/docs/attrs/margin/
+    pub fn with_margin_cluster_default(mut self, margin_cluster_default: ClusterMargin) -> Self {
+        self.margin_cluster_default = margin_cluster_default;
+        self
+    }
+
+    /// Sets the default value for each cluster's [`margin`], defaults to `8.0`.
+    ///
+    /// May be a single float, or two floats separated by a comma.
+    ///
+    /// [`margin`]: https://graphviz.org/docs/attrs/margin/
+    pub fn with_margin_node_default(mut self, margin_node_default: NodeMargin) -> Self {
+        self.margin_node_default = margin_node_default;
+        self
+    }
+
+    /// Sets each node or cluster's [`margin`].
+    ///
+    /// May be a single float, or two floats separated by a comma.
+    ///
+    /// [`margin`]: https://graphviz.org/docs/attrs/margin/
+    pub fn with_margins(mut self, margins: Margins) -> Self {
+        self.margins = margins;
         self
     }
 
@@ -323,6 +377,33 @@ impl GraphvizAttrs {
         &self.edge_minlens
     }
 
+    /// Returns the default value for each node's [`margin`].
+    ///
+    /// May be a single float, or two floats separated by a comma.
+    ///
+    /// [`margin`]: https://graphviz.org/docs/attrs/margin/
+    pub fn margin_cluster_default(&self) -> ClusterMargin {
+        self.margin_cluster_default
+    }
+
+    /// Returns the default value for each cluster's [`margin`].
+    ///
+    /// May be a single float, or two floats separated by a comma.
+    ///
+    /// [`margin`]: https://graphviz.org/docs/attrs/margin/
+    pub fn margin_node_default(&self) -> NodeMargin {
+        self.margin_node_default
+    }
+
+    /// Returns each node or cluster's [`margin`].
+    ///
+    /// May be a single float, or two floats separated by a comma.
+    ///
+    /// [`margin`]: https://graphviz.org/docs/attrs/margin/
+    pub fn margins(&self) -> &Margins {
+        &self.margins
+    }
+
     /// Returns the minimum / initial [`width`] for nodes.
     ///
     /// If `fixedsize` is true, this will be the exact / maximum width for
@@ -385,6 +466,9 @@ impl Default for GraphvizAttrs {
             edge_dirs: EdgeDirs::default(),
             edge_minlen_default: 2,
             edge_minlens: EdgeMinlens::default(),
+            margin_cluster_default: ClusterMargin::default(),
+            margin_node_default: NodeMargin::default(),
+            margins: Margins::default(),
             node_width_default: 0.3,
             node_widths: NodeWidths::default(),
             node_height_default: 0.1,
