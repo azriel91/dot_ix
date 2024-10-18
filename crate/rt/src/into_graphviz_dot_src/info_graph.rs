@@ -382,7 +382,7 @@ fn node_cluster_internal(
     let node_emoji = node_emojis.get(node_id).map(String::as_str);
     let node_image = node_images.get(node_id);
     // TODO: escape
-    let node_label = node_name.unwrap_or(node_id).replace(' ', "&nbsp;");
+    let node_label = node_name.unwrap_or(node_id);
     // TODO: escape
     let node_desc = node_desc
         .map(|desc| desc.replace('\n', "<br />"))
