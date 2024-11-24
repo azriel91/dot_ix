@@ -62,36 +62,36 @@ dot_ix_static_check_macros = { version = "0.8.1", path = "crate/static_check_mac
 dot_ix_web_components = { version = "0.8.1", path = "crate/web_components" }
 
 # external crates
-axum = "0.7.6"
+axum = "0.7.9"
 console_error_panic_hook = "0.1"
 console_log = "1"
 cfg-if = "1"
 gloo-net = "0.6.0"
-indexmap = "2.5.0"
+indexmap = "2.6.0"
 indoc = "2.0.5"
-js-sys = "0.3.70"
-web-sys = "0.3.70"
+js-sys = "0.3.72"
+web-sys = "0.3.72"
 leptos = { version = "0.6" }
 leptos_axum = "0.6"
 leptos_meta = { version = "0.6" }
 leptos_router = { version = "0.6" }
-leptos-use = "0.13.5"
+leptos-use = "0.13.11"
 log = "0.4"
 log4rs = { version = "1.3.0", default-features = false }
-monaco = "0.4.0"
-serde = "1.0.210"
-tempfile = "3.12.0"
-tokio = "1.40.0"
+monaco = "0.5.0"
+serde = "1.0.215"
+tempfile = "3.14.0"
+tokio = "1.41.1"
 tower = "0.5.1"
-wasm-bindgen = "0.2.93"
+wasm-bindgen = "0.2.95"
 tailwind-css = "0.13.0"
-thiserror = "1.0.64"
+thiserror = "2.0.3"
 tracing = "0.1.40"
 http = "1.1.0"
-proc-macro2 = "1.0.86"
+proc-macro2 = "1.0.92"
 quote = "1.0.37"
-reqwest = "0.12.7"
-syn = "2.0.77"
+reqwest = "0.12.9"
+syn = "2.0.89"
 serde_yaml = "0.9.34"
 
 [workspace.lints.rust]
