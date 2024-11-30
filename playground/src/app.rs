@@ -1,9 +1,19 @@
 #![allow(non_snake_case)] // Components are all PascalCase.
 
 use dot_ix::web_components::{AppError, ErrorTemplate};
-use leptos::*;
-use leptos_meta::*;
-use leptos_router::*;
+use leptos::{
+    component,
+    control_flow::Show,
+    either::Either,
+    error::Errors,
+    prelude::{signal, ClassAttribute, ElementChild, Get, GlobalAttributes, RwSignal},
+    view, IntoView,
+};
+use leptos_meta::{provide_meta_context, Stylesheet, Title};
+use leptos_router::{
+    components::{Route, Router, Routes},
+    StaticSegment,
+};
 
 use self::{info_graph::InfoGraph, tabs::TabLabel, text_editor::TextEditor};
 
@@ -108,6 +118,8 @@ pub fn App() -> impl IntoView {
     let stylesheet_path = format!("{site_prefix}/pkg/dot_ix.css");
     let fonts_path = format!("{site_prefix}/fonts/fonts.css");
 
+    let (is_routing, set_is_routing) = signal(false);
+
     // I *think* this is necessary because the `TrailingSlash` logic doesn't work
     // when the app is served through a static site, e.g. GitHub pages.
     //
@@ -120,80 +132,95 @@ pub fn App() -> impl IntoView {
     // That is, I'm assuming `TrailingSlash` is applied through `"ssr"`, and not
     // through client side routing.
     if site_prefix.is_empty() {
-        view! {
-            <GoogleAnalyticsHeader />
-            <GoogleTagManagerHeader />
+        let view = view! {
+            <!DOCTYPE html>
+            <html lang="en">
+                <head>
+                    <GoogleAnalyticsHeader />
+                    <GoogleTagManagerHeader />
 
-            // injects a stylesheet into the document <head>
-            // id=leptos means cargo-leptos will hot-reload this stylesheet
-            <Stylesheet id="leptos" href=stylesheet_path />
-            <Stylesheet id="fonts" href=fonts_path />
-            <Title text="dot_ix: Interactive dot graphs" />
-            <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+                    // injects a stylesheet into the document <head>
+                    // id=leptos means cargo-leptos will hot-reload this stylesheet
+                    <Stylesheet id="leptos" href=stylesheet_path />
+                    <Stylesheet id="fonts" href=fonts_path />
+                    <Title text="dot_ix: Interactive dot graphs" />
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+                </head>
+                <body>
 
-            // content for this welcome page
-            <Router
-                fallback=|| RouterFallback.into_view()
-            >
-                <GoogleTagManagerBody />
-                <main>
-                    <Routes>
-                        <Route
-                            path=""
-                            trailing_slash=TrailingSlash::Drop
-                            view=|| view! { <HomePage/> }
-                        />
-                    </Routes>
-                </main>
-            </Router>
-        }
+                    // content for this welcome page
+                    <Router set_is_routing>
+                        <GoogleTagManagerBody />
+                        <main>
+                            <Routes fallback=|| RouterFallback.into_view()>
+                                <Route
+                                    path=leptos_router_macro::path!("")
+                                    // trailing_slash=TrailingSlash::Drop // leptos 0.7 WIP
+                                    view=|| view! { <HomePage/> }
+                                />
+                            </Routes>
+                        </main>
+                    </Router>
+                </body>
+            </html>
+        };
+        Either::Left(view)
     } else {
-        view! {
-            <GoogleTagManagerHeader />
+        let view = view! {
+            <!DOCTYPE html>
+            <html lang="en">
+                <head>
+                    <GoogleTagManagerHeader />
 
-            // injects a stylesheet into the document <head>
-            // id=leptos means cargo-leptos will hot-reload this stylesheet
-            <Stylesheet id="leptos" href=stylesheet_path />
-            <Stylesheet id="fonts" href=fonts_path />
-            <Title text="dot_ix: Interactive dot graphs" />
-            <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+                    // injects a stylesheet into the document <head>
+                    // id=leptos means cargo-leptos will hot-reload this stylesheet
+                    <Stylesheet id="leptos" href=stylesheet_path />
+                    <Stylesheet id="fonts" href=fonts_path />
+                    <Title text="dot_ix: Interactive dot graphs" />
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+                </head>
+                <body>
+                    // content for this welcome page
+                    <Router set_is_routing>
+                        <main>
+                            <Routes fallback=|| RouterFallback.into_view()>
+                                <Route
+                                    path=StaticSegment(site_prefix)
+                                    // trailing_slash=TrailingSlash::Exact // leptos 0.7 WIP
+                                    view=|| view! { <HomePage/> }
+                                />
+                                <Route
+                                    path=(StaticSegment(site_prefix), StaticSegment("/"))
+                                    // trailing_slash=TrailingSlash::Exact // leptos 0.7 WIP
+                                    view=|| view! { <HomePage/> }
+                                />
+                            </Routes>
+                        </main>
+                    </Router>
+                </body>
+            </html>
+        };
 
-            // content for this welcome page
-            <Router
-                fallback=|| RouterFallback.into_view()
-            >
-                <main>
-                    <Routes>
-                        <Route
-                            path=site_prefix
-                            trailing_slash=TrailingSlash::Exact
-                            view=|| view! { <HomePage/> }
-                        />
-                        <Route
-                            path=format!("{site_prefix}/")
-                            trailing_slash=TrailingSlash::Exact
-                            view=|| view! { <HomePage/> }
-                        />
-                    </Routes>
-                </main>
-            </Router>
-        }
+        Either::Right(view)
     }
 }
 
 /// Renders the home page of your application.
 #[component]
 fn RouterFallback() -> impl IntoView {
-    let route_context = leptos_router::use_route();
-    let path = route_context.path();
-    let path_unresolved = route_context.resolve_path("").is_none();
+    let location = leptos_router::hooks::use_location();
+    let pathname = location.pathname;
+    // let path_unresolved = route_context.resolve_path("").is_none();
+    let path_unresolved = false; // TODO
 
     let mut outside_errors = Errors::default();
     if path_unresolved {
-        outside_errors.insert_with_default_key(AppError::RouteNotFound { path });
+        outside_errors.insert_with_default_key(AppError::RouteNotFound {
+            path: pathname.get(),
+        });
     }
 
-    let outside_errors = create_rw_signal(outside_errors);
+    let outside_errors = RwSignal::new(outside_errors);
     view! {
         <Show
             when=move || path_unresolved
@@ -206,7 +233,7 @@ fn RouterFallback() -> impl IntoView {
 /// Renders the home page of your application.
 #[component]
 fn HomePage() -> impl IntoView {
-    let (diagram_only, set_diagram_only) = create_signal(diagram_only_init());
+    let (diagram_only, set_diagram_only) = leptos::prelude::signal(diagram_only_init());
 
     let _set_diagram_only = set_diagram_only;
 

@@ -21,4 +21,4 @@ doctest = false
 test = true
 
 [dev-dependencies]
-dot_ix = { workspace = true, features = ["flex_diag"] }
+dot_ix = { workspace = true }

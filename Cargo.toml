@@ -31,7 +31,6 @@ default = [
 rt = ["dep:dot_ix_rt"]
 web_components = ["dep:dot_ix_web_components"]
 
-flex_diag = ["dot_ix_web_components?/flex_diag"]
 ssr = ["dot_ix_web_components?/ssr"]
 server_side_graphviz = ["dot_ix_web_components?/server_side_graphviz"]
 
@@ -63,19 +62,20 @@ dot_ix_web_components = { version = "0.8.1", path = "crate/web_components" }
 
 # external crates
 axum = "0.7.9"
+cfg-if = "1"
 console_error_panic_hook = "0.1"
 console_log = "1"
-cfg-if = "1"
 gloo-net = "0.6.0"
 indexmap = "2.6.0"
 indoc = "2.0.5"
 js-sys = "0.3.72"
 web-sys = "0.3.72"
-leptos = { version = "0.6" }
-leptos_axum = "0.6"
-leptos_meta = { version = "0.6" }
-leptos_router = { version = "0.6" }
-leptos-use = "0.13.11"
+leptos = { version = "=0.7.0-rc3" }
+leptos_axum = "=0.7.0-rc3"
+leptos_meta = { version = "=0.7.0-rc3" }
+leptos_router = { version = "=0.7.0-rc3" }
+leptos_router_macro = { version = "=0.7.0-rc3" }
+leptos-use = { git = "https://github.com/Synphonyte/leptos-use.git" }
 log = "0.4"
 log4rs = { version = "1.3.0", default-features = false }
 monaco = "0.5.0"

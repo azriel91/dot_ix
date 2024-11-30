@@ -1,4 +1,14 @@
-use leptos::{component, view, IntoView, Signal, SignalGet};
+use leptos::{
+    component,
+    prelude::{
+        ClassAttribute, ElementChild, Get, GlobalAttributes, GlobalOnAttributes, NodeRefAttribute,
+        Signal,
+    },
+    view, IntoView,
+};
+
+#[cfg(not(feature = "server_side_graphviz"))]
+use leptos::prelude::{Effect, NodeRef};
 
 use dot_ix_model::{common::DotSrcAndStyles, info_graph::InfoGraph};
 
@@ -236,7 +246,7 @@ async fn dot_svg_styles(dot_src: &str) -> Result<String, ServerFnError<NoCustomE
 pub fn DotSvg(
     info_graph: Signal<InfoGraph>,
     dot_src_and_styles: Signal<Option<DotSrcAndStyles>>,
-    #[prop(default = Signal::from(|| false))] diagram_only: Signal<bool>,
+    #[prop(default = Signal::from(false))] diagram_only: Signal<bool>,
 ) -> impl IntoView {
     let _diagram_only = diagram_only;
     let dot_svg_and_error_resource = leptos::create_resource(
@@ -327,12 +337,12 @@ pub fn DotSvg(
 pub fn DotSvg(
     info_graph: Signal<InfoGraph>,
     dot_src_and_styles: Signal<Option<DotSrcAndStyles>>,
-    #[prop(default = Signal::from(|| false))] diagram_only: Signal<bool>,
+    #[prop(default = Signal::from(false))] diagram_only: Signal<bool>,
 ) -> impl IntoView {
     // DOM elements for the graph and error
-    let svg_div_ref = leptos::create_node_ref::<Div>();
+    let svg_div_ref = NodeRef::<Div>::new();
 
-    let (error_text, set_error_text) = leptos::create_signal(None::<String>);
+    let (error_text, set_error_text) = leptos::prelude::signal(None::<String>);
 
     #[cfg(not(target_arch = "wasm32"))]
     {
@@ -341,12 +351,12 @@ pub fn DotSvg(
         let _set_error_text = set_error_text;
     }
 
-    leptos::create_effect(move |_| {
+    Effect::new(move |_| {
         #[cfg(not(target_arch = "wasm32"))]
         let _svg_div_ref = svg_div_ref;
 
         #[cfg(target_arch = "wasm32")]
-        use leptos::SignalSet;
+        use leptos::prelude::Set;
         #[cfg(target_arch = "wasm32")]
         if let Some(dot_src_and_styles) = dot_src_and_styles.get() {
             if !dot_src_and_styles.dot_src.is_empty() {

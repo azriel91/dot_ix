@@ -5,7 +5,7 @@ mod fileserv;
 #[tokio::main]
 async fn main() {
     use axum::{routing::post, Router};
-    use leptos::{logging::log, *};
+    use leptos::{logging::log, prelude::get_configuration, *};
     use leptos_axum::{generate_route_list, LeptosRoutes};
     use log4rs::{
         append::console::{ConsoleAppender, Target},
@@ -44,7 +44,7 @@ async fn main() {
     //
     // The file would need to be included with the executable when moved to
     // deployment.
-    let conf = get_configuration(None).await.unwrap();
+    let conf = get_configuration(None).unwrap();
     let leptos_options = conf.leptos_options;
     let socket_addr = leptos_options.site_addr;
     let routes = generate_route_list(|| view! { <App/> });
@@ -66,7 +66,7 @@ async fn main() {
 
 #[cfg(feature = "csr")]
 pub fn main() {
-    use leptos::{logging::log, *};
+    use leptos::{logging::log, view};
 
     use crate::app::App;
 
@@ -77,7 +77,7 @@ pub fn main() {
 
     log!("csr mode - mounting to body");
 
-    mount_to_body(|| {
+    leptos::mount::mount_to_body(|| {
         view! {  <App /> }
     });
 }

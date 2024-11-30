@@ -7,15 +7,23 @@
 use std::{cell::RefCell, rc::Rc};
 
 use leptos::{
-    component, create_node_ref, create_signal, html::Div, view, IntoView, NodeRef, ReadSignal,
-    WriteSignal,
+    component,
+    html::Div,
+    prelude::{
+        ClassAttribute, GlobalAttributes, NodeRef, NodeRefAttribute, ReadSignal, RwSignal,
+        WriteSignal,
+    },
+    view, IntoView,
 };
 
 #[cfg(target_arch = "wasm32")]
 use monaco::api::{CodeEditor, TextModel};
 
 #[cfg(target_arch = "wasm32")]
-use leptos::{create_rw_signal, RwSignal, SignalGet, SignalGetUntracked, SignalSet, SignalUpdate};
+use leptos::{
+    prelude::{Effect, Get, GetUntracked, LocalStorage, RenderEffect, Set, Update},
+    tachys::html::node_ref::NodeRefContainer,
+};
 #[cfg(target_arch = "wasm32")]
 use monaco::{
     api::CodeEditorOptions,
@@ -33,11 +41,10 @@ pub fn TextEditor(
     set_value: WriteSignal<String>,
     #[prop(optional)] external_refresh_count: Option<ReadSignal<u32>>,
     #[prop(optional)] id: Option<&'static str>,
-    #[prop(optional)] name: Option<&'static str>,
     #[prop(optional)] class: Option<&'static str>,
 ) -> impl IntoView {
-    let (editor_state, _editor_state_set) = create_signal(EditorState::default());
-    let div_ref: NodeRef<Div> = create_node_ref();
+    let editor_state = RwSignal::new(EditorState::default());
+    let div_ref: NodeRef<Div> = NodeRef::new();
 
     #[cfg(not(target_arch = "wasm32"))]
     {
@@ -51,59 +58,63 @@ pub fn TextEditor(
     #[cfg(target_arch = "wasm32")]
     {
         let js_closure = Closure::<dyn Fn()>::new(|| ());
-        let update_editor_state_fn = Closure::<dyn Fn()>::new(move || {
+        let mut update_editor_state_fn = Some(Closure::<dyn Fn()>::new(move || {
             let value = editor_state.get_untracked().get_value();
             set_value.set(value);
-        });
-        div_ref.on_load(move |node| {
-            let div_element: &web_sys::HtmlDivElement = &node;
-            let html_element = div_element.unchecked_ref::<web_sys::HtmlElement>();
-            let options = CodeEditorOptions::default().to_sys_options();
+        }));
+        let _ = RenderEffect::new(move |_| {
+            if let Some((node, update_editor_state_fn)) =
+                div_ref.get().zip(update_editor_state_fn.take())
+            {
+                let div_element: &web_sys::HtmlDivElement = &node;
+                let html_element = div_element.unchecked_ref::<web_sys::HtmlElement>();
+                let options = CodeEditorOptions::default().to_sys_options();
 
-            // We must use `get_untracked()`, otherwise `on_load` is called
-            // multiple times, and it panics on the second invocation.
-            let value_initial = value.get_untracked();
+                // We must use `get_untracked()`, otherwise `load` is called
+                // multiple times, and it panics on the second invocation.
+                let value_initial = value.get_untracked();
 
-            options.set_value(Some(&value_initial));
-            options.set_language(Some("yaml"));
-            options.set_automatic_layout(Some(true));
-            options.set_render_whitespace(Some(IEditorOptionsRenderWhitespace::All));
+                options.set_value(Some(&value_initial));
+                options.set_language(Some("yaml"));
+                options.set_automatic_layout(Some(true));
+                options.set_render_whitespace(Some(IEditorOptionsRenderWhitespace::All));
 
-            let minimap_settings = IEditorMinimapOptions::default();
-            minimap_settings.set_enabled(Some(false));
-            options.set_minimap(Some(&minimap_settings));
+                let minimap_settings = IEditorMinimapOptions::default();
+                minimap_settings.set_enabled(Some(false));
+                options.set_minimap(Some(&minimap_settings));
 
-            let code_editor_new = CodeEditor::create(html_element, Some(options));
-            let key_code = (KeyMod::win_ctrl() as u32) | KeyCode::Enter.to_value(); // | (KeyMod::ctrl_cmd() as u32);
-            code_editor_new.as_ref().add_command(
-                key_code.into(),
-                js_closure.as_ref().unchecked_ref(),
-                None,
-            );
+                let code_editor_new = CodeEditor::create(html_element, Some(options));
+                let key_code = (KeyMod::win_ctrl() as u32) | KeyCode::Enter.to_value(); // | (KeyMod::ctrl_cmd() as u32);
+                code_editor_new.as_ref().add_command(
+                    key_code.into(),
+                    js_closure.as_ref().unchecked_ref(),
+                    None,
+                );
 
-            let disposable = code_editor_new
-                .as_ref()
-                .on_did_change_model_content(update_editor_state_fn.as_ref().unchecked_ref());
+                let disposable = code_editor_new
+                    .as_ref()
+                    .on_did_change_model_content(update_editor_state_fn.as_ref().unchecked_ref());
 
-            let editor_state = editor_state.get();
-            editor_state.code_editor.update(|prev| {
-                prev.replace(Some(code_editor_new));
-            });
-            editor_state.update_fn_closure.update(|prev| {
-                prev.replace(Some((update_editor_state_fn, disposable)));
-            });
+                let editor_state = editor_state.get();
+                editor_state.code_editor.update(|prev| {
+                    prev.replace(Some(code_editor_new));
+                });
+                editor_state.update_fn_closure.update(|prev| {
+                    prev.replace(Some((update_editor_state_fn, disposable)));
+                });
+            };
         });
 
         // Enabling this updates the text in the editor when `value` is changed
         // externally, or on load. However it also breaks undo.
         //
         // ```rust
-        // create_effect(move |_| {
+        // Effect::new(move |_| {
         //     let updated_value = value.get();
         //     editor_state.get_untracked().set_value(&updated_value);
         // });
         // ```
-        leptos::create_effect(move |_| {
+        Effect::new(move |_| {
             if let Some(external_refresh_count) = external_refresh_count {
                 let _external_refresh_count = external_refresh_count.get();
                 let updated_value = value.get_untracked();
@@ -117,7 +128,6 @@ pub fn TextEditor(
             node_ref=div_ref
             id=id
             class=class
-            name=name
         ></div>
     }
 }
@@ -128,12 +138,12 @@ pub type CodeEditorCell = Rc<RefCell<Option<CodeEditor>>>;
 #[cfg(target_arch = "wasm32")]
 pub type ClosureCell = Rc<RefCell<Option<(Closure<dyn Fn()>, IDisposable)>>>;
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Clone, Debug)]
 pub struct EditorState {
     #[cfg(target_arch = "wasm32")]
-    pub code_editor: RwSignal<CodeEditorCell>,
+    pub code_editor: RwSignal<CodeEditorCell, LocalStorage>,
     #[cfg(target_arch = "wasm32")]
-    pub update_fn_closure: RwSignal<ClosureCell>,
+    pub update_fn_closure: RwSignal<ClosureCell, LocalStorage>,
 }
 
 impl Default for EditorState {
@@ -146,9 +156,9 @@ impl EditorState {
     pub fn new() -> Self {
         Self {
             #[cfg(target_arch = "wasm32")]
-            code_editor: create_rw_signal(CodeEditorCell::default()),
+            code_editor: RwSignal::new_local(CodeEditorCell::default()),
             #[cfg(target_arch = "wasm32")]
-            update_fn_closure: create_rw_signal(ClosureCell::default()),
+            update_fn_closure: RwSignal::new_local(ClosureCell::default()),
         }
     }
 
@@ -165,7 +175,7 @@ impl EditorState {
     }
 
     #[cfg(target_arch = "wasm32")]
-    #[allow(dead_code)] // Not used currently, but was attempted in `create_effect` above.
+    #[allow(dead_code)] // Not used currently, but was attempted in `Effect::new` above.
     pub fn set_value(&self, value: &str) {
         if let Some(text_model) = self
             .code_editor

@@ -20,12 +20,13 @@ axum = { workspace = true, optional = true }
 console_error_panic_hook = { workspace = true }
 console_log = { workspace = true }
 cfg-if = { workspace = true }
-dot_ix = { version = "0.8.1", path = "..", features = ["flex_diag"] }
+dot_ix = { version = "0.8.1", path = ".." }
 gloo-net = { workspace = true, features = ["http"] }
 leptos = { workspace = true }
 leptos_axum = { workspace = true, optional = true }
 leptos_meta = { workspace = true }
 leptos_router = { workspace = true }
+leptos_router_macro = { workspace = true }
 leptos-use = { workspace = true }
 log = { workspace = true }
 log4rs = { workspace = true, optional = true, default-features = false, features = ["console_appender", "threshold_filter"] }
@@ -46,7 +47,7 @@ web-sys = { workspace = true, features = ["console", "AbortController", "AbortSi
 js-sys = { workspace = true }
 
 [features]
-hydrate = ["leptos/hydrate", "leptos_meta/hydrate", "leptos_router/hydrate"]
+hydrate = ["leptos/hydrate"]
 ssr = [
     "dot_ix/ssr",
     "dep:axum",
@@ -67,8 +68,6 @@ ssr = [
 ]
 csr = [
     "leptos/csr",
-    "leptos_meta/csr",
-    "leptos_router/csr",
 ]
 server_side_graphviz = ["dot_ix/server_side_graphviz"]
 
