@@ -6,7 +6,7 @@ use leptos::{
     control_flow::Show,
     either::Either,
     error::Errors,
-    prelude::{signal, ClassAttribute, ElementChild, Get, GlobalAttributes, RwSignal},
+    prelude::{signal, ClassAttribute, ElementChild, Get, GlobalAttributes, RwSignal, Signal},
     view, IntoView,
 };
 use leptos_meta::{provide_meta_context, Stylesheet, Title};
@@ -24,51 +24,6 @@ mod text_editor;
 /// Whether to only draw the diagram and hide the text boxes.
 #[cfg(target_arch = "wasm32")]
 const QUERY_PARAM_DIAGRAM_ONLY: &str = "diagram_only";
-
-/// Sets the info graph src using logic purely executed on the client side.
-#[cfg(not(target_arch = "wasm32"))]
-fn diagram_only_init() -> bool {
-    true // Prevents text editor flicker from first render
-}
-
-/// Sets the info graph src using logic purely executed on the client side.
-///
-/// This is for a pure client side rendered app, so updating a signal within
-/// `create_effect` is safe.
-#[cfg(target_arch = "wasm32")]
-fn diagram_only_init() -> bool {
-    use js_sys::Array;
-    use web_sys::{console, Url, UrlSearchParams};
-
-    let url_search_params = web_sys::window().and_then(|window| {
-        let url = Url::new(&String::from(window.location().to_string()))
-            .expect("Expected URL to be valid.");
-
-        let hash = url.hash();
-        if hash.is_empty() {
-            Some(url.search_params())
-        } else {
-            let hash = hash.replacen('#', "?", 1);
-            match UrlSearchParams::new_with_str(hash.as_str()) {
-                Ok(search_params) => Some(search_params),
-                Err(error) => {
-                    let message = Array::new_with_length(1);
-                    message.set(0, error);
-                    console::log(&message);
-                    None
-                }
-            }
-        }
-    });
-    if let Some(url_search_params) = url_search_params {
-        url_search_params
-            .get(QUERY_PARAM_DIAGRAM_ONLY)
-            .and_then(|diagram_only_str| serde_yaml::from_str::<bool>(&diagram_only_str).ok())
-            .unwrap_or(false)
-    } else {
-        false
-    }
-}
 
 #[component]
 pub fn GoogleAnalyticsHeader() -> impl IntoView {
@@ -156,7 +111,7 @@ pub fn App() -> impl IntoView {
                                 <Route
                                     path=leptos_router_macro::path!("")
                                     // trailing_slash=TrailingSlash::Drop // leptos 0.7 WIP
-                                    view=|| view! { <HomePage/> }
+                                    view=HomePage
                                 />
                             </Routes>
                         </main>
@@ -187,12 +142,12 @@ pub fn App() -> impl IntoView {
                                 <Route
                                     path=StaticSegment(site_prefix)
                                     // trailing_slash=TrailingSlash::Exact // leptos 0.7 WIP
-                                    view=|| view! { <HomePage/> }
+                                    view=HomePage
                                 />
                                 <Route
                                     path=(StaticSegment(site_prefix), StaticSegment("/"))
                                     // trailing_slash=TrailingSlash::Exact // leptos 0.7 WIP
-                                    view=|| view! { <HomePage/> }
+                                    view=HomePage
                                 />
                             </Routes>
                         </main>
@@ -233,9 +188,10 @@ fn RouterFallback() -> impl IntoView {
 /// Renders the home page of your application.
 #[component]
 fn HomePage() -> impl IntoView {
-    let (diagram_only, set_diagram_only) = leptos::prelude::signal(diagram_only_init());
+    let (diagram_only, _set_diagram_only) =
+        leptos_router::hooks::query_signal::<bool>("diagram_only");
 
-    let _set_diagram_only = set_diagram_only;
+    let diagram_only = Signal::derive(move || diagram_only.get().unwrap_or(false));
 
     let main_div_classes = move || {
         if diagram_only.get() {
@@ -247,7 +203,7 @@ fn HomePage() -> impl IntoView {
 
     view! {
         <div class=main_div_classes>
-            <InfoGraph diagram_only=diagram_only />
+            <InfoGraph diagram_only />
         </div>
     }
 }

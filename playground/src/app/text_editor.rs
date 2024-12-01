@@ -20,10 +20,7 @@ use leptos::{
 use monaco::api::{CodeEditor, TextModel};
 
 #[cfg(target_arch = "wasm32")]
-use leptos::{
-    prelude::{Effect, Get, GetUntracked, LocalStorage, RenderEffect, Set, Update},
-    tachys::html::node_ref::NodeRefContainer,
-};
+use leptos::prelude::{Effect, Get, GetUntracked, LocalStorage, Set, Update};
 #[cfg(target_arch = "wasm32")]
 use monaco::{
     api::CodeEditorOptions,
@@ -62,7 +59,7 @@ pub fn TextEditor(
             let value = editor_state.get_untracked().get_value();
             set_value.set(value);
         }));
-        let _ = RenderEffect::new(move |_| {
+        let _ = Effect::new(move |_| {
             if let Some((node, update_editor_state_fn)) =
                 div_ref.get().zip(update_editor_state_fn.take())
             {

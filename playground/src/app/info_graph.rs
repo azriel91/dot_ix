@@ -15,7 +15,7 @@ use leptos::{
     prelude::{
         event_target_value, signal, ClassAttribute, Effect, ElementChild, Get, GetUntracked,
         GlobalAttributes, LocalResource, NodeRef, OnAttribute, PropAttribute, ReadSignal, Set,
-        WriteSignal,
+        Signal, WriteSignal,
     },
     view, IntoView,
 };
@@ -193,7 +193,7 @@ pub async fn example_load(example_name: &str) -> Option<String> {
 /// > use it to set another signal". It's not the end of the world to do so,
 /// > just not the best practice and can be hard to do correctly
 #[component]
-pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
+pub fn InfoGraph(diagram_only: Signal<bool>) -> impl IntoView {
     let (info_graph_src, set_info_graph_src) = signal(info_graph_src_init());
     let (src_selection, src_selection_set) = signal(String::from(""));
     let flex_diag_radio = NodeRef::<html::Input>::new();
@@ -443,6 +443,8 @@ pub fn InfoGraphSrcAndDotSrc(
     src_selection_set: WriteSignal<String>,
     external_refresh_count: ReadSignal<u32>,
 ) -> impl IntoView {
+    leptos::logging::log!("InfoGraphSrcAndDotSrc initializing.");
+
     view! {
         <div class={ textbox_div_display_classes }>
             <TabLabel
@@ -575,7 +577,7 @@ pub fn InfoGraphSrcAndDotSrc(
 
 #[component]
 pub fn InfoGraphDiagram(
-    diagram_only: ReadSignal<bool>,
+    diagram_only: Signal<bool>,
     flex_diag_visible_update: impl Fn(Event) + Copy + 'static,
     info_graph: ReadSignal<InfoGraph>,
     dot_src_and_styles: ReadSignal<Option<DotSrcAndStyles>>,
@@ -651,7 +653,7 @@ pub fn ErrorText(error_text: ReadSignal<Option<String>>) -> impl IntoView {
 }
 
 #[component]
-pub fn Disclaimer(diagram_only: ReadSignal<bool>) -> impl IntoView {
+pub fn Disclaimer(diagram_only: Signal<bool>) -> impl IntoView {
     let disclaimer_classes = move || {
         if diagram_only.get() {
             "hidden"
