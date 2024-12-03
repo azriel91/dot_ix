@@ -1,5 +1,7 @@
 #![allow(non_snake_case)] // Components are all PascalCase.
 
+use std::time::Duration;
+
 use dot_ix::web_components::{AppError, ErrorTemplate};
 use leptos::{
     component,
@@ -11,7 +13,7 @@ use leptos::{
 };
 use leptos_meta::{provide_meta_context, Stylesheet, Title};
 use leptos_router::{
-    components::{Route, Router, Routes},
+    components::{Route, Router, Routes, RoutingProgress},
     StaticSegment,
 };
 
@@ -105,6 +107,9 @@ pub fn App() -> impl IntoView {
 
                     // content for this welcome page
                     <Router set_is_routing>
+                        <div class="routing-progress">
+                            <RoutingProgress is_routing max_time=Duration::from_millis(250)/>
+                        </div>
                         <GoogleTagManagerBody />
                         <main>
                             <Routes fallback=|| RouterFallback.into_view()>
@@ -137,6 +142,9 @@ pub fn App() -> impl IntoView {
                 <body>
                     // content for this welcome page
                     <Router set_is_routing>
+                        <div class="routing-progress">
+                            <RoutingProgress is_routing max_time=Duration::from_millis(250)/>
+                        </div>
                         <main>
                             <Routes fallback=|| RouterFallback.into_view()>
                                 <Route

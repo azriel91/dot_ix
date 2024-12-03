@@ -9,13 +9,11 @@ use dot_ix::{
     web_components::DotSvg,
 };
 use leptos::{
-    component,
-    ev::Event,
-    html, leptos_dom,
+    component, leptos_dom,
     prelude::{
         event_target_value, signal, ClassAttribute, Effect, ElementChild, Get, GetUntracked,
-        GlobalAttributes, LocalResource, NodeRef, OnAttribute, PropAttribute, ReadSignal, Set,
-        Signal, WriteSignal,
+        GlobalAttributes, LocalResource, OnAttribute, PropAttribute, ReadSignal, Set, Signal,
+        WriteSignal,
     },
     view, IntoView,
 };
@@ -196,16 +194,6 @@ pub async fn example_load(example_name: &str) -> Option<String> {
 pub fn InfoGraph(diagram_only: Signal<bool>) -> impl IntoView {
     let (info_graph_src, set_info_graph_src) = signal(info_graph_src_init());
     let (src_selection, src_selection_set) = signal(String::from(""));
-    let flex_diag_radio = NodeRef::<html::Input>::new();
-    let (flex_diag_visible, flex_diag_visible_set) = signal(false);
-    let flex_diag_visible_update = move |_ev| {
-        let flex_diag_checked = flex_diag_radio
-            .get()
-            .map(|input| input.checked())
-            .unwrap_or(true);
-        leptos::logging::log!("flex_diag_checked: {flex_diag_checked}");
-        flex_diag_visible_set.set(flex_diag_checked);
-    };
 
     let editor_and_disclaimer_wrapper_classes = "\
         flex \
@@ -419,11 +407,8 @@ pub fn InfoGraph(diagram_only: Signal<bool>) -> impl IntoView {
                 />
                 <InfoGraphDiagram
                     diagram_only
-                    flex_diag_visible_update
                     info_graph
                     dot_src_and_styles
-                    flex_diag_visible
-                    flex_diag_radio
                 />
             </div>
             <ErrorText error_text />
@@ -443,8 +428,6 @@ pub fn InfoGraphSrcAndDotSrc(
     src_selection_set: WriteSignal<String>,
     external_refresh_count: ReadSignal<u32>,
 ) -> impl IntoView {
-    leptos::logging::log!("InfoGraphSrcAndDotSrc initializing.");
-
     view! {
         <div class={ textbox_div_display_classes }>
             <TabLabel
@@ -578,11 +561,8 @@ pub fn InfoGraphSrcAndDotSrc(
 #[component]
 pub fn InfoGraphDiagram(
     diagram_only: Signal<bool>,
-    flex_diag_visible_update: impl Fn(Event) + Copy + 'static,
     info_graph: ReadSignal<InfoGraph>,
     dot_src_and_styles: ReadSignal<Option<DotSrcAndStyles>>,
-    flex_diag_visible: ReadSignal<bool>,
-    flex_diag_radio: NodeRef<html::Input>,
 ) -> impl IntoView {
     view! {
         <div
