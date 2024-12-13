@@ -8,10 +8,14 @@ use leptos::{
     control_flow::Show,
     either::Either,
     error::Errors,
-    prelude::{signal, ClassAttribute, ElementChild, Get, GlobalAttributes, RwSignal, Signal},
+    hydration::{AutoReload, HydrationScripts},
+    prelude::{
+        signal, ClassAttribute, ElementChild, Get, GlobalAttributes, LeptosOptions, RwSignal,
+        Signal,
+    },
     view, IntoView,
 };
-use leptos_meta::{provide_meta_context, Stylesheet, Title};
+use leptos_meta::{provide_meta_context, Meta, MetaTags, Script, Stylesheet, Title};
 use leptos_router::{
     components::{Route, Router, Routes, RoutingProgress},
     StaticSegment,
@@ -27,45 +31,23 @@ mod text_editor;
 #[cfg(target_arch = "wasm32")]
 const QUERY_PARAM_DIAGRAM_ONLY: &str = "diagram_only";
 
-#[component]
-pub fn GoogleAnalyticsHeader() -> impl IntoView {
+pub fn shell(options: LeptosOptions) -> impl IntoView {
     view! {
-        <script async src="https://www.googletagmanager.com/gtag/js?id=G-QWXYFJ1NED"></script>
-        <script>
-            "\
-            window.dataLayer = window.dataLayer || [];\n\
-            function gtag(){dataLayer.push(arguments);}\n\
-            gtag('js', new Date());\n\
-            gtag('config', 'G-QWXYFJ1NED');\n\
-            "
-        </script>
+        <!DOCTYPE html>
+        <html lang="en">
+            <head>
+                <AutoReload options=options.clone() />
+                <HydrationScripts options />
+                <MetaTags />
+            </head>
+            <body>
+                <App />
+            </body>
+        </html>
     }
 }
 
-#[component]
-pub fn GoogleTagManagerHeader() -> impl IntoView {
-    view! {
-        <script>
-            "\
-            (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':\n\
-            new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],\n\
-            j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=\n\
-            'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);\n\
-            })(window,document,'script','dataLayer','GTM-W2485ZNP');\n\
-            "
-        </script>
-    }
-}
-
-#[component]
-pub fn GoogleTagManagerBody() -> impl IntoView {
-    view! {
-        <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-W2485ZNP"
-        height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
-    }
-}
-
-/// Top level playground application.
+/// Top level playground application, but is wrapped in a `shell` for `"ssr"`.
 #[component]
 pub fn App() -> impl IntoView {
     // Provides context that manages stylesheets, titles, meta tags, etc.
@@ -90,82 +72,110 @@ pub fn App() -> impl IntoView {
     // through client side routing.
     if site_prefix.is_empty() {
         let view = view! {
-            <!DOCTYPE html>
-            <html lang="en">
-                <head>
-                    <GoogleAnalyticsHeader />
-                    <GoogleTagManagerHeader />
-
-                    // injects a stylesheet into the document <head>
-                    // id=leptos means cargo-leptos will hot-reload this stylesheet
-                    <Stylesheet id="leptos" href=stylesheet_path />
-                    <Stylesheet id="fonts" href=fonts_path />
-                    <Title text="dot_ix: Interactive dot graphs" />
-                    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-                </head>
-                <body>
-
-                    // content for this welcome page
-                    <Router set_is_routing>
-                        <div class="routing-progress">
-                            <RoutingProgress is_routing max_time=Duration::from_millis(250)/>
-                        </div>
-                        <GoogleTagManagerBody />
-                        <main>
-                            <Routes fallback=|| RouterFallback.into_view()>
-                                <Route
-                                    path=leptos_router_macro::path!("")
-                                    // trailing_slash=TrailingSlash::Drop // leptos 0.7 WIP
-                                    view=HomePage
-                                />
-                            </Routes>
-                        </main>
-                    </Router>
-                </body>
-            </html>
+            <AppMeta stylesheet_path fonts_path />
+            <Router set_is_routing>
+                <div class="routing-progress">
+                    <RoutingProgress is_routing max_time=Duration::from_millis(250)/>
+                </div>
+                <GoogleTagManagerBody />
+                <main>
+                    <Routes fallback=|| RouterFallback.into_view()>
+                        <Route
+                            path=leptos_router_macro::path!("")
+                            // trailing_slash=TrailingSlash::Drop // leptos 0.7 WIP
+                            view=HomePage
+                        />
+                    </Routes>
+                </main>
+            </Router>
         };
         Either::Left(view)
     } else {
         let view = view! {
-            <!DOCTYPE html>
-            <html lang="en">
-                <head>
-                    <GoogleTagManagerHeader />
-
-                    // injects a stylesheet into the document <head>
-                    // id=leptos means cargo-leptos will hot-reload this stylesheet
-                    <Stylesheet id="leptos" href=stylesheet_path />
-                    <Stylesheet id="fonts" href=fonts_path />
-                    <Title text="dot_ix: Interactive dot graphs" />
-                    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-                </head>
-                <body>
-                    // content for this welcome page
-                    <Router set_is_routing>
-                        <div class="routing-progress">
-                            <RoutingProgress is_routing max_time=Duration::from_millis(250)/>
-                        </div>
-                        <main>
-                            <Routes fallback=|| RouterFallback.into_view()>
-                                <Route
-                                    path=StaticSegment(site_prefix)
-                                    // trailing_slash=TrailingSlash::Exact // leptos 0.7 WIP
-                                    view=HomePage
-                                />
-                                <Route
-                                    path=(StaticSegment(site_prefix), StaticSegment("/"))
-                                    // trailing_slash=TrailingSlash::Exact // leptos 0.7 WIP
-                                    view=HomePage
-                                />
-                            </Routes>
-                        </main>
-                    </Router>
-                </body>
-            </html>
+            <AppMeta stylesheet_path fonts_path />
+            <Router set_is_routing>
+                <div class="routing-progress">
+                    <RoutingProgress is_routing max_time=Duration::from_millis(250)/>
+                </div>
+                <GoogleTagManagerBody />
+                <main>
+                    <Routes fallback=|| RouterFallback.into_view()>
+                        <Route
+                            path=StaticSegment(site_prefix)
+                            // trailing_slash=TrailingSlash::Exact // leptos 0.7 WIP
+                            view=HomePage
+                        />
+                        <Route
+                            path=(StaticSegment(site_prefix), StaticSegment("/"))
+                            // trailing_slash=TrailingSlash::Exact // leptos 0.7 WIP
+                            view=HomePage
+                        />
+                    </Routes>
+                </main>
+            </Router>
         };
 
         Either::Right(view)
     }
+}
+
+#[component]
+pub fn AppMeta(stylesheet_path: String, fonts_path: String) -> impl IntoView {
+    view! {
+        <GoogleAnalyticsHeader />
+        <GoogleTagManagerHeader />
+
+        // injects a stylesheet into the document <head>
+        // id=leptos means cargo-leptos will hot-reload this stylesheet
+        <Stylesheet id="leptos" href=stylesheet_path />
+        <Stylesheet id="fonts" href=fonts_path />
+        <Title text="dot_ix: Interactive dot graphs" />
+        <Meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    }
+}
+
+#[component]
+pub fn GoogleAnalyticsHeader() -> impl IntoView {
+    view! {
+        <Script async_="true" src="https://www.googletagmanager.com/gtag/js?id=G-QWXYFJ1NED"></Script>
+        <Script>
+            "\
+            window.dataLayer = window.dataLayer || [];\n\
+            function gtag(){dataLayer.push(arguments);}\n\
+            gtag('js', new Date());\n\
+            gtag('config', 'G-QWXYFJ1NED');\n\
+            "
+        </Script>
+    }
+}
+
+#[component]
+pub fn GoogleTagManagerHeader() -> impl IntoView {
+    view! {
+        <Script>
+            "\
+            (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':\n\
+            new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],\n\
+            j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=\n\
+            'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);\n\
+            })(window,document,'script','dataLayer','GTM-W2485ZNP');\n\
+            "
+        </Script>
+    }
+}
+
+#[component]
+pub fn GoogleTagManagerBody() -> impl IntoView {
+    view! {
+        <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-W2485ZNP"
+        height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    }
+}
+
+#[cfg(not(any(feature = "ssr", feature = "csr")))]
+#[component]
+pub fn Head() -> impl IntoView {
+    view! {}
 }
 
 /// Renders the home page of your application.

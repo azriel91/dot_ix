@@ -5,7 +5,7 @@ mod fileserv;
 #[tokio::main]
 async fn main() {
     use axum::{routing::post, Router};
-    use leptos::{logging::log, prelude::get_configuration, *};
+    use leptos::{logging::log, prelude::get_configuration};
     use leptos_axum::{generate_route_list, LeptosRoutes};
     use log4rs::{
         append::console::{ConsoleAppender, Target},
@@ -13,7 +13,10 @@ async fn main() {
         filter::threshold::ThresholdFilter,
     };
 
-    use crate::{app::*, fileserv::file_and_error_handler};
+    use crate::{
+        app::{shell, App},
+        fileserv::file_and_error_handler,
+    };
 
     let stderr = ConsoleAppender::builder().target(Target::Stderr).build();
     // Log Trace level output to file where trace is the default level
@@ -47,13 +50,16 @@ async fn main() {
     let conf = get_configuration(None).unwrap();
     let leptos_options = conf.leptos_options;
     let socket_addr = leptos_options.site_addr;
-    let routes = generate_route_list(|| view! { <App/> });
+    let routes = generate_route_list(App);
 
     // build our application with a route
     let router = Router::new()
         .route("/api/*fn_name", post(leptos_axum::handle_server_fns))
-        .leptos_routes(&leptos_options, routes, || view! { <App/> })
-        .fallback(file_and_error_handler)
+        .leptos_routes(&leptos_options, routes, {
+            let leptos_options = leptos_options.clone();
+            move || shell(leptos_options.clone())
+        })
+        .fallback(leptos_axum::file_and_error_handler(shell))
         .with_state(leptos_options);
 
     // run our app with hyper
