@@ -1,5 +1,4 @@
 mod app;
-mod fileserv;
 
 #[cfg(feature = "ssr")]
 #[tokio::main]
@@ -13,10 +12,7 @@ async fn main() {
         filter::threshold::ThresholdFilter,
     };
 
-    use crate::{
-        app::{shell, App},
-        fileserv::file_and_error_handler,
-    };
+    use crate::app::{shell, App};
 
     let stderr = ConsoleAppender::builder().target(Target::Stderr).build();
     // Log Trace level output to file where trace is the default level

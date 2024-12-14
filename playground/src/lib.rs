@@ -1,5 +1,4 @@
 pub mod app;
-pub mod fileserv;
 
 cfg_if::cfg_if! { if #[cfg(feature = "hydrate")] {
     use wasm_bindgen::prelude::wasm_bindgen;
