@@ -8,14 +8,10 @@ use leptos::{
     control_flow::Show,
     either::Either,
     error::Errors,
-    hydration::{AutoReload, HydrationScripts},
-    prelude::{
-        signal, ClassAttribute, ElementChild, Get, GlobalAttributes, LeptosOptions, RwSignal,
-        Signal,
-    },
+    prelude::{signal, ClassAttribute, ElementChild, Get, RwSignal, Signal},
     view, IntoView,
 };
-use leptos_meta::{provide_meta_context, Meta, MetaTags, Script, Stylesheet, Title};
+use leptos_meta::{provide_meta_context, Meta, Script, Stylesheet, Title};
 use leptos_router::{
     components::{Route, Router, Routes, RoutingProgress},
     StaticSegment,
@@ -26,6 +22,14 @@ use self::{info_graph::InfoGraph, tabs::TabLabel, text_editor::TextEditor};
 mod info_graph;
 mod tabs;
 mod text_editor;
+
+#[cfg(feature = "ssr")]
+use leptos::{
+    hydration::{AutoReload, HydrationScripts},
+    prelude::{GlobalAttributes, LeptosOptions},
+};
+#[cfg(feature = "ssr")]
+use leptos_meta::MetaTags;
 
 /// Whether to only draw the diagram and hide the text boxes.
 #[cfg(target_arch = "wasm32")]
