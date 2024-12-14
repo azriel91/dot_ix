@@ -77,7 +77,6 @@ pub fn App() -> impl IntoView {
                 <div class="routing-progress">
                     <RoutingProgress is_routing max_time=Duration::from_millis(250)/>
                 </div>
-                <GoogleTagManagerBody />
                 <main>
                     <Routes fallback=|| RouterFallback.into_view()>
                         <Route
@@ -97,7 +96,6 @@ pub fn App() -> impl IntoView {
                 <div class="routing-progress">
                     <RoutingProgress is_routing max_time=Duration::from_millis(250)/>
                 </div>
-                <GoogleTagManagerBody />
                 <main>
                     <Routes fallback=|| RouterFallback.into_view()>
                         <Route
@@ -164,19 +162,22 @@ pub fn GoogleTagManagerHeader() -> impl IntoView {
     }
 }
 
-#[component]
-pub fn GoogleTagManagerBody() -> impl IntoView {
-    view! {
-        <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-W2485ZNP"
-        height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
-    }
-}
-
-#[cfg(not(any(feature = "ssr", feature = "csr")))]
-#[component]
-pub fn Head() -> impl IntoView {
-    view! {}
-}
+// This is normally meant to be inserted into the body of the document, as a
+// fallback when `<script>` tags are not supported. However, it breaks hydration
+// when leptos is used in SSR mode, since hydration requires element counts to
+// be in sync on both the server side and client side.
+//
+// Tracked on [leptos#3360](https://github.com/leptos-rs/leptos/issues/3360).
+//
+// ```rust,ignore
+// #[component]
+// pub fn GoogleTagManagerBody() -> impl IntoView {
+//     view! {
+//         <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-W2485ZNP"
+//         height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+//     }
+// }
+// ```
 
 /// Renders the home page of your application.
 #[component]
