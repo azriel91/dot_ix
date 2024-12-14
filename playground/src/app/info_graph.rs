@@ -594,7 +594,7 @@ pub fn InfoGraphDiagram(
                 <DotSvg
                     info_graph=info_graph.into()
                     dot_src_and_styles=dot_src_and_styles.into()
-                    diagram_only=diagram_only.into()
+                    diagram_only=diagram_only
                 />
             </div>
         </div>
