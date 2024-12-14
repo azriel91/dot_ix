@@ -31,6 +31,7 @@ mod text_editor;
 #[cfg(target_arch = "wasm32")]
 const QUERY_PARAM_DIAGRAM_ONLY: &str = "diagram_only";
 
+#[cfg(feature = "ssr")]
 pub fn shell(options: LeptosOptions) -> impl IntoView {
     view! {
         <!DOCTYPE html>
