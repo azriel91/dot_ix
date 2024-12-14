@@ -33,7 +33,7 @@ impl InfoGraphDot<'_> {
     }
 }
 
-impl<'graph> Themeable for InfoGraphDot<'graph> {
+impl Themeable for InfoGraphDot<'_> {
     fn node_ids(&self) -> impl Iterator<Item = &NodeId>
     where
         Self: Sized,

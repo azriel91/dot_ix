@@ -6,9 +6,17 @@ use dot_ix::{
         info_graph::InfoGraph,
     },
     rt::IntoGraphvizDotSrc,
-    web_components::{DotSvg, FlexDiag},
+    web_components::DotSvg,
 };
-use leptos::{ev::Event, *};
+use leptos::{
+    component, leptos_dom,
+    prelude::{
+        event_target_value, signal, ClassAttribute, Effect, ElementChild, Get, GetUntracked,
+        GlobalAttributes, LocalResource, OnAttribute, PropAttribute, ReadSignal, Set, Signal,
+        WriteSignal,
+    },
+    view, IntoView,
+};
 
 use crate::app::{TabLabel, TextEditor};
 
@@ -30,7 +38,7 @@ fn info_graph_src_init() -> String {
 /// Sets the info graph src using logic purely executed on the client side.
 ///
 /// This is for a pure client side rendered app, so updating a signal within
-/// `create_effect` is safe.
+/// `Effect::new` is safe.
 #[cfg(target_arch = "wasm32")]
 fn info_graph_src_init() -> String {
     use js_sys::Array;
@@ -81,7 +89,7 @@ fn info_graph_src_init() -> String {
                 .unwrap_or_else(|| String::from(INFO_GRAPH_DEMO));
 
             // Hack: Get Tailwind CSS from CDN to reevaluate document.
-            set_timeout(
+            leptos::prelude::set_timeout(
                 move || {
                     let _ = window
                         .document()
@@ -113,13 +121,26 @@ pub async fn example_load(example_name: &str) -> Option<String> {
 
     cfg_if::cfg_if! {
         if #[cfg(target_arch = "wasm32")] {
-            let abort_controller = web_sys::AbortController::new().ok();
+            use web_sys::AbortController;
+
+            let abort_controller = AbortController::new().ok();
             let abort_signal = abort_controller.as_ref().map(|a| a.signal());
 
+            /// Wrapper around `AbortController`, as it isn't `Send + Sync`.
+            ///
+            /// # Safety
+            ///
+            /// Internally a `PhantomData<*mut u8>` is held.
+            struct AbortControllerSendSync(AbortController);
+            unsafe impl Send for AbortControllerSendSync {}
+            unsafe impl Sync for AbortControllerSendSync {}
+
+            let abort_controller_send = abort_controller.map(AbortControllerSendSync);
+
             // abort in-flight requests if, e.g., we've navigated away from this page
-            leptos::on_cleanup(move || {
-                if let Some(abort_controller) = abort_controller {
-                    abort_controller.abort()
+            leptos::prelude::on_cleanup(move || {
+                if let Some(abort_controller_send) = abort_controller_send {
+                    abort_controller_send.0.abort()
                 }
             });
 
@@ -156,12 +177,12 @@ pub async fn example_load(example_name: &str) -> Option<String> {
 
 /// Text input and dot graph rendering.
 ///
-/// Notably, we run `set_*.update(..)` within a number of `create_effect`s.
+/// Notably, we run `set_*.update(..)` within a number of `Effect::new`s.
 ///
 /// While this is normally incorrect usage, for a purely client side
 /// application, it is okay. From Greg (author of leptos):
 ///
-/// > `create_effect` is also good for "only run this in the browser" and also
+/// > `Effect::new` is also good for "only run this in the browser" and also
 /// > for "synchronize with something non-reactive" (like a JS function) so
 /// > don't worry about setting a signal inside it in that context.
 /// >
@@ -170,19 +191,9 @@ pub async fn example_load(example_name: &str) -> Option<String> {
 /// > use it to set another signal". It's not the end of the world to do so,
 /// > just not the best practice and can be hard to do correctly
 #[component]
-pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
-    let (info_graph_src, set_info_graph_src) = create_signal(info_graph_src_init());
-    let (src_selection, src_selection_set) = create_signal(String::from(""));
-    let flex_diag_radio = create_node_ref::<html::Input>();
-    let (flex_diag_visible, flex_diag_visible_set) = create_signal(false);
-    let flex_diag_visible_update = move |_ev| {
-        let flex_diag_checked = flex_diag_radio
-            .get()
-            .map(|input| input.checked())
-            .unwrap_or(true);
-        leptos::logging::log!("flex_diag_checked: {flex_diag_checked}");
-        flex_diag_visible_set.set(flex_diag_checked);
-    };
+pub fn InfoGraph(diagram_only: Signal<bool>) -> impl IntoView {
+    let (info_graph_src, set_info_graph_src) = signal(info_graph_src_init());
+    let (src_selection, src_selection_set) = signal(String::from(""));
 
     let editor_and_disclaimer_wrapper_classes = "\
         flex \
@@ -242,27 +253,24 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
     };
 
     // Creates a reactive value to update the button
-    let (dot_src_and_styles, dot_src_and_styles_set) = create_signal(None::<DotSrcAndStyles>);
-    let (error_text, set_error_text) = create_signal(None::<String>);
-    let (dot_src, set_dot_src) = create_signal(None::<String>);
+    let (dot_src_and_styles, dot_src_and_styles_set) = signal(None::<DotSrcAndStyles>);
+    let (error_text, set_error_text) = signal(None::<String>);
+    let (dot_src, set_dot_src) = signal(None::<String>);
 
-    let (info_graph, set_info_graph) = create_signal(InfoGraph::default());
-    let (external_refresh_count, external_refresh_count_set) = create_signal(0);
+    let (info_graph, set_info_graph) = signal(InfoGraph::default());
+    let (external_refresh_count, external_refresh_count_set) = signal(0);
 
     // Load an example when the selection box is changed.
-    let _example_resource_load = leptos::create_resource(
-        move || src_selection.get(),
-        // every time `src_selection` changes, this will run
-        move |src_selection| async move {
-            let example_content = example_load(&src_selection).await;
-            if let Some(example_content) = example_content {
-                set_info_graph_src.set(example_content);
-                external_refresh_count_set.set(external_refresh_count.get_untracked() + 1);
-            }
-        },
-    );
+    let _example_resource_load = LocalResource::new(move || async move {
+        let src_selection = src_selection.get();
+        let example_content = example_load(&src_selection).await;
+        if let Some(example_content) = example_content {
+            set_info_graph_src.set(example_content);
+            external_refresh_count_set.set(external_refresh_count.get_untracked() + 1);
+        }
+    });
 
-    create_effect(move |_| {
+    Effect::new(move |_| {
         let dot_src = dot_src.get();
         let dot_src_and_styles = dot_src_and_styles.get_untracked();
         if let Some((dot_src, mut dot_src_and_styles)) = dot_src.zip(dot_src_and_styles) {
@@ -271,7 +279,7 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
         }
     });
 
-    create_effect(move |_| {
+    Effect::new(move |_| {
         let info_graph_src = info_graph_src.get();
 
         let merge_key_exists = info_graph_src.lines().any(|line| {
@@ -399,11 +407,8 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
                 />
                 <InfoGraphDiagram
                     diagram_only
-                    flex_diag_visible_update
                     info_graph
                     dot_src_and_styles
-                    flex_diag_visible
-                    flex_diag_radio
                 />
             </div>
             <ErrorText error_text />
@@ -414,7 +419,7 @@ pub fn InfoGraph(diagram_only: ReadSignal<bool>) -> impl IntoView {
 
 #[component]
 pub fn InfoGraphSrcAndDotSrc(
-    textbox_div_display_classes: impl Fn() -> &'static str + 'static,
+    textbox_div_display_classes: impl Fn() -> &'static str + Send + 'static,
     dot_src: ReadSignal<Option<String>>,
     set_dot_src: WriteSignal<Option<String>>,
     info_graph_src: ReadSignal<String>,
@@ -500,7 +505,6 @@ pub fn InfoGraphSrcAndDotSrc(
                     set_value=set_info_graph_src
                     external_refresh_count
                     id="info_graph_yml"
-                    name="info_graph_yml"
                     class="\
                         border \
                         border-slate-400 \
@@ -556,12 +560,9 @@ pub fn InfoGraphSrcAndDotSrc(
 
 #[component]
 pub fn InfoGraphDiagram(
-    diagram_only: ReadSignal<bool>,
-    flex_diag_visible_update: impl Fn(Event) + Copy + 'static,
+    diagram_only: Signal<bool>,
     info_graph: ReadSignal<InfoGraph>,
     dot_src_and_styles: ReadSignal<Option<DotSrcAndStyles>>,
-    flex_diag_visible: ReadSignal<bool>,
-    flex_diag_radio: NodeRef<html::Input>,
 ) -> impl IntoView {
     view! {
         <div
@@ -581,29 +582,8 @@ pub fn InfoGraphDiagram(
                 }
             }}
         >
-
-            <TabLabel
-                tab_group_name="diagram_tabs"
-                tab_id="tab_dot_svg"
-                label="Dot SVG"
-                checked=true
-                on_change=flex_diag_visible_update
-            />
-
-            <TabLabel
-                tab_group_name="diagram_tabs"
-                tab_id="tab_flex_diag"
-                label="Flex Diagram"
-                on_change=flex_diag_visible_update
-                node_ref=flex_diag_radio
-            />
-
             <div
                 class="\
-                    invisible \
-                    h-0 \
-                    peer-checked/tab_dot_svg:visible \
-                    peer-checked/tab_dot_svg:h-auto \
                     w-dvw \
                     lg:w-auto \
                     max-w-dvw \
@@ -614,25 +594,7 @@ pub fn InfoGraphDiagram(
                 <DotSvg
                     info_graph=info_graph.into()
                     dot_src_and_styles=dot_src_and_styles.into()
-                    diagram_only=diagram_only.into()
-                />
-            </div>
-
-            <div
-                class="\
-                    invisible \
-                    h-0 \
-                    peer-checked/tab_flex_diag:visible \
-                    peer-checked/tab_flex_diag:h-auto \
-                    w-dvw \
-                    lg:w-auto \
-                    max-w-dvw \
-                    overflow-auto \
-                "
-            >
-                <FlexDiag
-                    info_graph=info_graph
-                    visible=flex_diag_visible.into()
+                    diagram_only=diagram_only
                 />
             </div>
         </div>
@@ -671,7 +633,7 @@ pub fn ErrorText(error_text: ReadSignal<Option<String>>) -> impl IntoView {
 }
 
 #[component]
-pub fn Disclaimer(diagram_only: ReadSignal<bool>) -> impl IntoView {
+pub fn Disclaimer(diagram_only: Signal<bool>) -> impl IntoView {
     let disclaimer_classes = move || {
         if diagram_only.get() {
             "hidden"

@@ -38,12 +38,6 @@ web-sys = { workspace = true, features = ["Document", "Element", "HtmlElement", 
 
 [features]
 default = []
-flex_diag = [
-    "dep:dot_ix_rt",
-    "dot_ix_rt?/info_graph_html",
-
-    "dep:serde",
-]
 ssr = [
     "dep:leptos_axum",
     "dep:tempfile",
