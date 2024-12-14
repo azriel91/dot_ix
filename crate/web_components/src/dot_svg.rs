@@ -1,9 +1,6 @@
 use leptos::{
     component,
-    prelude::{
-        ClassAttribute, ElementChild, Get, GlobalAttributes, GlobalOnAttributes, NodeRefAttribute,
-        Signal,
-    },
+    prelude::{ClassAttribute, ElementChild, Get, Signal},
     view, IntoView,
 };
 
@@ -13,13 +10,21 @@ use leptos::prelude::{Effect, NodeRef};
 use dot_ix_model::{common::DotSrcAndStyles, info_graph::InfoGraph};
 
 #[cfg(feature = "server_side_graphviz")]
-use leptos::{server, server_fn::error::NoCustomError, ServerFnError, Suspense};
+use leptos::{
+    prelude::{InnerHtmlAttribute, Resource, ServerFnError},
+    server,
+    server_fn::error::NoCustomError,
+    suspense::Suspense,
+};
 
 #[cfg(any(
     all(feature = "ssr", feature = "server_side_graphviz"),
     target_arch = "wasm32"
 ))]
 use dot_ix_model::common::{dot_src_and_styles::GraphvizImage, Images};
+
+#[cfg(not(feature = "server_side_graphviz"))]
+use leptos::prelude::{GlobalAttributes, GlobalOnAttributes, NodeRefAttribute};
 
 #[cfg(not(feature = "server_side_graphviz"))]
 use leptos::html::Div;
@@ -45,7 +50,6 @@ pub async fn dot_svg(
     info_graph: InfoGraph,
     dot_src_and_styles: DotSrcAndStyles,
 ) -> Result<(String, String), ServerFnError<NoCustomError>> {
-    use dot_ix_model::info_graph;
     use std::process::Stdio;
     use tokio::io::{AsyncReadExt, AsyncWriteExt};
 
@@ -249,7 +253,7 @@ pub fn DotSvg(
     #[prop(default = Signal::from(false))] diagram_only: Signal<bool>,
 ) -> impl IntoView {
     let _diagram_only = diagram_only;
-    let dot_svg_and_error_resource = leptos::create_resource(
+    let dot_svg_and_error_resource = Resource::new(
         move || dot_src_and_styles.get(),
         move |dot_src_and_styles| async move {
             if let Some(dot_src_and_styles) = dot_src_and_styles {
@@ -274,27 +278,29 @@ pub fn DotSvg(
         >
             { move || {
                 dot_svg_and_error_resource.get()
-                    .map(|(dot_svg, error_text)| view! {
-                        <div>
-                            <div inner_html=dot_svg />
+                    .map(|(dot_svg, error_text)| {
+                        let error_text_empty = error_text.is_empty();
+                        view! {
+                            <div>
+                                <div inner_html=dot_svg />
 
-                            <div class={
-                                let error_text_empty = error_text.is_empty();
-                                move || {
-                                    if error_text_empty {
-                                        "hidden"
-                                    } else {
-                                        "
-                                        border
-                                        border-amber-300
-                                        bg-gradient-to-b from-amber-100 to-amber-200
-                                        rounded
-                                        "
+                                <div class={
+                                    move || {
+                                        if error_text_empty {
+                                            "hidden"
+                                        } else {
+                                            "
+                                            border
+                                            border-amber-300
+                                            bg-gradient-to-b from-amber-100 to-amber-200
+                                            rounded
+                                            "
+                                        }
                                     }
                                 }
-                            }
-                            >{error_text}</div>
-                        </div>
+                                >{error_text}</div>
+                            </div>
+                        }
                     })
             }}
         </Suspense>
