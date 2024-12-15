@@ -1,7 +1,8 @@
 # Changelog
 
-## unreleased
+## 0.9.0 (2024-12-15)
 
+* ***Breaking:*** Upgrade to `leptos 0.7.0`
 * Support `margins` in `GraphvizAttrs`.
 * Support `margin_cluster_default` in `GraphvizAttrs`.
 * Support `margin_node_default` in `GraphvizAttrs`.
