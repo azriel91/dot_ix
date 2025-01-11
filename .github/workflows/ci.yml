@@ -153,6 +153,8 @@ jobs:
       - name: 'Build playground'
         working-directory: ./playground
         run: cargo leptos build -v
+        # Doesn't really help, seems this job fails because the CI runner is CPU bound.
+        # See <https://github.com/actions/runner-images/issues/6680>
         timeout-minutes: 20
 
       - name: 'Build playground (server side graphviz)'
