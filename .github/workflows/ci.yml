@@ -129,7 +129,13 @@ jobs:
 
   build_playground_linux:
     name: Build Playground (Linux)
-    runs-on: ubuntu-latest
+    # On `ubuntu-latest`, this job fails because the CI runner is CPU bound
+    # when `monaco` is built.
+    #
+    # Trying 22.04 to see if it alleviates the problem.
+    #
+    # See <https://github.com/actions/runner-images/issues/6680>
+    runs-on: ubuntu-22.04
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
@@ -153,14 +159,10 @@ jobs:
       - name: 'Build playground'
         working-directory: ./playground
         run: cargo leptos build -v
-        # Doesn't really help, seems this job fails because the CI runner is CPU bound.
-        # See <https://github.com/actions/runner-images/issues/6680>
-        timeout-minutes: 20
 
       - name: 'Build playground (server side graphviz)'
         working-directory: ./playground
         run: cargo leptos build --features "server_side_graphviz" -v
-        timeout-minutes: 20
 
   build_and_test_windows:
     name: Build and Test (Windows)
