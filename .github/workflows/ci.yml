@@ -129,8 +129,14 @@ jobs:
 
   build_playground_linux:
     name: Build Playground (Linux)
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
+    # On `ubuntu-latest`, this job fails because the CI runner is CPU bound
+    # when `monaco` is built.
+    #
+    # Trying 22.04 to see if it alleviates the problem.
+    #
+    # See <https://github.com/actions/runner-images/issues/6680>
+    runs-on: ubuntu-22.04
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
       - name: 'Install Rust'

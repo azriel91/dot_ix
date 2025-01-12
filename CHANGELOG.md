@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.9.1 (2025-01-11)
+
+* Update dependency versions.
+
+
 ## 0.9.0 (2024-12-15)
 
 * ***Breaking:*** Upgrade to `leptos 0.7.0`
