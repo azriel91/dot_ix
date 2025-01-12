@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.9.1 (2025-01-11)
+## 0.9.1 (2025-01-12)
 
 * Update dependency versions.
 
