@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.9.2 (2025-01-27)
+
+* Update dependency versions and address `RUSTSEC-2024-0370`.
+
+
 ## 0.9.1 (2025-01-12)
 
 * Update dependency versions.
