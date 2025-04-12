@@ -69,7 +69,6 @@ ssr = [
 csr = [
     "leptos/csr",
 ]
-server_side_graphviz = ["dot_ix/server_side_graphviz"]
 
 [package.metadata.cargo-all-features]
 denylist = ["axum", "tokio", "tower", "tower-http", "leptos_axum"]

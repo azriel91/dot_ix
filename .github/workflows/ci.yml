@@ -42,7 +42,7 @@ jobs:
       run: cargo install --locked cargo-about
 
     - name: cargo-about generate licenses
-      run: cargo about generate --workspace --features "server_side_graphviz" about.hbs > doc/src/licenses.html
+      run: cargo about generate --workspace about.hbs > doc/src/licenses.html
 
   fmt:
     name: Rustfmt
@@ -91,7 +91,7 @@ jobs:
       - name: 'Run clippy (server side graphviz)'
         # we cannot use `--all-features` because `dot_ix` has features that are mutually exclusive.
         run: |
-          cargo clippy --workspace --features "server_side_graphviz" -- -D warnings
+          cargo clippy --workspace -- -D warnings
 
   coverage:
     name: Coverage
@@ -164,7 +164,7 @@ jobs:
 
       - name: 'Build playground (server side graphviz)'
         working-directory: ./playground
-        run: cargo leptos build --features "server_side_graphviz" -v
+        run: cargo leptos build --features -v
 
   build_and_test_windows:
     name: Build and Test (Windows)
@@ -214,4 +214,4 @@ jobs:
 
       - name: 'Build playground (server side graphviz)'
         working-directory: ./playground
-        run: cargo leptos build --features "server_side_graphviz" -v
+        run: cargo leptos build -v

@@ -24,22 +24,14 @@ dot_ix_rt = { workspace = true, optional = true }
 dot_ix_web_components = { workspace = true, optional = true }
 
 [features]
-default = [
-    "rt",
-    "web_components",
-]
+default = ["rt", "web_components"]
 rt = ["dep:dot_ix_rt"]
 web_components = ["dep:dot_ix_web_components"]
 
 ssr = ["dot_ix_web_components?/ssr"]
-server_side_graphviz = ["dot_ix_web_components?/server_side_graphviz"]
 
 [workspace]
-members = [
-    "crate/*",
-    "playground",
-    "workspace_tests",
-]
+members = ["crate/*", "playground", "workspace_tests"]
 
 [workspace.package]
 version = "0.9.2"
@@ -97,6 +89,3 @@ serde_yaml = "0.9.34"
 
 [workspace.lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(coverage_nightly)'] }
-
-[patch.crates-io]
-leptos-use = { git = "https://github.com/sabify/leptos-use.git", branch = "leptos-v0.8.0-rc1" }
