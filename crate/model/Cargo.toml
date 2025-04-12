@@ -17,6 +17,7 @@ doctest = false
 test = false
 
 [dependencies]
+id_newtype = { workspace = true }
 indexmap = { workspace = true, features = ["serde"] }
 serde = { workspace = true, features = ["derive"] }
 dot_ix_static_check_macros = { workspace = true }
