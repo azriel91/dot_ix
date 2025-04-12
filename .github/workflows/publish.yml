@@ -12,7 +12,9 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
-      - uses: actions-rust-lang/audit@v1
+      - name: "Generate Cargo.lock"
+        run: cargo generate-lockfile
+      - uses: actions-rust-lang/audit@v2
         name: Audit Rust Dependencies
         with:
           denyWarnings: true
@@ -56,34 +58,29 @@ jobs:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
 
-      - name: cargo-release Cache
-        id: cargo_release_cache
-        uses: actions/cache@v4
+      - name: cargo-release cache restore
+        id: cargo_release_cache_restore
+        uses: actions/cache/restore@v4
         with:
           path: ~/.cargo/bin/cargo-release
           key: ${{ runner.os }}-cargo-release
 
       - run: cargo install cargo-release
-        if: steps.cargo_release_cache.outputs.cache-hit != 'true'
+        if: steps.cargo_release_cache_restore.outputs.cache-hit != 'true'
+
+      - name: cargo-release cache save
+        id: cargo_release_cache_save
+        uses: actions/cache/save@v4
+        if: always() && steps.cargo_release_cache_restore.outputs.cache-hit != 'true'
+        with:
+          path: ~/.cargo/bin/cargo-release
+          key: ${{ runner.os }}-cargo-release
 
       - name: cargo login
         run: cargo login ${{ secrets.CRATES_IO_API_TOKEN }}
 
       # allow-branch HEAD is because GitHub actions switches
       # to the tag while building, which is a detached head
-
-      # Publishing is currently messy, because:
-      #
-      # * `peace_rt_model_core` exports `NativeError` or `WebError` depending on the target.
-      # * `peace_rt_model_web` fails to build when publishing the workspace for a native target.
-      # * `peace_rt_model_web` still needs its dependencies to be published before it can be
-      #    published.
-      # * `peace_rt_model_hack` needs `peace_rt_model_web` to be published before it can be
-      #    published.
-      #
-      # We *could* pass through `--no-verify` so `cargo` doesn't build the crate before publishing,
-      # which is reasonable, since this job only runs after the Linux, Windows, and WASM builds
-      # have passed.
       - name: "cargo release publish"
         run: |-
           cargo release \

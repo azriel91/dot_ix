@@ -15,7 +15,9 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
-      - uses: actions-rust-lang/audit@v1
+      - name: "Generate Cargo.lock"
+        run: cargo generate-lockfile
+      - uses: actions-rust-lang/audit@v2
         name: Audit Rust Dependencies
         with:
           denyWarnings: true
@@ -111,7 +113,7 @@ jobs:
         run: du -sh target/coverage target/llvm-cov-target
 
       - name: Upload to codecov.io
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         with:
           files: ./target/coverage/lcov.info
           token: ${{ secrets.CODECOV_TOKEN }}
