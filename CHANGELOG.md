@@ -1,5 +1,12 @@
 # Changelog
 
+## unreleased
+
+* Update crate rust edition to 2024.
+* ***Breaking:*** Remove `"server_side_graphviz"` feature.
+* ***Breaking:*** Upgrade to `leptos 0.8.0-rc1`.
+
+
 ## 0.9.2 (2025-01-27)
 
 * Update dependency versions and address `RUSTSEC-2024-0370`.
