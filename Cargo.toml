@@ -36,7 +36,7 @@ members = ["crate/*", "playground", "workspace_tests"]
 [workspace.package]
 version = "0.9.2"
 authors = ["Azriel Hoh <azriel91@gmail.com>"]
-edition = "2021"
+edition = "2024"
 homepage = "https://github.com/azriel91/dot_ix"
 repository = "https://github.com/azriel91/dot_ix"
 readme = "README.md"
