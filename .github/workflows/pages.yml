@@ -32,28 +32,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: 'Install Rust'
+      - name: "Install Rust"
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: nightly
           targets: wasm32-unknown-unknown
 
-      - name: cargo-leptos cache
-        id: cargo-leptos-cache
-        uses: actions/cache@v4
-        with:
-          path: ~/.cargo/bin/cargo-leptos
-          key: cargo-leptos-${{ runner.os }}
-
-      - name: cargo-leptos install
-        if: steps.cargo-leptos-cache.outputs.cache-hit != 'true'
-        run: cargo install cargo-leptos
-
       - name: Setup Pages
         uses: actions/configure-pages@v5
-
-      - name: Download and install tailwindcss binary
-        run: npm install -D tailwindcss
 
       - name: Download and install Trunk binary
         run: wget -qO- https://github.com/thedodd/trunk/releases/latest/download/trunk-x86_64-unknown-linux-gnu.tar.gz | tar -xzf-
@@ -81,7 +67,7 @@ jobs:
         uses: actions/upload-pages-artifact@v3
         with:
           # Upload playground/dist directory
-          path: 'playground/dist'
+          path: "playground/dist"
 
       - name: Deploy to GitHub Pages
         id: deployment

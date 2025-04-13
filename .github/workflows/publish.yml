@@ -1,7 +1,7 @@
 on:
   push:
     tags:
-      - '*'
+      - "*"
 
 name: Publish
 
@@ -28,7 +28,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
 
-      - name: 'Build and test'
+      - name: "Build and test"
         run: cargo test --workspace
 
   build_and_test_windows:
@@ -42,7 +42,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
 
-      - name: 'Build and test'
+      - name: "Build and test"
         run: cargo test --workspace
 
   crates_io_publish:
@@ -77,7 +77,8 @@ jobs:
           key: ${{ runner.os }}-cargo-release
 
       - name: cargo login
-        run: cargo login ${{ secrets.CRATES_IO_API_TOKEN }}
+        run: |-
+          echo "${{ secrets.CRATES_IO_API_TOKEN }}" | cargo login
 
       # allow-branch HEAD is because GitHub actions switches
       # to the tag while building, which is a detached head
