@@ -1,6 +1,6 @@
 # Changelog
 
-## unreleased
+## 0.10.0 (2025-04-18)
 
 * Update crate rust edition to 2024.
 * ***Breaking:*** Remove `"server_side_graphviz"` feature.

@@ -27,10 +27,10 @@ https://user-images.githubusercontent.com/2993230/253878816-0729970f-651f-45ef-a
 Add the following to `Cargo.toml`
 
 ```toml
-dot_ix = "0.9.2"
+dot_ix = "0.10.0"
 
 # Enables the `FlexDiag` web component.
-dot_ix = { version = "0.9.2", features = ["flex_diag"] }
+dot_ix = { version = "0.10.0", features = ["flex_diag"] }
 ```
 
 

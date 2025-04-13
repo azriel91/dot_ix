@@ -34,7 +34,7 @@ ssr = ["dot_ix_web_components?/ssr"]
 members = ["crate/*", "playground", "workspace_tests"]
 
 [workspace.package]
-version = "0.9.2"
+version = "0.10.0"
 authors = ["Azriel Hoh <azriel91@gmail.com>"]
 edition = "2024"
 homepage = "https://github.com/azriel91/dot_ix"
@@ -46,11 +46,11 @@ license = "MIT OR Apache-2.0"
 
 [workspace.dependencies]
 # dot_ix crates
-dot_ix = { version = "0.9.2", path = "." }
-dot_ix_model = { version = "0.9.2", path = "crate/model" }
-dot_ix_rt = { version = "0.9.2", path = "crate/rt" }
-dot_ix_static_check_macros = { version = "0.9.2", path = "crate/static_check_macros" }
-dot_ix_web_components = { version = "0.9.2", path = "crate/web_components" }
+dot_ix = { version = "0.10.0", path = "." }
+dot_ix_model = { version = "0.10.0", path = "crate/model" }
+dot_ix_rt = { version = "0.10.0", path = "crate/rt" }
+dot_ix_static_check_macros = { version = "0.10.0", path = "crate/static_check_macros" }
+dot_ix_web_components = { version = "0.10.0", path = "crate/web_components" }
 
 # external crates
 axum = "0.8.3"
