@@ -137,6 +137,13 @@ jobs:
     # See <https://github.com/actions/runner-images/issues/6680>
     runs-on: ubuntu-22.04
     timeout-minutes: 25
+    env:
+      # Seems to solve this issue:
+      #
+      # ```text
+      # 0: Unexpected token Semicolon at :1360:9
+      # ```
+      LEPTOS_TAILWIND_VERSION: "v4.1.4"
     steps:
       - uses: actions/checkout@v4
       - name: "Install Rust"
@@ -221,8 +228,8 @@ jobs:
       - name: "Build and test"
         run: cargo test --workspace
 
-  build_playground_windows:
-    name: Build Playground (Windows)
+  build_playground_windows_trunk:
+    name: Build Playground (Windows) - trunk
     runs-on: windows-latest
     timeout-minutes: 30
     steps:
@@ -236,23 +243,24 @@ jobs:
           toolchain: stable
           targets: wasm32-unknown-unknown
 
-      - name: cargo-leptos cache
-        id: cargo-leptos-cache
-        uses: actions/cache@v4
+      - name: trunk cache restore
+        id: trunk_cache_restore
+        uses: actions/cache/restore@v4
         with:
-          path: 'C:\Users\runneradmin\.cargo\bin\cargo-leptos.exe'
-          key: cargo-leptos-${{ runner.os }}
+          path: ~/.cargo/bin/trunk
+          key: ${{ runner.os }}-trunk
 
-      - name: cargo-leptos install
-        if: steps.cargo-leptos-cache.outputs.cache-hit != 'true'
-        # --locked: fix is in-progress at https://github.com/leptos-rs/cargo-leptos/pull/274
-        run: |-
-          cargo install cargo-leptos --locked
+      - run: cargo install trunk
+        if: steps.trunk_cache_restore.outputs.cache-hit != 'true'
+
+      - name: trunk cache save
+        id: trunk_cache_save
+        uses: actions/cache/save@v4
+        if: always() && steps.trunk_cache_restore.outputs.cache-hit != 'true'
+        with:
+          path: ~/.cargo/bin/trunk
+          key: ${{ runner.os }}-trunk
 
       - name: "Build playground"
         working-directory: ./playground
-        run: cargo leptos build -v
-
-      - name: "Build playground (server side graphviz)"
-        working-directory: ./playground
-        run: cargo leptos build -v
+        run: trunk build -v
