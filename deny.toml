@@ -70,11 +70,11 @@ yanked = "warn"
 # A list of advisory IDs to ignore. Note that ignored advisories will still
 # output a note when they are encountered.
 ignore = [
-    # `derivative` is unmaintained.
+    # `paste` is unmaintained.
     #
-    # Transitive dependency of `log4rs`.
-    # Pending <https://github.com/estk/log4rs/issues/391>.
-    "RUSTSEC-2024-0388",
+    # Transitive dependency of `leptos` -> `either_of` -> `paste`.
+    # <https://rustsec.org/advisories/RUSTSEC-2024-0436>.
+    "RUSTSEC-2024-0436",
 ]
 
 # If this is true, then cargo deny will use the git executable to fetch advisory database.
@@ -96,7 +96,7 @@ version = 2
 allow = [
     "Apache-2.0",
     "BSD-2-Clause",
-    "BSD-3-Clause", # wasm
+    "BSD-3-Clause",     # wasm
     "BSL-1.0",
     "MIT",
     "Unicode-DFS-2016",
@@ -137,8 +137,8 @@ exceptions = [
 # and the crate will be checked normally, which may produce warnings or errors
 # depending on the rest of your configuration
 #license-files = [
-    # Each entry is a crate relative path, and the (opaque) hash of its contents
-    #{ path = "LICENSE", hash = 0xbd0eed23 }
+# Each entry is a crate relative path, and the (opaque) hash of its contents
+#{ path = "LICENSE", hash = 0xbd0eed23 }
 #]
 
 [licenses.private]
