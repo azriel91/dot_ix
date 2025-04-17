@@ -128,7 +128,7 @@ jobs:
         run: cargo test --workspace
 
   build_playground_linux_leptos:
-    name: Build Playground (Linux)
+    name: Build Playground (Linux) - cargo-leptos
     # On `ubuntu-latest`, this job fails because the CI runner is CPU bound
     # when `monaco` is built.
     #
@@ -168,7 +168,7 @@ jobs:
         run: cargo leptos build -v
 
   build_playground_linux_trunk:
-    name: Build Playground (Linux)
+    name: Build Playground (Linux) - trunk
     # On `ubuntu-latest`, this job fails because the CI runner is CPU bound
     # when `monaco` is built.
     #
