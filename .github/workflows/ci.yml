@@ -247,7 +247,7 @@ jobs:
         id: trunk_cache_restore
         uses: actions/cache/restore@v4
         with:
-          path: ~/.cargo/bin/trunk
+          path: 'C:\Users\runneradmin\.cargo\bin\trunk.exe'
           key: ${{ runner.os }}-trunk
 
       - run: cargo install trunk
@@ -258,7 +258,7 @@ jobs:
         uses: actions/cache/save@v4
         if: always() && steps.trunk_cache_restore.outputs.cache-hit != 'true'
         with:
-          path: ~/.cargo/bin/trunk
+          path: 'C:\Users\runneradmin\.cargo\bin\trunk.exe'
           key: ${{ runner.os }}-trunk
 
       - name: "Build playground"
