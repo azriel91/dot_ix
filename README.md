@@ -27,14 +27,10 @@ https://user-images.githubusercontent.com/2993230/253878816-0729970f-651f-45ef-a
 Add the following to `Cargo.toml`
 
 ```toml
-dot_ix = "0.9.2"
+dot_ix = "0.10.0"
 
 # Enables the `FlexDiag` web component.
-dot_ix = { version = "0.9.2", features = ["flex_diag"] }
-
-# Enables server side dot generation.
-# Requires graphviz `dot` to be installed server side.
-dot_ix = { version = "0.9.2", features = ["server_side_graphviz"] }
+dot_ix = { version = "0.10.0", features = ["flex_diag"] }
 ```
 
 
@@ -46,19 +42,7 @@ cargo install cargo-leptos
 # Then, one of:
 # * client side rendering -- uses WASM compiled graphviz to generate the graph.
 cargo leptos watch
-# * server side rendering -- runs `dot` on the server to generate the graph.
-#   Requires `graphviz` to be installed.
-cargo leptos watch --features "server_side_graphviz" -v
 ```
-
-For server side rendering, the `"server_side_graphviz"` feature needs to be passed in separately because that feature still needs to be enabled for the lib compilation, i.e.
-
-* server side rendering:
-    - lib features: `"server_side_graphviz"`
-    - bin features: `"ssr,server_side_graphviz"`
-* client side rendering:
-    - lib features: `""`
-    - bin features: `""`
 
 
 ## To Do

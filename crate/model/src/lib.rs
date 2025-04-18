@@ -129,6 +129,9 @@
 //! - tag_2: "Tag 2"
 //! ```
 
+#[macro_use]
+extern crate id_newtype;
+
 // Re-exports
 pub use dot_ix_static_check_macros::{edge_id, node_id, tag_id};
 pub use indexmap::IndexMap;

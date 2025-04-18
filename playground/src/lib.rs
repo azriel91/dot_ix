@@ -1,3 +1,5 @@
+#![recursion_limit = "256"]
+
 pub mod app;
 
 cfg_if::cfg_if! { if #[cfg(feature = "hydrate")] {

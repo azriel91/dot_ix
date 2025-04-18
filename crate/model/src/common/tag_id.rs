@@ -23,7 +23,7 @@ use crate::common::AnyId;
 #[derive(Clone, Debug, Hash, PartialEq, Eq, Deserialize, Serialize)]
 pub struct TagId(Cow<'static, str>);
 
-crate::common::id_newtype!(TagId, TagIdInvalidFmt, tag_id);
+id_newtype::id_newtype!(TagId, TagIdInvalidFmt, tag_id);
 
 impl From<AnyId> for TagId {
     fn from(any_id: AnyId) -> Self {

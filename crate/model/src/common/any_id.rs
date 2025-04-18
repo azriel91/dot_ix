@@ -12,7 +12,7 @@ use crate::common::{EdgeId, NodeId, TagId};
 #[derive(Clone, Debug, Hash, PartialEq, Eq, Deserialize, Serialize)]
 pub struct AnyId(Cow<'static, str>);
 
-crate::common::id_newtype!(AnyId, AnyIdInvalidFmt, node_id);
+id_newtype::id_newtype!(AnyId, AnyIdInvalidFmt, node_id);
 
 impl From<NodeId> for AnyId {
     fn from(node_id: NodeId) -> Self {

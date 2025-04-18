@@ -23,7 +23,7 @@ use crate::common::AnyId;
 #[derive(Clone, Debug, Hash, PartialEq, Eq, Deserialize, Serialize)]
 pub struct EdgeId(Cow<'static, str>);
 
-crate::common::id_newtype!(EdgeId, EdgeIdInvalidFmt, edge_id);
+id_newtype::id_newtype!(EdgeId, EdgeIdInvalidFmt, edge_id);
 
 impl From<AnyId> for EdgeId {
     fn from(any_id: AnyId) -> Self {

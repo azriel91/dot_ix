@@ -20,7 +20,7 @@ axum = { workspace = true, optional = true }
 console_error_panic_hook = { workspace = true }
 console_log = { workspace = true }
 cfg-if = { workspace = true }
-dot_ix = { version = "0.9.2", path = ".." }
+dot_ix = { version = "0.10.0", path = ".." }
 gloo-net = { workspace = true, features = ["http"] }
 leptos = { workspace = true }
 leptos_axum = { workspace = true, optional = true }
@@ -69,7 +69,6 @@ ssr = [
 csr = [
     "leptos/csr",
 ]
-server_side_graphviz = ["dot_ix/server_side_graphviz"]
 
 [package.metadata.cargo-all-features]
 denylist = ["axum", "tokio", "tower", "tower-http", "leptos_axum"]
@@ -89,7 +88,7 @@ site-pkg-dir = "pkg"
 # [Optional] The source CSS file. If it ends with .sass or .scss then it will be compiled by dart-sass into CSS. The CSS is optimized by Lightning CSS before being written to <site-root>/<site-pkg>/app.css
 # style-file = "style/main.scss"
 tailwind-input-file = "style/tailwind.css"
-tailwind-config-file = "style/tailwind.config.js"
+# tailwind-config-file = "style/tailwind.config.js"
 # Assets source dir. All files found here will be copied and synchronized to site-root.
 # The assets-dir cannot have a sub directory with the same name/path as site-pkg-dir.
 #

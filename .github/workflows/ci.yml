@@ -4,7 +4,7 @@ on:
       - main
   pull_request:
     branches:
-      - '**'
+      - "**"
 
 name: CI
 
@@ -15,32 +15,32 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
-      - uses: actions-rust-lang/audit@v1
-        name: Audit Rust Dependencies
+      - name: "Generate Cargo.lock"
+        run: cargo generate-lockfile
+      - uses: rustsec/audit-check@v2
         with:
-          denyWarnings: true
-          createIssues: false
+          token: ${{ secrets.GITHUB_TOKEN }}
 
   licenses:
     name: Licenses
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - uses: EmbarkStudios/cargo-deny-action@v2
+      - uses: actions/checkout@v4
+      - uses: EmbarkStudios/cargo-deny-action@v2
 
-    - name: cargo-about cache
-      id: cargo-about-cache
-      uses: actions/cache@v4
-      with:
-        path: ~/.cargo/bin/cargo-about
-        key: cargo-about-${{ runner.os }}
+      - name: cargo-about cache
+        id: cargo-about-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/bin/cargo-about
+          key: cargo-about-${{ runner.os }}
 
-    - name: cargo-about install
-      if: steps.cargo-about-cache.outputs.cache-hit != 'true'
-      run: cargo install --locked cargo-about
+      - name: cargo-about install
+        if: steps.cargo-about-cache.outputs.cache-hit != 'true'
+        run: cargo install --locked cargo-about
 
-    - name: cargo-about generate licenses
-      run: cargo about generate --workspace --features "server_side_graphviz" about.hbs > doc/src/licenses.html
+      - name: cargo-about generate licenses
+        run: cargo about generate --workspace about.hbs > doc/src/licenses.html
 
   fmt:
     name: Rustfmt
@@ -82,14 +82,14 @@ jobs:
           toolchain: nightly
           components: clippy
 
-      - name: 'Run clippy (client side graphviz)'
+      - name: "Run clippy (client side graphviz)"
         run: |
           cargo clippy --workspace -- -D warnings
 
-      - name: 'Run clippy (server side graphviz)'
+      - name: "Run clippy (server side graphviz)"
         # we cannot use `--all-features` because `dot_ix` has features that are mutually exclusive.
         run: |
-          cargo clippy --workspace --features "server_side_graphviz" -- -D warnings
+          cargo clippy --workspace -- -D warnings
 
   coverage:
     name: Coverage
@@ -104,14 +104,14 @@ jobs:
 
       - uses: taiki-e/install-action@cargo-llvm-cov
 
-      - name: 'Collect coverage'
+      - name: "Collect coverage"
         run: ./coverage.sh
 
-      - name: 'Print directory sizes'
+      - name: "Print directory sizes"
         run: du -sh target/coverage target/llvm-cov-target
 
       - name: Upload to codecov.io
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         with:
           files: ./target/coverage/lcov.info
           token: ${{ secrets.CODECOV_TOKEN }}
@@ -124,11 +124,58 @@ jobs:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
 
-      - name: 'Build and test'
+      - name: "Build and test"
         run: cargo test --workspace
 
-  build_playground_linux:
-    name: Build Playground (Linux)
+  build_playground_linux_leptos:
+    name: Build Playground (Linux) - cargo-leptos
+    # On `ubuntu-latest`, this job fails because the CI runner is CPU bound
+    # when `monaco` is built.
+    #
+    # Trying 22.04 to see if it alleviates the problem.
+    #
+    # See <https://github.com/actions/runner-images/issues/6680>
+    runs-on: ubuntu-22.04
+    timeout-minutes: 25
+    env:
+      # Seems to solve this issue:
+      #
+      # ```text
+      # 0: Unexpected token Semicolon at :1360:9
+      # ```
+      LEPTOS_TAILWIND_VERSION: "v4.1.4"
+    steps:
+      - uses: actions/checkout@v4
+      - name: "Install Rust"
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+          targets: wasm32-unknown-unknown
+
+      - name: cargo-leptos cache restore
+        id: cargo_leptos_cache_restore
+        uses: actions/cache/restore@v4
+        with:
+          path: ~/.cargo/bin/cargo-leptos
+          key: ${{ runner.os }}-cargo-leptos
+
+      - run: cargo install cargo-leptos
+        if: steps.cargo_leptos_cache_restore.outputs.cache-hit != 'true'
+
+      - name: cargo-leptos cache save
+        id: cargo_leptos_cache_save
+        uses: actions/cache/save@v4
+        if: always() && steps.cargo_leptos_cache_restore.outputs.cache-hit != 'true'
+        with:
+          path: ~/.cargo/bin/cargo-leptos
+          key: ${{ runner.os }}-cargo-leptos
+
+      - name: "Build playground"
+        working-directory: ./playground
+        run: cargo leptos build -v
+
+  build_playground_linux_trunk:
+    name: Build Playground (Linux) - trunk
     # On `ubuntu-latest`, this job fails because the CI runner is CPU bound
     # when `monaco` is built.
     #
@@ -139,30 +186,33 @@ jobs:
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
-      - name: 'Install Rust'
+      - name: "Install Rust"
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: stable
           targets: wasm32-unknown-unknown
 
-      - name: cargo-leptos cache
-        id: cargo-leptos-cache
-        uses: actions/cache@v4
+      - name: trunk cache restore
+        id: trunk_cache_restore
+        uses: actions/cache/restore@v4
         with:
-          path: ~/.cargo/bin/cargo-leptos
-          key: cargo-leptos-${{ runner.os }}
+          path: ~/.cargo/bin/trunk
+          key: ${{ runner.os }}-trunk
 
-      - name: cargo-leptos install
-        if: steps.cargo-leptos-cache.outputs.cache-hit != 'true'
-        run: cargo install cargo-leptos
+      - run: cargo install trunk
+        if: steps.trunk_cache_restore.outputs.cache-hit != 'true'
 
-      - name: 'Build playground'
+      - name: trunk cache save
+        id: trunk_cache_save
+        uses: actions/cache/save@v4
+        if: always() && steps.trunk_cache_restore.outputs.cache-hit != 'true'
+        with:
+          path: ~/.cargo/bin/trunk
+          key: ${{ runner.os }}-trunk
+
+      - name: "Build playground"
         working-directory: ./playground
-        run: cargo leptos build -v
-
-      - name: 'Build playground (server side graphviz)'
-        working-directory: ./playground
-        run: cargo leptos build --features "server_side_graphviz" -v
+        run: trunk build -v
 
   build_and_test_windows:
     name: Build and Test (Windows)
@@ -175,11 +225,11 @@ jobs:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
 
-      - name: 'Build and test'
+      - name: "Build and test"
         run: cargo test --workspace
 
-  build_playground_windows:
-    name: Build Playground (Windows)
+  build_playground_windows_trunk:
+    name: Build Playground (Windows) - trunk
     runs-on: windows-latest
     timeout-minutes: 30
     steps:
@@ -187,29 +237,30 @@ jobs:
         run: git config --global core.symlinks true
 
       - uses: actions/checkout@v4
-      - name: 'Install Rust'
+      - name: "Install Rust"
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: stable
           targets: wasm32-unknown-unknown
 
-      - name: cargo-leptos cache
-        id: cargo-leptos-cache
-        uses: actions/cache@v4
+      - name: trunk cache restore
+        id: trunk_cache_restore
+        uses: actions/cache/restore@v4
         with:
-          path: 'C:\Users\runneradmin\.cargo\bin\cargo-leptos.exe'
-          key: cargo-leptos-${{ runner.os }}
+          path: 'C:\Users\runneradmin\.cargo\bin\trunk.exe'
+          key: ${{ runner.os }}-trunk
 
-      - name: cargo-leptos install
-        if: steps.cargo-leptos-cache.outputs.cache-hit != 'true'
-        # --locked: fix is in-progress at https://github.com/leptos-rs/cargo-leptos/pull/274
-        run: |-
-          cargo install cargo-leptos --locked
+      - run: cargo install trunk
+        if: steps.trunk_cache_restore.outputs.cache-hit != 'true'
 
-      - name: 'Build playground'
+      - name: trunk cache save
+        id: trunk_cache_save
+        uses: actions/cache/save@v4
+        if: always() && steps.trunk_cache_restore.outputs.cache-hit != 'true'
+        with:
+          path: 'C:\Users\runneradmin\.cargo\bin\trunk.exe'
+          key: ${{ runner.os }}-trunk
+
+      - name: "Build playground"
         working-directory: ./playground
-        run: cargo leptos build -v
-
-      - name: 'Build playground (server side graphviz)'
-        working-directory: ./playground
-        run: cargo leptos build --features "server_side_graphviz" -v
+        run: trunk build -v

@@ -23,7 +23,7 @@ use crate::common::AnyId;
 #[derive(Clone, Debug, Hash, PartialEq, Eq, Deserialize, Serialize)]
 pub struct ImageId(Cow<'static, str>);
 
-crate::common::id_newtype!(ImageId, ImageIdInvalidFmt, image_id);
+id_newtype::id_newtype!(ImageId, ImageIdInvalidFmt, image_id);
 
 impl From<AnyId> for ImageId {
     fn from(any_id: AnyId) -> Self {

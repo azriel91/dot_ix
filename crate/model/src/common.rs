@@ -1,4 +1,3 @@
-pub(crate) use self::id_newtype::id_newtype;
 pub use self::{
     any_id::{AnyId, AnyIdInvalidFmt},
     dot_src_and_styles::DotSrcAndStyles,
@@ -34,7 +33,6 @@ mod edge_descs;
 mod edge_id;
 mod edge_tags_set;
 mod edges;
-mod id_newtype;
 mod image_id;
 mod images;
 mod node_descs;
