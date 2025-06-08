@@ -63,6 +63,7 @@ indexmap = "2.9.0"
 indoc = "2.0.6"
 js-sys = "0.3.77"
 web-sys = "0.3.77"
+layout-rs = { git = "https://github.com/mert-kurttutan/layout.git", branch = "html" }
 leptos = { version = "0.8.0-rc1" }
 leptos_axum = "0.8.0-rc1"
 leptos_meta = { version = "0.8.0-rc1" }

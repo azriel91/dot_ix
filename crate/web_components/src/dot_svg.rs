@@ -1,10 +1,14 @@
 use dot_ix_model::{common::DotSrcAndStyles, info_graph::InfoGraph};
+use layout::{
+    backends::svg::SVGWriter,
+    gv::{parser::DotParser, GraphBuilder},
+};
 use leptos::{
     component,
     html::Div,
     prelude::{
         ClassAttribute, Effect, ElementChild, Get, GlobalAttributes, GlobalOnAttributes, NodeRef,
-        NodeRefAttribute, Signal,
+        NodeRefAttribute, Set, Signal,
     },
     view, IntoView,
 };
@@ -128,69 +132,50 @@ pub fn DotSvg(
 
     let (error_text, set_error_text) = leptos::prelude::signal(None::<String>);
 
-    #[cfg(not(target_arch = "wasm32"))]
-    {
-        let _info_graph = info_graph;
-        let _dot_src_and_styles = dot_src_and_styles;
-        let _set_error_text = set_error_text;
-    }
-
     Effect::new(move |_| {
-        #[cfg(not(target_arch = "wasm32"))]
-        let _svg_div_ref = svg_div_ref;
-
-        #[cfg(target_arch = "wasm32")]
-        use leptos::prelude::Set;
-        #[cfg(target_arch = "wasm32")]
         if let Some(dot_src_and_styles) = dot_src_and_styles.get() {
             if !dot_src_and_styles.dot_src.is_empty() {
                 use std::borrow::Cow;
 
-                let DotSrcAndStyles { dot_src, styles, opts, theme_warnings: _ } = dot_src_and_styles;
+                let DotSrcAndStyles {
+                    dot_src,
+                    styles,
+                    opts,
+                    theme_warnings: _,
+                } = dot_src_and_styles;
 
-                let opts = &serde_wasm_bindgen::to_value(&opts).unwrap();
-                let (dot_svg, error) = match graphviz_dot_svg(dot_src, opts) {
-                    // TODO: need to move tag nodes before all other nodes
-                    //       so that tailwind peer selectors work.
-                    Ok(dot_svg) => {
+                // TODO pass in graphviz opts somehow -- for images
+                // `let opts = &serde_wasm_bindgen::to_value(&opts).unwrap();`
+                // `graphviz_dot_svg(dot_src, opts);`
+                let mut dot_parser = DotParser::new(&dot_src);
+                let (dot_svg, error) = match dot_parser.process() {
+                    Ok(ast) => {
+                        // TODO: need to move tag nodes before all other nodes
+                        //       so that tailwind peer selectors work.
+
+                        let mut graph_builder = GraphBuilder::new();
+                        graph_builder.visit_graph(&ast);
+                        let mut visual_graph = graph_builder.get();
+                        let mut svg = SVGWriter::new();
+                        visual_graph.do_it(false, false, false, &mut svg);
+                        let content = svg.finalize();
+
                         let info_graph = info_graph.get();
                         let styles = format!("\n/* TW_PLACEHOLDER */\n{styles}");
                         let images = info_graph.images();
                         let image_defs = svg_image_defs(images);
-                        let dot_svg = dot_svg_sanitize(&dot_svg, &styles, images, &image_defs);
+                        let dot_svg = dot_svg_sanitize(&content, &styles, images, &image_defs);
                         let dot_svg = dot_svg_append_extra(&dot_svg, info_graph.svg_extra());
 
-                        (Cow::Owned(dot_svg), None)},
-                    Err(error) => {
-                        let error = js_sys::Error::from(error)
-                            .to_string()
-                            .as_string()
-                            .unwrap_or_else(|| String::from("<unknown>"));
-
-                        (Cow::Borrowed(""), Some(error))
+                        (Cow::Owned(dot_svg), None)
                     }
+                    Err(error) => (Cow::Borrowed(""), Some(error)),
                 };
 
                 if let Some(svg_div) = svg_div_ref.get() {
                     svg_div.set_inner_html(&dot_svg);
                 }
 
-                // ⚠️ Normally we should not write to a signal in `create_effect`, as it causes
-                // state to be out of sync between server and client.
-                //
-                // However, for a client-side only component, we don't need to keep in sync with
-                // the server.
-                //
-                // From Greg (creator of Leptos):
-                //
-                // > `create_effect` is also good for "only run this in the browser" and also for
-                // > "synchronize with something non-reactive" (like a JS function) so don't worry
-                // > about setting a signal inside it in that context.
-                // >
-                // > "Don't set a signal from an effect; rather, derive a signal." is advice meant
-                // > in the sense "don't reactively read a signal inside an effect, and use it to
-                // > set another signal". It's not the end of the world to do so, just not the best
-                // > practice and can be hard to do correctly.
                 set_error_text.set(error);
             }
         }
