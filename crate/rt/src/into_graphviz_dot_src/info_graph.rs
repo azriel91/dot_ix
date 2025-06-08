@@ -477,7 +477,7 @@ fn node_cluster_internal(
                     buffer,
                     r#"
                         subgraph cluster_{node_id} {{
-                            label = <>
+                            label = ""
                             margin = "{margin_outer}"
                             class = "{OUTLINE_NONE}"
                             {node_width}
@@ -922,11 +922,14 @@ fn tag_legend(
     tags: &TagNames,
 ) -> fmt::Result {
     let node_point_size = theme.node_point_size();
+    // `layout` doesn't support HTML strings in labels.
+    //
+    // `label = <<b>Legend</b>>`
     writedoc!(
         buffer,
         "subgraph cluster_tag_legend {{
             margin = {node_point_size}
-            label = <<b>Legend</b>>
+            label = \"\\bLegend\"
             style = rounded
         "
     )?;
