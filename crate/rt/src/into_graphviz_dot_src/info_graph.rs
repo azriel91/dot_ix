@@ -366,24 +366,28 @@ fn node_cluster_internal(
     let graphviz_attrs = info_graph.graphviz_attrs();
     let margins = graphviz_attrs.margins();
 
-    let node_point_size = theme.node_point_size();
     let node_name = node_names.get(node_id).map(String::as_str);
     let node_desc = node_descs.get(node_id).map(String::as_str);
     let node_emoji = node_emojis.get(node_id).map(String::as_str);
     let node_image = node_images.get(node_id);
     // TODO: escape
-    let node_label = node_name.unwrap_or(node_id);
+    let node_name = node_name.unwrap_or(node_id);
     // TODO: escape
-    let node_desc = node_desc
-        .map(|desc| desc.replace('\n', "<br />"))
-        .map(|desc| format!("<tr><td balign=\"left\">{desc}</td></tr>"));
+    let node_desc = node_desc.map(|desc| desc.replace('\n', "<br/>"));
     let node_desc = node_desc.as_deref();
 
-    let image = image(images, node_image, node_desc);
+    let image = image(images, node_image);
     let image = image.as_deref().unwrap_or("");
-    let emoji = emoji(node_emoji, node_desc, theme, node_point_size);
-    let emoji = emoji.as_deref().unwrap_or("");
+    let emoji = node_emoji.unwrap_or_default();
+    let emoji_space = emoji.is_empty().then_some(" ").unwrap_or_default();
     let node_desc = node_desc.unwrap_or("");
+    // `layout`'s `svg` renderer isn't mature yet. Adding `\n` before the second
+    // `<br/>` gets it to insert the newline as we expect.
+    let node_label = format!(
+        "<{image}{emoji}{emoji_space}<b>{node_name}</b><br/>\
+        \n<br/>\
+        {node_desc}>"
+    );
 
     let node_tag_classes = node_tags_set
         .get(node_id)
@@ -428,17 +432,7 @@ fn node_cluster_internal(
                     buffer,
                     r#"
                         {node_id} [
-                            label = <<table
-                                border="0"
-                                cellborder="0"
-                                cellpadding="0"
-                                cellspacing="0"
-                            >
-                                <tr>
-                                    {image}{emoji}<td align="left" balign="left">{node_label}</td>
-                                </tr>
-                                {node_desc}
-                            </table>>
+                            label = {node_label}
                             class = "{OUTLINE_NONE} {node_tailwind_classes}{node_tag_classes}"
                             {node_width}
                             {node_height}
@@ -482,17 +476,7 @@ fn node_cluster_internal(
                                 fillcolor="{no_color}"
                                 shape="rectangle"
                                 {margin_inner}
-                                label = <<table
-                                    border="0"
-                                    cellborder="0"
-                                    cellpadding="0"
-                                    cellspacing="0"
-                                >
-                                    <tr>
-                                        {image}{emoji}<td align="left" balign="left">{node_label}</td>
-                                    </tr>
-                                    {node_desc}
-                                </table>>
+                                label = {node_label}
                             ]
                         }}
                     "#
@@ -510,17 +494,7 @@ fn node_cluster_internal(
             r#"
                 subgraph cluster_{node_id} {{
                     margin = "{margin}"
-                    label = <<table
-                        border="0"
-                        cellborder="0"
-                        cellpadding="0"
-                        cellspacing="0"
-                    >
-                        <tr>
-                            {image}{emoji}<td align="left" balign="left">{node_label}</td>
-                        </tr>
-                        {node_desc}
-                    </table>>
+                    label = {node_label}
                     style = "filled,rounded"
                     class = "{OUTLINE_NONE} {node_tailwind_classes}{node_tag_classes}"
                     {node_width}
@@ -574,102 +548,18 @@ fn node_cluster_internal(
     Ok(())
 }
 
-fn image(images: &Images, node_image: Option<&ImageId>, node_desc: Option<&str>) -> Option<String> {
+fn image(images: &Images, node_image: Option<&ImageId>) -> Option<String> {
     node_image
         .and_then(|image_id| images.get(image_id))
         .map(|image| {
-            let rowspan = if node_desc.is_some() {
-                "rowspan=\"2\""
-            } else {
-                ""
-            };
-
             let GraphvizImage {
                 path,
                 width,
                 height,
             } = image;
 
-            // Extra `<td>` is for spacing
-            format!(
-                "\
-                <td \
-                    valign=\"top\" \
-                    {rowspan} \
-                    fixedsize=\"true\" \
-                    width=\"{width}\" \
-                    height=\"{height}\" \
-                >\
-                    <img width=\"{width}\" height=\"{height}\" src=\"{path}\" />\
-                </td>\
-                <td \
-                    {rowspan} \
-                    fixedsize=\"true\" \
-                    width=\"10px\" \
-                ></td>"
-            )
+            format!("<img width=\"{width}\" height=\"{height}\" src=\"{path}\" /> ")
         })
-}
-
-fn emoji(
-    node_emoji: Option<&str>,
-    node_desc: Option<&str>,
-    theme: &GraphvizDotTheme,
-    node_point_size: u32,
-) -> Option<String> {
-    node_emoji.map(|emoji| {
-        let rowspan = if node_desc.is_some() {
-            "rowspan=\"2\""
-        } else {
-            ""
-        };
-
-        // Graphviz uses one space character per byte in the emoji.
-        //
-        // Because emojis tend to be 4 bytes long, the width of the cell tends to be 4
-        // times what it should be.
-        //
-        // Specifying the following attributes, plus the nested table, is a hardcoded
-        // hack to fix that:
-        //
-        // * `align`
-        // * `balign`
-        // * `fixedsized`
-        // * `width`
-        // * `height`
-        let cell_spacing = 2;
-        let emoji_point_size = theme.emoji_point_size();
-        let emoji_point_size_spaced = emoji_point_size + cell_spacing;
-        let row_height = if node_desc.is_some() {
-            node_point_size * 2
-        } else {
-            node_point_size
-        };
-        formatdoc!(
-            "\
-            <td \
-                valign=\"top\" \
-                {rowspan}
-            >\
-                <table \
-                    border=\"0\" \
-                    cellborder=\"0\" \
-                    cellpadding=\"0\" \
-                    cellspacing=\"{cell_spacing}\" \
-                >\
-                    <tr><td \
-                        fixedsize=\"true\" \
-                        width=\"{emoji_point_size_spaced}\" \
-                        height=\"{row_height}\" \
-                        align=\"left\" \
-                        balign=\"left\" \
-                    >\
-                        <font point-size=\"{emoji_point_size}\">{emoji}</font>\
-                    </td></tr>
-                </table>
-            </td>"
-        )
-    })
 }
 
 struct NodeClusterArgs<'args> {
