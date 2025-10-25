@@ -170,15 +170,20 @@ impl IntoGraphvizDotSrc for &InfoGraph {
             tag_el_css_classes_map,
         );
 
-        let mut tag_legend_buffer = String::with_capacity(512 * self.tags().len() + 512);
-        tag_legend(
-            self.direction(),
-            &mut tag_legend_buffer,
-            theme,
-            el_css_classes,
-            self.tags(),
-        )
-        .expect("Failed to write `tag_legend` string.");
+        let tag_legend_buffer = if !self.tags().is_empty() {
+            let mut tag_legend_buffer = String::with_capacity(512 * self.tags().len() + 512);
+            tag_legend(
+                self.direction(),
+                &mut tag_legend_buffer,
+                theme,
+                el_css_classes,
+                self.tags(),
+            )
+            .expect("Failed to write `tag_legend` string.");
+            tag_legend_buffer
+        } else {
+            String::new()
+        };
 
         let dot_src = formatdoc!(
             "digraph G {{
