@@ -63,8 +63,8 @@ indexmap = "2.10.0"
 indoc = "2.0.6"
 js-sys = "0.3.77"
 web-sys = "0.3.77"
-# merged the `html` and `subgraph` branches from https://github.com/mert-kurttutan/layout/
-layout-rs = { git = "https://github.com/azriel91/layout.git", branch = "feature/merge-multiple-features" }
+# Image support over the `html-subgraph` branch from https://github.com/mert-kurttutan/layout/
+layout-rs = { git = "https://github.com/azriel91/layout.git", branch = "feature/html-images" }
 leptos = { version = "0.8.3" }
 leptos_axum = "0.8.3"
 leptos_meta = { version = "0.8.3" }

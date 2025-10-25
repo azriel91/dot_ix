@@ -5,7 +5,7 @@ use std::{
 
 use dot_ix_model::{
     common::{
-        dot_src_and_styles::{GraphvizImage, GraphvizOpts},
+        dot_src_and_styles::GraphvizImage,
         graphviz_attrs::{EdgeDir, FixedSize, NodeHeights, NodeWidths, Splines},
         AnyId, DotSrcAndStyles, EdgeId, GraphvizAttrs, GraphvizDotTheme, ImageId, Images,
         NodeHierarchy, NodeId, TagId, TagNames,
@@ -180,20 +180,6 @@ impl IntoGraphvizDotSrc for &InfoGraph {
         )
         .expect("Failed to write `tag_legend` string.");
 
-        let opts = {
-            let images = self
-                .images()
-                .iter()
-                .map(|(image_id, image)| GraphvizImage {
-                    path: image_id.as_str().to_string(),
-                    width: image.width().to_string(),
-                    height: image.height().to_string(),
-                })
-                .collect();
-
-            GraphvizOpts::new(images)
-        };
-
         let dot_src = formatdoc!(
             "digraph G {{
                 {graph_attrs}
@@ -213,7 +199,6 @@ impl IntoGraphvizDotSrc for &InfoGraph {
         DotSrcAndStyles {
             dot_src,
             styles,
-            opts,
             theme_warnings,
         }
     }
@@ -586,8 +571,8 @@ fn node_cluster_internal(
 
 fn image(images: &Images, node_image: Option<&ImageId>, node_desc: Option<&str>) -> Option<String> {
     node_image
-        .and_then(|image_id| images.get(image_id).map(|image| (image_id, image)))
-        .map(|(image_id, image)| {
+        .and_then(|image_id| images.get(image_id))
+        .map(|image| {
             let rowspan = if node_desc.is_some() {
                 "rowspan=\"2\""
             } else {
@@ -595,7 +580,7 @@ fn image(images: &Images, node_image: Option<&ImageId>, node_desc: Option<&str>)
             };
 
             let GraphvizImage {
-                path: _,
+                path,
                 width,
                 height,
             } = image;
@@ -610,7 +595,7 @@ fn image(images: &Images, node_image: Option<&ImageId>, node_desc: Option<&str>)
                     width=\"{width}\" \
                     height=\"{height}\" \
                 >\
-                    <img src=\"{image_id}\" />\
+                    <img width=\"{width}\" height=\"{height}\" src=\"{path}\" />\
                 </td>\
                 <td \
                     {rowspan} \
